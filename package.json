@@ -1,0 +1,26 @@
+{
+  "name": "jhs-enhance",
+  "version": "3.3.6",
+  "description": "Jav-鉴黄师 油猴脚本 - 工程化版本",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vite-plugin-monkey": "^5.0.0"
+  },
+  "dependencies": {
+    "blueimp-md5": "^2.19.0",
+    "jquery": "^4.0.0",
+    "layui-layer": "^1.0.9",
+    "localforage": "^1.10.0",
+    "qrcodejs": "^1.0.0",
+    "tabulator-tables": "^6.5.2",
+    "toastify-js": "^1.12.0",
+    "viewerjs": "^1.12.0"
+  }
+}
