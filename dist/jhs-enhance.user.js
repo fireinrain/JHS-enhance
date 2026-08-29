@@ -8082,47 +8082,49 @@ ${err.stack}` : "");
       }
       return fileId;
     }
-    async deleteOfflineTasksByKeyword(keyword) {
-      try {
-        const singInfo = await (async () => {
-          const res = await gmHttp.get("https://115.com/?ct=offline&ac=space&_=" + (/* @__PURE__ */ new Date()).getTime());
-          return "object" == typeof res ? res : null;
-        })();
-        if (!singInfo) {
-          console.error("删除离线任务: 未登录115网盘");
-          return;
-        }
-        const {sign, time} = singInfo, uid = singInfo.uid || (() => {
-          const match = document.cookie.match(/UID=(\d+)_/);
-          return match ? match[1] : null;
-        })() || await this.getUserId();
-        const taskListRes = await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_lists", {
-          page: 1,
-          uid,
-          sign,
-          time
-        });
-        const tasks = (null == taskListRes ? void 0 : taskListRes.tasks) || [];
-        const keyword2 = keyword.toLowerCase().replace("fc2-", "");
-        let deletedCount = 0;
-        for (const task of tasks) {
-          if (task.name && task.name.toLowerCase().includes(keyword2)) {
-            console.log(`删除离线任务: ${task.name} (hash: ${task.info_hash})`);
-            await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_del", {
-              "hash[0]": task.info_hash,
-              flag: 1,
-              uid,
-              sign,
-              time
-            });
-            deletedCount++;
-          }
-        }
-        deletedCount > 0 && console.log(`共删除 ${deletedCount} 个离线任务`);
-      } catch (error) {
-        console.error("删除离线任务失败:", error);
-      }
-    }
+
+    //TODO: 暂时没有删除离线任务
+    // async deleteOfflineTasksByKeyword(keyword) {
+    //     try {
+    //         const singInfo = await (async () => {
+    //             const res = await gmHttp.get("https://115.com/?ct=offline&ac=space&_=" + (new Date).getTime());
+    //             return "object" == typeof res ? res : null;
+    //         })();
+    //         if (!singInfo) {
+    //             console.error("删除离线任务: 未登录115网盘");
+    //             return;
+    //         }
+    //         const {sign: sign, time: time} = singInfo, uid = singInfo.uid || (() => {
+    //             const match = document.cookie.match(/UID=(\d+)_/);
+    //             return match ? match[1] : null;
+    //         })() || await this.getUserId();
+    //         const taskListRes = await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_lists", {
+    //             page: 1,
+    //             uid: uid,
+    //             sign: sign,
+    //             time: time
+    //         });
+    //         const tasks = (null == taskListRes ? void 0 : taskListRes.tasks) || [];
+    //         const keyword2 = keyword.toLowerCase().replace("fc2-", "");
+    //         let deletedCount = 0;
+    //         for (const task of tasks) {
+    //             if (task.name && task.name.toLowerCase().includes(keyword2)) {
+    //                 console.log(`删除离线任务: ${task.name} (hash: ${task.info_hash})`);
+    //                 await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_del", {
+    //                     "hash[0]": task.info_hash,
+    //                     flag: 1,
+    //                     uid: uid,
+    //                     sign: sign,
+    //                     time: time
+    //                 });
+    //                 deletedCount++;
+    //             }
+    //         }
+    //         deletedCount > 0 && console.log(`共删除 ${deletedCount} 个离线任务`);
+    //     } catch (error) {
+    //         console.error("删除离线任务失败:", error);
+    //     }
+    // }
   }
   class ScreenShotPlugin extends BasePlugin {
     getName() {
@@ -8553,6 +8555,19 @@ ${err.stack}` : "");
         event.stopPropagation();
         await this.retryMatch(event.currentTarget);
       }));
+      $(document).on("click", ".jhs-detail-delete-btn", (async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const $btn = $(event.currentTarget);
+        const matchData = $btn.attr("data-match");
+        if (!matchData) return;
+        const matchList = JSON.parse(matchData);
+        const carNum2 = this.getPageInfo().carNum;
+        this.showDeleteDialog(carNum2, matchList, (async (newMatchList) => {
+          $("#115-match-table").remove();
+          await this.matchDetailPage(newMatchList);
+        }));
+      }));
       await this.matchDetailPage();
       $(document).on("click", ".jhs-match-detail-error-btn", (async (event) => {
         event.preventDefault();
@@ -8596,6 +8611,11 @@ ${err.stack}` : "");
                 </tr>
             `)).join("");
           $tbody.append(rowsHtml);
+          $detail.css("position", "relative");
+          $detail.append(`<span class="jhs-detail-delete-btn" 
+                    data-match='${JSON.stringify(matchList)}'
+                    style="position: absolute; top: 8px; right: 12px; cursor: pointer; color: #e74c3c; font-size: 16px; font-weight: bold; z-index: 1;" 
+                    title="删除115作品">🗑️ 删除</span>`);
         } else $tbody.append(`<tr><td colspan="4">
                      <a class='jhs-match-detail-error-btn a-info'
                         data-keyword="${carNum2}"
@@ -8726,6 +8746,77 @@ ${err.stack}` : "");
           $deleteBtn.hide();
         }
       }
+    }
+
+    showDeleteDialog(carNum2, matchList, afterDelete) {
+      const formatSize = (bytes) => {
+        if (!bytes) return "-";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let size = parseFloat(bytes), unit = 0;
+        for (; size >= 1024 && unit < units.length - 1;) size /= 1024, unit++;
+        return size.toFixed(2) + " " + units[unit];
+      };
+      let html = '<div style="padding: 15px; max-height: 400px; overflow-y: auto;">';
+      html += `<div style="margin-bottom: 12px; font-size: 14px;">作品 <b>${carNum2}</b> 匹配到 <b>${matchList.length}</b> 个文件夹：</div>`;
+      html += '<div style="margin-bottom: 10px;"><label style="cursor: pointer;"><input type="checkbox" class="jhs-delete-select-all" checked> <b>全选</b></label></div>';
+      for (let i = 0; i < matchList.length; i++) {
+        const m = matchList[i];
+        html += `<div style="margin-bottom: 6px; padding: 8px 10px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa;">
+                <label style="display: flex; align-items: flex-start; cursor: pointer; width: 100%;">
+                    <input type="checkbox" class="jhs-delete-folder-cb" data-index="${i}" checked style="margin-top: 3px; flex-shrink: 0;">
+                    <span style="margin-left: 8px; flex: 1;">
+                        <div style="word-break: break-all;">${m.name}</div>
+                        <div style="font-size: 12px; color: #888; margin-top: 2px;">${formatSize(m.size)} | ${m.createTime}</div>
+                    </span>
+                </label>
+            </div>`;
+      }
+      html += "</div>";
+      const layerIndex = layer.open({
+        type: 1,
+        title: "删除115作品文件夹",
+        content: html,
+        area: ["520px", "auto"],
+        btn: ["确定删除", "取消"],
+        shadeClose: false,
+        yes: async (index) => {
+          const $layer = $(`#layui-layer${index}`);
+          const checked = $layer.find(".jhs-delete-folder-cb:checked");
+          if (0 === checked.length) {
+            show.error("请至少选择一个文件夹");
+            return;
+          }
+          const selected = checked.map((function () {
+            return parseInt($(this).data("index"));
+          })).get();
+          layer.close(index);
+          let loadObj = loading();
+          let deletedCount = 0;
+          try {
+            for (const i of selected) {
+              const m = matchList[i];
+              const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                pid: m.dirId,
+                "fid[0]": m.folderId
+              });
+              result && result.state ? deletedCount++ : console.error(`删除失败: ${m.name}`, result);
+            }
+            loadObj.close();
+            show.ok(`作品 "${carNum2}" 已删除 ${deletedCount} 个文件夹`);
+            const newMatchList = await this.searchFiles(carNum2);
+            afterDelete && afterDelete(newMatchList);
+            this.getBean("WangPan115TaskPlugin").deleteOfflineTasksByKeyword(carNum2);
+          } catch (error) {
+            loadObj.close();
+            console.error("删除115文件失败:", error);
+            show.error(`删除失败: ${error.message || "网络错误"}`);
+          }
+        }
+      });
+      $(`#layui-layer${layerIndex}`).on("change", ".jhs-delete-select-all", (function () {
+        const checked = $(this).prop("checked");
+        $(`#layui-layer${layerIndex} .jhs-delete-folder-cb`).prop("checked", checked);
+      }));
     }
     async handleLoginRedirect() {
       window.open("https://115.com");
@@ -10114,79 +10205,9 @@ ${err.stack}` : "");
         const matchList = JSON.parse(matchData);
         const $box2 = $btn.closest(".item");
         const { carNum: carNum2 } = this.getBoxCarInfo($box2);
-        this.showDeleteDialog(carNum2, matchList, $box2);
-      }));
-    }
-
-    showDeleteDialog(carNum2, matchList, $box2) {
-      const formatSize = (bytes) => {
-        if (!bytes) return "-";
-        const units = ["B", "KB", "MB", "GB", "TB"];
-        let size = parseFloat(bytes), unit = 0;
-        for (; size >= 1024 && unit < units.length - 1;) size /= 1024, unit++;
-        return size.toFixed(2) + " " + units[unit];
-      };
-      let html = '<div style="padding: 15px; max-height: 400px; overflow-y: auto;">';
-      html += `<div style="margin-bottom: 12px; font-size: 14px;">作品 <b>${carNum2}</b> 匹配到 <b>${matchList.length}</b> 个文件夹：</div>`;
-      html += '<div style="margin-bottom: 10px;"><label style="cursor: pointer;"><input type="checkbox" class="jhs-delete-select-all" checked> <b>全选</b></label></div>';
-      for (let i = 0; i < matchList.length; i++) {
-        const m = matchList[i];
-        html += `<div style="margin-bottom: 6px; padding: 8px 10px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa;">
-                <label style="display: flex; align-items: flex-start; cursor: pointer; width: 100%;">
-                    <input type="checkbox" class="jhs-delete-folder-cb" data-index="${i}" checked style="margin-top: 3px; flex-shrink: 0;">
-                    <span style="margin-left: 8px; flex: 1;">
-                        <div style="word-break: break-all;">${m.name}</div>
-                        <div style="font-size: 12px; color: #888; margin-top: 2px;">${formatSize(m.size)} | ${m.createTime}</div>
-                    </span>
-                </label>
-            </div>`;
-      }
-      html += "</div>";
-      const layerIndex = layer.open({
-        type: 1,
-        title: `删除115作品文件夹`,
-        content: html,
-        area: ["520px", "auto"],
-        btn: ["确定删除", "取消"],
-        shadeClose: false,
-        yes: async (index) => {
-          const $layer = $(`#layui-layer${index}`);
-          const checked = $layer.find(".jhs-delete-folder-cb:checked");
-          if (0 === checked.length) {
-            show.error("请至少选择一个文件夹");
-            return;
-          }
-          const selected = checked.map((function () {
-            return parseInt($(this).data("index"));
-          })).get();
-          layer.close(index);
-          let loadObj = loading();
-          let deletedCount = 0;
-          try {
-            for (const i of selected) {
-              const m = matchList[i];
-              const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
-                pid: m.dirId,
-                "fid[0]": m.folderId
-              });
-              result && result.state ? deletedCount++ : console.error(`删除失败: ${m.name}`, result);
-            }
-            loadObj.close();
-            show.ok(`作品 "${carNum2}" 已删除 ${deletedCount} 个文件夹`);
-            const matchPlugin = this.getBean("WangPan115MatchPlugin");
-            const newMatchList = await matchPlugin.searchFiles(carNum2);
-            matchPlugin.updateMatchStatus($box2, carNum2, newMatchList);
-            this.getBean("WangPan115TaskPlugin").deleteOfflineTasksByKeyword(carNum2);
-          } catch (error) {
-            loadObj.close();
-            console.error("删除115文件失败:", error);
-            show.error(`删除失败: ${error.message || "网络错误"}`);
-          }
-        }
-      });
-      $(`#layui-layer${layerIndex}`).on("change", ".jhs-delete-select-all", (function () {
-        const checked = $(this).prop("checked");
-        $(`#layui-layer${layerIndex} .jhs-delete-folder-cb`).prop("checked", checked);
+        this.getBean("WangPan115MatchPlugin").showDeleteDialog(carNum2, matchList, (async (newMatchList) => {
+          this.getBean("WangPan115MatchPlugin").updateMatchStatus($box2, carNum2, newMatchList);
+        }));
       }));
     }
     showImg($svgElement, $img, carNum2) {
