@@ -8082,7 +8082,6 @@ ${err.stack}` : "");
       }
       return fileId;
     }
-
     //TODO: 暂时没有删除离线任务
     // async deleteOfflineTasksByKeyword(keyword) {
     //     try {
@@ -8747,8 +8746,14 @@ ${err.stack}` : "");
         }
       }
     }
-
     showDeleteDialog(carNum2, matchList, afterDelete) {
+      const upperCarNum = carNum2.toUpperCase();
+      const safeMatchList = matchList.filter((m) => m.name.toUpperCase().includes(upperCarNum));
+      const unsafeCount = matchList.length - safeMatchList.length;
+      if (safeMatchList.length === 0) {
+        show.error(`作品 "${carNum2}" 匹配到的 ${matchList.length} 个项目均不含番号，无法安全删除。请手动在115中删除。`);
+        return;
+      }
       const formatSize = (bytes) => {
         if (!bytes) return "-";
         const units = ["B", "KB", "MB", "GB", "TB"];
@@ -8757,10 +8762,13 @@ ${err.stack}` : "");
         return size.toFixed(2) + " " + units[unit];
       };
       let html = '<div style="padding: 15px; max-height: 400px; overflow-y: auto;">';
-      html += `<div style="margin-bottom: 12px; font-size: 14px;">作品 <b>${carNum2}</b> 匹配到 <b>${matchList.length}</b> 个文件夹：</div>`;
+      html += `<div style="margin-bottom: 12px; font-size: 14px;">作品 <b>${carNum2}</b> 匹配到 <b>${matchList.length}</b> 个文件夹（可删除 <b>${safeMatchList.length}</b> 个）：</div>`;
+      if (unsafeCount > 0) {
+        html += `<div style="margin-bottom: 10px; padding: 6px 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">⚠ 已自动排除 ${unsafeCount} 个目录名不含番号的项目，防止误删</div>`;
+      }
       html += '<div style="margin-bottom: 10px;"><label style="cursor: pointer;"><input type="checkbox" class="jhs-delete-select-all" checked> <b>全选</b></label></div>';
-      for (let i = 0; i < matchList.length; i++) {
-        const m = matchList[i];
+      for (let i = 0; i < safeMatchList.length; i++) {
+        const m = safeMatchList[i];
         html += `<div style="margin-bottom: 6px; padding: 8px 10px; border: 1px solid #e0e0e0; border-radius: 4px; background: #fafafa;">
                 <label style="display: flex; align-items: flex-start; cursor: pointer; width: 100%;">
                     <input type="checkbox" class="jhs-delete-folder-cb" data-index="${i}" checked style="margin-top: 3px; flex-shrink: 0;">
@@ -8794,7 +8802,7 @@ ${err.stack}` : "");
           let deletedCount = 0;
           try {
             for (const i of selected) {
-              const m = matchList[i];
+              const m = safeMatchList[i];
               const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
                 pid: m.dirId,
                 "fid[0]": m.folderId
