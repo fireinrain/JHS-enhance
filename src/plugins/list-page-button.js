@@ -10,6 +10,7 @@ class ListPageButtonPlugin extends BasePlugin {
         await this.createMenuBtn();
         this.bindEvent();
         await storageManager.getSetting("autoPage") === YES ? $("#sort-toggle-btn").hide() : this.sortItems().then();
+        this.initOneTimeSortBtn();
     }
     async createMenuBtn() {
         const showWaitCheckBtn = await storageManager.getSetting("showWaitCheckBtn", YES), showWaitDownBtn = await storageManager.getSetting("showWaitDownBtn", YES);
@@ -38,7 +39,7 @@ class ListPageButtonPlugin extends BasePlugin {
             const isFc2Page2 = currentHref.includes("advanced_search");
             isFc2Page2 ? $el = $("h2.section-title") : otherCss = "flex-grow:1;";
             const jhs_sortMethod = localStorage.getItem("jhs_sortMethod"), sortText = "当前排序方式: " + ("rateCount" === jhs_sortMethod ? "评价人数" : "date" === jhs_sortMethod ? "时间" : "默认");
-            $el.append(`\n                <div style="display: flex;align-items: center; ${otherCss} ">\n                    <a id="waitCheckBtn" class="menu-btn main-tab-btn" data-tip="打开未鉴定的列表项, 并自动播放视频" style="background-color:#56c938 !important; ${showWaitCheckBtn === NO ? "display: none" : ""}"><span>打开待鉴定</span></a>\n                    <a id="waitDownBtn" class="menu-btn main-tab-btn" style="background-color:#2caac0 !important; ${showWaitDownBtn === NO ? "display: none" : ""}"><span>打开已收藏</span></a>\n                    ${isStarPage ? `\n                     <a id="addBlacklistBtn" class="menu-btn main-tab-btn" style="background-color:${addBlacklistBtnColor} !important;" data-tip="将演员加入黑名单, 后续有作品更新也会纳入屏蔽中"><span>${addBlacklistBtnText}</span></a>\n                     <a id="filterAllVideo" class="menu-btn main-tab-btn" style="background-color:#e8ab39 !important;margin-right: 30px!important;" data-tip="一键屏蔽已选分类的视频列表至鉴定记录中"><span>一键屏蔽所有作品</span></a>\n                    ` : ""}\n                    ${currentHref.includes("/tags") ? `\n                      <a id="addBlacklistBtn" class="menu-btn main-tab-btn" style="background-color:${addBlacklistBtnColor} !important;" data-tip="将演员加入黑名单, 后续有作品更新也会纳入屏蔽中"><span>${addBlacklistBtnText}</span></a>\n                    ` : ""}\n                </div>\n                <div style="display: flex;align-items: center;">\n                    <a id="newVideoBtn" class="menu-btn main-tab-btn" style="background-color:#2c6cc0 !important;"><span>新作品检测 (<span id="newVideoCount">0</span>)</span></a>\n                    <a id="blacklistBtn" class="menu-btn main-tab-btn" style="background-color:#34393f !important;"><span>演员黑名单</span></a>\n                    ${isSearchPage || isFc2Page2 ? "" : `<a id="sort-toggle-btn" class="menu-btn main-tab-btn" style="background-color:#8783ab !important;"> ${sortText} </a>`}\n                </div>\n            `);
+            $el.append(`\n                <div style="display: flex;align-items: center; ${otherCss} ">\n                    <a id="waitCheckBtn" class="menu-btn main-tab-btn" data-tip="打开未鉴定的列表项, 并自动播放视频" style="background-color:#56c938 !important; ${showWaitCheckBtn === NO ? "display: none" : ""}"><span>打开待鉴定</span></a>\n                    <a id="waitDownBtn" class="menu-btn main-tab-btn" style="background-color:#2caac0 !important; ${showWaitDownBtn === NO ? "display: none" : ""}"><span>打开已收藏</span></a>\n                    ${isStarPage ? `\n                     <a id="addBlacklistBtn" class="menu-btn main-tab-btn" style="background-color:${addBlacklistBtnColor} !important;" data-tip="将演员加入黑名单, 后续有作品更新也会纳入屏蔽中"><span>${addBlacklistBtnText}</span></a>\n                     <a id="filterAllVideo" class="menu-btn main-tab-btn" style="background-color:#e8ab39 !important;margin-right: 30px!important;" data-tip="一键屏蔽已选分类的视频列表至鉴定记录中"><span>一键屏蔽所有作品</span></a>\n                    ` : ""}\n                    ${currentHref.includes("/tags") ? `\n                      <a id="addBlacklistBtn" class="menu-btn main-tab-btn" style="background-color:${addBlacklistBtnColor} !important;" data-tip="将演员加入黑名单, 后续有作品更新也会纳入屏蔽中"><span>${addBlacklistBtnText}</span></a>\n                    ` : ""}\n                </div>\n                <div style="display: flex;align-items: center;">\n                    <a id="one-time-sort-btn" class="menu-btn main-tab-btn" style="background-color:#8783ab !important;">一次性排序: 默认</a>\n                    <a id="newVideoBtn" class="menu-btn main-tab-btn" style="background-color:#2c6cc0 !important;"><span>新作品检测 (<span id="newVideoCount">0</span>)</span></a>\n                    <a id="blacklistBtn" class="menu-btn main-tab-btn" style="background-color:#34393f !important;"><span>演员黑名单</span></a>\n                    ${isSearchPage || isFc2Page2 ? "" : `<a id="sort-toggle-btn" class="menu-btn main-tab-btn" style="background-color:#8783ab !important;"> ${sortText} </a>`}\n                </div>\n            `);
         }
         if (isJavBus) {
             const isStarPage = currentHref.includes("/star/");
@@ -89,6 +90,22 @@ class ListPageButtonPlugin extends BasePlugin {
             $(event.target).text(`当前排序方式: ${methodText}`);
             localStorage.setItem("jhs_sortMethod", newMethod);
             this.sortItems().then();
+        }));
+        $("#one-time-sort-btn").on("click", (event => {
+            const currentMethod = localStorage.getItem("jhs_oneTimeSortMethod") || "default";
+            const sortCycle = ["default", "rateCount", "totalScore", "date"];
+            let nextIndex = sortCycle.indexOf(currentMethod) + 1;
+            if (nextIndex >= sortCycle.length || nextIndex < 0) nextIndex = 0;
+            const newMethod = sortCycle[nextIndex];
+            const methodText = {
+                default: "默认",
+                rateCount: "评价人数",
+                totalScore: "总分",
+                date: "时间"
+            }[newMethod];
+            $("#one-time-sort-btn").text(`一次性排序: ${methodText}`);
+            localStorage.setItem("jhs_oneTimeSortMethod", newMethod);
+            this.oneTimeSortItems().then();
         }));
         const blacklistPlugin = this.getBean("BlacklistPlugin");
         $("#addBlacklistBtn").on("click", (async event => {
@@ -170,6 +187,66 @@ class ListPageButtonPlugin extends BasePlugin {
                     return getDate(b) - getDate(a);
                 }
 
+            }));
+            $container.empty().append(items);
+        }
+    }
+
+    async initOneTimeSortBtn() {
+        const autoPage = await storageManager.getSetting("autoPage");
+        if (autoPage !== YES) {
+            $("#one-time-sort-btn").hide();
+            return;
+        }
+        const oneTimeMethod = localStorage.getItem("jhs_oneTimeSortMethod") || "default";
+        const methodText = {
+            default: "默认",
+            rateCount: "评价人数",
+            totalScore: "总分",
+            date: "时间"
+        }[oneTimeMethod];
+        $("#one-time-sort-btn").text(`一次性排序: ${methodText}`).show();
+    }
+
+    async oneTimeSortItems() {
+        if (currentHref.includes("handle") || currentHref.includes("advanced_search")) return;
+        if (isSearchPage) return;
+        const method = localStorage.getItem("jhs_oneTimeSortMethod");
+        if (!method) return;
+        $(".movie-list .item").each((function (index) {
+            $(this).attr("data-original-index") || $(this).attr("data-original-index", index);
+        }));
+        const $container = $(".movie-list"), $items = $(".item", $container);
+        if ("default" === method) {
+            $items.sort((function (a, b) {
+                return $(a).data("original-index") - $(b).data("original-index");
+            })).appendTo($container);
+        } else {
+            const items = $items.get();
+            items.sort((function (a, b) {
+                if ("rateCount" === method) {
+                    const getScore = el => {
+                        const match = $(el).find(".score .value").text().match(/由(\d+)人/);
+                        return match ? parseFloat(match[1]) : 0;
+                    };
+                    return getScore(b) - getScore(a);
+                } else if ("totalScore" === method) {
+                    const getTotalScore = el => {
+                        const text = $(el).find(".score .value").text();
+                        const scoreMatch = text.match(/([\d.]+)分/);
+                        const countMatch = text.match(/由(\d+)人/);
+                        const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
+                        const count = countMatch ? parseFloat(countMatch[1]) : 0;
+                        return score * count;
+                    };
+                    return getTotalScore(b) - getTotalScore(a);
+                } else {
+                    const getDate = el => {
+                        const dateStr = $(el).find(".meta").text().trim();
+                        return new Date(dateStr);
+                    };
+                    return getDate(b) - getDate(a);
+                }
             }));
             $container.empty().append(items);
         }

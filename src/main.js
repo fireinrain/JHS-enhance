@@ -1,4 +1,5 @@
 import './core/globals.js';
+import './lib/gm-xhr-parallel.js';
 import { __defProp, __typeError, __publicField, __privateMethod, currentHref, isJavDb, isJavBus, isSearchPage, Status_RUNNING, Status_SUCCESS, Status_FAIL, Status_LOADING, Status_FILTER, Status_FAVORITE, Status_HAS_DOWN, Status_HAS_WATCH, NO, YES, qualityOptions, detailPageCss$1, javBusStyle, detailPageCss, javdbStyle, mainCss, insertStyle } from './core/constants.js';
 import { StorageManager } from './core/storage.js';
 import { Utils } from './core/utils.js';

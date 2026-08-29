@@ -23,7 +23,6 @@
 // @exclude      https://*javsee*/*actresses
 // @exclude      https://*seejav*/forum/*
 // @exclude      https://*seejav*/*actresses
-// @require      https://raw.githubusercontent.com/Tampermonkey/utils/refs/heads/main/requires/gh_2215_make_GM_xhr_more_parallel_again.js
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js
 // @require      https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.1/dist/js/tabulator.min.js
 // @require      https://cdn.jsdelivr.net/npm/layui-layer@1.0.9/dist/layer.min.js
@@ -10958,5 +10957,3 @@ pluginManager.processCss().then();
     });
     pluginManager.processPlugins().then();
 }();
-
-

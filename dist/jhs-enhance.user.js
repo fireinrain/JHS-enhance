@@ -23,7 +23,6 @@
 // @exclude      https://*javsee*/*actresses
 // @exclude      https://*seejav*/forum/*
 // @exclude      https://*seejav*/*actresses
-// @require      https://raw.githubusercontent.com/Tampermonkey/utils/refs/heads/main/requires/gh_2215_make_GM_xhr_more_parallel_again.js
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js
 // @require      https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.1/dist/js/tabulator.min.js
 // @require      https://cdn.jsdelivr.net/npm/layui-layer@1.0.9/dist/layer.min.js
@@ -66,6 +65,7 @@
 // @connect      jianguoyun.com
 // @connect      127.0.0.1
 // @connect      *
+// @grant        GM_info
 // @grant        GM_openInTab
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
@@ -542,6 +542,131 @@
   window.Status_HAS_WATCH = Status_HAS_WATCH$1;
   window.NO = NO;
   window.YES = YES;
+    const HAS_GM = typeof GM !== "undefined";
+    const NEW_GM = ((scope, GM2) => {
+        if (GM_info.scriptHandler !== "Tampermonkey" || compareVersions(GM_info.version, "5.3.2") < 0) return;
+        const GM_xmlhttpRequestOrig = GM_xmlhttpRequest;
+        const GM_xmlHttpRequestOrig = GM2.xmlHttpRequest;
+
+        function compareVersions(v1, v2) {
+            const parts1 = v1.split(".").map(Number);
+            const parts2 = v2.split(".").map(Number);
+            const length = Math.max(parts1.length, parts2.length);
+            for (let i = 0; i < length; i++) {
+                const num1 = parts1[i] || 0;
+                const num2 = parts2[i] || 0;
+                if (num1 > num2) return 1;
+                if (num1 < num2) return -1;
+            }
+            return 0;
+        }
+
+        function GM_xmlhttpRequestWrapper(odetails) {
+            if (odetails.redirect !== void 0) {
+                return GM_xmlhttpRequestOrig(odetails);
+            }
+            if (odetails.onprogress || odetails.fetch === false) {
+                console.warn("Fetch mode does not support onprogress in the background.");
+            }
+            const {
+                onload,
+                onloadend,
+                onerror,
+                onabort,
+                ontimeout,
+                ...details
+            } = odetails;
+            const handleRedirects = (initialDetails) => {
+                const request = GM_xmlhttpRequestOrig({
+                    ...initialDetails,
+                    redirect: "manual",
+                    onload: function (response) {
+                        if (response.status >= 300 && response.status < 400) {
+                            const m = response.responseHeaders.match(/Location:\s*(\S+)/i);
+                            const redirectUrl = m && m[1];
+                            if (redirectUrl) {
+                                const absoluteUrl = new URL(redirectUrl, initialDetails.url).href;
+                                handleRedirects({...initialDetails, url: absoluteUrl});
+                                return;
+                            }
+                        }
+                        if (onload) onload.call(this, response);
+                        if (onloadend) onloadend.call(this, response);
+                    },
+                    onerror: function (response) {
+                        if (onerror) onerror.call(this, response);
+                        if (onloadend) onloadend.call(this, response);
+                    },
+                    onabort: function (response) {
+                        if (onabort) onabort.call(this, response);
+                        if (onloadend) onloadend.call(this, response);
+                    },
+                    ontimeout: function (response) {
+                        if (ontimeout) ontimeout.call(this, response);
+                        if (onloadend) onloadend.call(this, response);
+                    }
+                });
+                return request;
+            };
+            return handleRedirects(details);
+        }
+
+        function GM_xmlHttpRequestWrapper(odetails) {
+            let abort;
+            const p = new Promise((resolve, reject) => {
+                const {onload, ontimeout, onerror, ...send} = odetails;
+                send.onerror = function (r) {
+                    if (onerror) {
+                        resolve(r);
+                        onerror.call(this, r);
+                    } else {
+                        reject(r);
+                    }
+                };
+                send.ontimeout = function (r) {
+                    if (ontimeout) {
+                        resolve(r);
+                        ontimeout.call(this, r);
+                    } else {
+                        reject(r);
+                    }
+                };
+                send.onload = function (r) {
+                    resolve(r);
+                    if (onload) onload.call(this, r);
+                };
+                const a = GM_xmlhttpRequestWrapper(send).abort;
+                if (abort === true) {
+                    a();
+                } else {
+                    abort = a;
+                }
+            });
+            p.abort = () => {
+                if (typeof abort === "function") {
+                    abort();
+                } else {
+                    abort = true;
+                }
+            };
+            return p;
+        }
+
+        GM_xmlhttpRequest = GM_xmlhttpRequestWrapper;
+        scope.GM_xmlhttpRequestOrig = GM_xmlhttpRequestOrig;
+        const gopd = Object.getOwnPropertyDescriptor(GM2, "xmlHttpRequest");
+        if (gopd && gopd.configurable === false) {
+            return {
+                __proto__: GM2,
+                xmlHttpRequest: GM_xmlHttpRequestWrapper,
+                xmlHttpRequestOrig: GM_xmlHttpRequestOrig
+            };
+        } else {
+            GM2.xmlHttpRequest = GM_xmlHttpRequestWrapper;
+            GM2.xmlHttpRequestOrig = GM_xmlHttpRequestOrig;
+        }
+    })(globalThis, HAS_GM ? GM : {});
+    if (HAS_GM && NEW_GM) GM = NEW_GM;
   var _StorageManager_instances, setItem_fn, saveFilterItem_fn;
   _StorageManager_instances = /* @__PURE__ */ new WeakSet();
   setItem_fn = async function(key, data) {
@@ -3776,7 +3901,7 @@ ${value}\r
       $("#autoPage").on("change", (async (event) => {
         const autoPage = $("#autoPage").is(":checked") ? YES : NO;
         await storageManager.saveSettingItem("autoPage", autoPage);
-        autoPage === YES ? $("#sort-toggle-btn").hide() : $("#sort-toggle-btn").show();
+          autoPage === YES ? ($("#sort-toggle-btn").hide(), $("#one-time-sort-btn").show()) : ($("#sort-toggle-btn").show(), $("#one-time-sort-btn").hide());
       }));
       $("#translateTitle").on("change", (async (event) => {
         const translateTitle = $("#translateTitle").is(":checked") ? YES : NO;
@@ -9256,6 +9381,7 @@ ${err.stack}` : "");
       await this.createMenuBtn();
       this.bindEvent();
       await storageManager.getSetting("autoPage") === YES ? $("#sort-toggle-btn").hide() : this.sortItems().then();
+        this.initOneTimeSortBtn();
     }
     async createMenuBtn() {
       const showWaitCheckBtn = await storageManager.getSetting("showWaitCheckBtn", YES), showWaitDownBtn = await storageManager.getSetting("showWaitDownBtn", YES);
@@ -9297,6 +9423,7 @@ ${err.stack}` : "");
                     ` : ""}
                 </div>
                 <div style="display: flex;align-items: center;">
+                    <a id="one-time-sort-btn" class="menu-btn main-tab-btn" style="background-color:#8783ab !important;">一次性排序: 默认</a>
                     <a id="newVideoBtn" class="menu-btn main-tab-btn" style="background-color:#2c6cc0 !important;"><span>新作品检测 (<span id="newVideoCount">0</span>)</span></a>
                     <a id="blacklistBtn" class="menu-btn main-tab-btn" style="background-color:#34393f !important;"><span>演员黑名单</span></a>
                     ${isSearchPage || isFc2Page2 ? "" : `<a id="sort-toggle-btn" class="menu-btn main-tab-btn" style="background-color:#8783ab !important;"> ${sortText} </a>`}
@@ -9357,6 +9484,22 @@ ${err.stack}` : "");
         localStorage.setItem("jhs_sortMethod", newMethod);
         this.sortItems().then();
       }));
+        $("#one-time-sort-btn").on("click", ((event) => {
+            const currentMethod = localStorage.getItem("jhs_oneTimeSortMethod") || "default";
+            const sortCycle = ["default", "rateCount", "totalScore", "date"];
+            let nextIndex = sortCycle.indexOf(currentMethod) + 1;
+            if (nextIndex >= sortCycle.length || nextIndex < 0) nextIndex = 0;
+            const newMethod = sortCycle[nextIndex];
+            const methodText = {
+                default: "默认",
+                rateCount: "评价人数",
+                totalScore: "总分",
+                date: "时间"
+            }[newMethod];
+            $("#one-time-sort-btn").text(`一次性排序: ${methodText}`);
+            localStorage.setItem("jhs_oneTimeSortMethod", newMethod);
+            this.oneTimeSortItems().then();
+        }));
       const blacklistPlugin = this.getBean("BlacklistPlugin");
       $("#addBlacklistBtn").on("click", (async (event) => {
         await blacklistPlugin.addBlacklist(event);
@@ -9405,6 +9548,66 @@ ${err.stack}` : "");
             const getScore = (el) => {
               const match = $(el).find(".score .value").text().match(/由(\d+)人/);
               return match ? parseFloat(match[1]) : 0;
+            };
+              return getScore(b) - getScore(a);
+          } else if ("totalScore" === method) {
+              const getTotalScore = (el) => {
+                  const text = $(el).find(".score .value").text();
+                  const scoreMatch = text.match(/([\d.]+)分/);
+                  const countMatch = text.match(/由(\d+)人/);
+                  const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
+                  const count = countMatch ? parseFloat(countMatch[1]) : 0;
+                  return score * count;
+              };
+              return getTotalScore(b) - getTotalScore(a);
+          } else {
+              const getDate = (el) => {
+                  const dateStr = $(el).find(".meta").text().trim();
+                  return new Date(dateStr);
+              };
+              return getDate(b) - getDate(a);
+          }
+        }));
+          $container.empty().append(items);
+      }
+    }
+
+      async initOneTimeSortBtn() {
+          const autoPage = await storageManager.getSetting("autoPage");
+          if (autoPage !== YES) {
+              $("#one-time-sort-btn").hide();
+              return;
+          }
+          const oneTimeMethod = localStorage.getItem("jhs_oneTimeSortMethod") || "default";
+          const methodText = {
+              default: "默认",
+              rateCount: "评价人数",
+              totalScore: "总分",
+              date: "时间"
+          }[oneTimeMethod];
+          $("#one-time-sort-btn").text(`一次性排序: ${methodText}`).show();
+      }
+
+      async oneTimeSortItems() {
+          if (currentHref$1.includes("handle") || currentHref$1.includes("advanced_search")) return;
+          if (isSearchPage) return;
+          const method = localStorage.getItem("jhs_oneTimeSortMethod");
+          if (!method) return;
+          $(".movie-list .item").each((function (index) {
+              $(this).attr("data-original-index") || $(this).attr("data-original-index", index);
+          }));
+          const $container = $(".movie-list"), $items = $(".item", $container);
+          if ("default" === method) {
+              $items.sort((function (a, b) {
+                  return $(a).data("original-index") - $(b).data("original-index");
+              })).appendTo($container);
+          } else {
+              const items = $items.get();
+              items.sort((function (a, b) {
+                  if ("rateCount" === method) {
+                      const getScore = (el) => {
+                          const match = $(el).find(".score .value").text().match(/由(\d+)人/);
+                          return match ? parseFloat(match[1]) : 0;
             };
             return getScore(b) - getScore(a);
           } else if ("totalScore" === method) {

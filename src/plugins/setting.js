@@ -343,7 +343,7 @@ class SettingPlugin extends BasePlugin {
         $("#autoPage").on("change", (async event => {
             const autoPage = $("#autoPage").is(":checked") ? YES : NO;
             await storageManager.saveSettingItem("autoPage", autoPage);
-            autoPage === YES ? $("#sort-toggle-btn").hide() : $("#sort-toggle-btn").show();
+            autoPage === YES ? ($("#sort-toggle-btn").hide(), $("#one-time-sort-btn").show()) : ($("#sort-toggle-btn").show(), $("#one-time-sort-btn").hide());
         }));
         $("#translateTitle").on("change", (async event => {
             const translateTitle = $("#translateTitle").is(":checked") ? YES : NO;
