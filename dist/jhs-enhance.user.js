@@ -573,8 +573,8 @@
   }
   .jhs-preview-btn.active {
     color: #fff;
-    background: #3b82f6;
-    border-color: #3b82f6;
+    background: #2ecc71;
+    border-color: #2ecc71;
   }
   .jhs-loading-overlay {
     position: fixed;
@@ -709,13 +709,16 @@
     align-items: center;
     gap: 8px;
     margin-left: 16px;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 360px;
   }
   .pdb-sub-checkbox-group {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    min-width: 0;
   }
   .pdb-sub-checkbox-label {
     display: flex;
@@ -725,6 +728,9 @@
     color: #374151;
     cursor: pointer;
     white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .pdb-sub-checkbox {
     margin: 0;
@@ -6992,7 +6998,7 @@ ${value}\r
                 dirWrap.style.display = "";
                 dirSelect.innerHTML = this.cached115Matches.map((m) => {
                     const checked = this.current115Cids.includes(m.cid) ? " checked" : "";
-                    return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span>${this.escapeHtml(m.name)}</span></label>`;
+                    return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span title="${this.escapeHtml(m.name)}">${this.escapeHtml(m.name)}</span></label>`;
                 }).join("");
             };
             dirSelect.addEventListener("change", () => {

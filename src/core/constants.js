@@ -648,13 +648,16 @@ const subtitleModalCss = `
     align-items: center;
     gap: 8px;
     margin-left: 16px;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 360px;
   }
   .pdb-sub-checkbox-group {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    min-width: 0;
   }
   .pdb-sub-checkbox-label {
     display: flex;
@@ -714,7 +717,7 @@ const subtitleModalCss = `
   .pdb-sub-textarea {
     flex: 1;
     background: #1e1e1e;
-    color: #e5e7eb;
+    color: #2ecc71;
     border: none;
     padding: 14px;
     font-family: Consolas, Monaco, monospace;

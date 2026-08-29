@@ -74,9 +74,6 @@ export class JavPackSubtitle {
         return window.Req115 || null;
     }
 
-    static getGrant() {
-        return window.Grant || null;
-    }
 
     static getTargetCid() {
         return document.querySelector(".x-match-cont .zymatch-item [data-cid]")?.dataset.cid
@@ -235,7 +232,8 @@ export class JavPackSubtitle {
             dirWrap.style.display = "";
             dirSelect.innerHTML = this.cached115Matches.map((m) => {
                 const checked = this.current115Cids.includes(m.cid) ? " checked" : "";
-                return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span>${this.escapeHtml(m.name)}</span></label>`;
+                const displayName = m.name.length > 26 ? m.name.slice(0, 26) + '...' : m.name;
+                return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span title="${this.escapeHtml(m.name)}">${this.escapeHtml(displayName)}</span></label>`;
             }).join("");
         };
 
