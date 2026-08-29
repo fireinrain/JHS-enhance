@@ -12,42 +12,28 @@
 
 ### 一键安装
 
-[![Install](https://img.shields.io/badge/点击安装-JHS--enhance.user.js-brightgreen)](https://github.com/替换为你的用户名/JHS-enhance/releases/latest/download/jhs-enhance.user.js)
+[![Install](https://img.shields.io/badge/点击安装-JHS--enhance.user.js-brightgreen)](https://github.com/fireinrain/JHS-enhance/releases/latest/download/jhs-enhance.user.js)
 
 > 点击上方按钮，Tampermonkey 会自动弹出安装提示。安装后脚本会自动更新（Tampermonkey 默认每天检查一次更新）。
 
 ### 手动安装
 
-1. 从 [Releases](https://github.com/替换为你的用户名/JHS-enhance/releases) 页面下载最新 `jhs-enhance.user.js`
+1. 从 [Releases](https://github.com/fireinrain/JHS-enhance/releases) 页面下载最新 `jhs-enhance.user.js`
 2. 打开 Tampermonkey 管理面板 → 拖入文件安装
 
 ---
 
-## 自动部署配置
+## 自动部署
 
-本项目使用 GitHub Actions 在推送代码时自动构建并发布到 [GitHub Releases](https://github.com/替换为你的用户名/JHS-enhance/releases)。首次使用只需一步：
-
-### 修改 README 中的安装链接
-
-将 README.md 中所有 `替换为你的用户名` 替换为你的 GitHub 用户名：
-
-```
-https://github.com/你的用户名/JHS-enhance/releases/latest/download/jhs-enhance.user.js
-```
-
-推送代码后，GitHub Actions 自动构建并将脚本上传到 Release，无需额外配置。
-
-### 工作原理
+本项目使用 GitHub Actions 在推送代码时自动构建并发布到 [GitHub Releases](https://github.com/fireinrain/JHS-enhance/releases)。
 
 ```
 git push → GitHub Actions 自动构建 → 发布 GitHub Release
                                           ↓
-    https://github.com/用户名/JHS-enhance/releases/latest/download/jhs-enhance.user.js
+    https://github.com/fireinrain/JHS-enhance/releases/latest/download/jhs-enhance.user.js
                                           ↓
                       用户点击安装链接 → Tampermonkey 弹出安装提示
 ```
-
-> **为什么不用 GitHub Pages？** Release 方案更简单，不需要配置 Pages，不需要额外权限，`/releases/latest/download/` 是固定链接，每次发版自动指向最新脚本。
 
 ---
 
