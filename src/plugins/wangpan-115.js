@@ -341,7 +341,21 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         }
     }
     updateMatchStatus($box2, carNum2, matchList) {
-        matchList.length > 0 ? $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-btn a-success' \n                   data-keyword="${carNum2}"\n                   data-match='${JSON.stringify(matchList)}'\n                   title="点击查看匹配详情">匹配${matchList.length}个</a>`) : $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn a-info' data-keyword="${carNum2}" \n                  title="点击重新尝试匹配">未匹配</a>`);
+        if (matchList.length > 0) {
+            $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-btn a-success' \n                   data-keyword="${carNum2}"\n                   data-match='${JSON.stringify(matchList)}'\n                   title="点击查看匹配详情">匹配${matchList.length}个</a>`);
+            const $deleteBtn = $box2.find(".delete115Svg");
+            if ($deleteBtn.length > 0 && matchList[0].dirId) {
+                $deleteBtn.attr("data-dir-id", matchList[0].dirId);
+                $deleteBtn.show();
+            }
+        } else {
+            $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn a-info' data-keyword="${carNum2}" \n                  title="点击重新尝试匹配">未匹配</a>`);
+            const $deleteBtn = $box2.find(".delete115Svg");
+            if ($deleteBtn.length > 0) {
+                $deleteBtn.removeAttr("data-dir-id");
+                $deleteBtn.hide();
+            }
+        }
     }
     async handleLoginRedirect() {
         window.open("https://115.com");
@@ -351,6 +365,7 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         let searchKeyword = carNum2.toLowerCase().replace("fc2-", "");
         return (null == (_a2 = (await searchFiles(searchKeyword)).data) ? void 0 : _a2.map((data => ({
             folderId: data.fid,
+            dirId: data.cid,
             videoId: data.pc,
             name: data.n,
             createTime: utils.formatDate(new Date(1e3 * data.te)),
@@ -392,6 +407,11 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         if (!($box2.find("[class^='jhs-match-']").length > 0)) if (this.loginStatus === _WangPan115MatchPlugin.LoginStatus.LOGGED_OUT) $box2.find(".video-title").prepend(`<a class='jhs-match-no-login-btn a-info' \n                   data-keyword="${carNum2}" \n                   title="未登录115网盘">未登录</a>`); else if (matchList.length > 0) {
             const title = 1 === matchList.length ? "点击直接播放" : `点击查看${matchList.length}个匹配结果`;
             $box2.find(".video-title").prepend(`<a class='jhs-match-btn a-success' \n                       data-keyword="${carNum2}"\n                       data-match='${JSON.stringify(matchList)}'\n                       title="${title}">匹配${matchList.length}个</a>`);
+            const $deleteBtn = $box2.find(".delete115Svg");
+            if ($deleteBtn.length > 0 && matchList[0].dirId) {
+                $deleteBtn.attr("data-dir-id", matchList[0].dirId);
+                $deleteBtn.show();
+            }
         } else $box2.find(".video-title").prepend(`<a class='jhs-match-error-btn a-info' \n                   data-keyword="${carNum2}" \n                   title="未匹配,点击重试">未匹配</a>`);
     }
     formatSize(bytes) {

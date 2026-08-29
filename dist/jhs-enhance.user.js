@@ -2,7 +2,7 @@
 // @name         JAV-JHS
 // @namespace    JAV-JHS
 // @version      3.3.6-fix
-// @author       xie bro
+// @author       xie bro,fireinrain
 // @description  Jav-鉴黄师 收藏、屏蔽、标记已下载; 屏蔽标签、屏蔽演员、同步收藏演员、新作品检测; 免VIP查看热播、Top250排行榜、Fc2ppv、可查看所有评论信息、相关清单; 支持云盘备份; 以图识图; 字幕搜索; JavDb|JavBus
 // @license      MIT
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=javdb.com
@@ -8666,11 +8666,25 @@ ${err.stack}` : "");
       }
     }
     updateMatchStatus($box2, carNum2, matchList) {
-      matchList.length > 0 ? $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-btn a-success' 
+      if (matchList.length > 0) {
+        $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-btn a-success' 
                    data-keyword="${carNum2}"
                    data-match='${JSON.stringify(matchList)}'
-                   title="点击查看匹配详情">匹配${matchList.length}个</a>`) : $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn a-info' data-keyword="${carNum2}" 
+                   title="点击查看匹配详情">匹配${matchList.length}个</a>`);
+        const $deleteBtn = $box2.find(".delete115Svg");
+        if ($deleteBtn.length > 0 && matchList[0].dirId) {
+          $deleteBtn.attr("data-dir-id", matchList[0].dirId);
+          $deleteBtn.show();
+        }
+      } else {
+        $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn a-info' data-keyword="${carNum2}" 
                   title="点击重新尝试匹配">未匹配</a>`);
+        const $deleteBtn = $box2.find(".delete115Svg");
+        if ($deleteBtn.length > 0) {
+          $deleteBtn.removeAttr("data-dir-id");
+          $deleteBtn.hide();
+        }
+      }
     }
     async handleLoginRedirect() {
       window.open("https://115.com");
@@ -8680,6 +8694,7 @@ ${err.stack}` : "");
       let searchKeyword = carNum2.toLowerCase().replace("fc2-", "");
       return (null == (_a2 = (await searchFiles(searchKeyword)).data) ? void 0 : _a2.map(((data) => ({
         folderId: data.fid,
+        dirId: data.cid,
         videoId: data.pc,
         name: data.n,
         createTime: utils.formatDate(new Date(1e3 * data.te)),
@@ -8729,6 +8744,11 @@ ${err.stack}` : "");
                        data-keyword="${carNum2}"
                        data-match='${JSON.stringify(matchList)}'
                        title="${title}">匹配${matchList.length}个</a>`);
+        const $deleteBtn = $box2.find(".delete115Svg");
+        if ($deleteBtn.length > 0 && matchList[0].dirId) {
+          $deleteBtn.attr("data-dir-id", matchList[0].dirId);
+          $deleteBtn.show();
+        }
       } else $box2.find(".video-title").prepend(`<a class='jhs-match-error-btn a-info' 
                    data-keyword="${carNum2}" 
                    title="未匹配,点击重试">未匹配</a>`);
@@ -9805,6 +9825,7 @@ ${err.stack}` : "");
         if (!($box2.find(".tool-box").length > 0)) {
           isJavDb$1 && $box2.find(".tags").append(`
                     <div class="tool-box" style="margin-left: auto; display: flex; align-items: center">
+                        <span class="delete115Svg" title="删除115作品" style="margin-right: 15px; display: none;">${this.removeSvg}</span>
                         <span class="screenSvg" title="长缩略图" style="margin-right: 15px;">${this.screenSvg}</span>
                         
                         <span class="videoSvg" title="播放视频" style="margin-right: 15px;">${this.videoSvg}</span>
@@ -9867,6 +9888,7 @@ ${err.stack}` : "");
             if ($box2.find(".avatar-box").length > 0) return;
             $box2.find(".photo-info").append(`
                     <div class="tool-box" style="display: flex; align-items: center;justify-content: flex-end">
+                        <span class="delete115Svg" title="删除115作品" style="margin-right: 15px; display: none;">${this.removeSvg}</span>
                         <span class="screenSvg" title="长缩略图" style="margin-right: 15px;">${this.screenSvg}</span>
 
                         <span class="videoSvg" title="播放视频" style="margin-right: 15px;">${this.videoSvg}</span>
@@ -10037,6 +10059,41 @@ ${err.stack}` : "");
         const $box2 = $(event.currentTarget).closest(".item"), { carNum: carNum2, title } = this.getBoxCarInfo($box2), $img = $box2.find(isJavBus$1 ? ".photo-frame img" : ".cover img");
         $(event.currentTarget).hasClass("titleSvg") ? utils.copyToClipboard("标题", title) : $(event.currentTarget).hasClass("carNumSvg") ? utils.copyToClipboard("番号", carNum2) : $(event.currentTarget).hasClass("downSvg") && fetch($img.attr("src")).then(((response) => response.blob())).then(((blob) => {
           utils.download(blob, carNum2 + " " + title + ".jpg");
+        }));
+      }));
+      $(document).on("click", ".delete115Svg", (async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const $btn = $(event.currentTarget);
+        const dirId = $btn.attr("data-dir-id");
+        if (!dirId) {
+          show.error("未找到115目录ID");
+          return;
+        }
+        const $box2 = $btn.closest(".item");
+        const { carNum: carNum2 } = this.getBoxCarInfo($box2);
+        utils.q(event, `确认删除115中作品 "${carNum2}" 的整个目录吗？此操作不可撤销！`, (async () => {
+          let loadObj = loading();
+          try {
+            const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+              pid: 0,
+              "fid[0]": dirId
+            });
+            loadObj.close();
+            if (result && result.state) {
+              show.ok(`作品 "${carNum2}" 已从115删除`);
+              const matchPlugin = this.getBean("WangPan115MatchPlugin");
+              const matchList = await matchPlugin.searchFiles(carNum2);
+              matchPlugin.updateMatchStatus($box2, carNum2, matchList);
+            } else {
+              const errMsg = result && result.error_msg ? result.error_msg : "未知错误";
+              show.error(`删除失败: ${errMsg}`);
+            }
+          } catch (error) {
+            loadObj.close();
+            console.error("删除115文件失败:", error);
+            show.error(`删除失败: ${error.message || "网络错误"}`);
+          }
         }));
       }));
     }
