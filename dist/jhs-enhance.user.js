@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         JAV-JHS
 // @namespace    JAV-JHS
-// @version      3.3.6-fix
+// @version      3.3.7
 // @author       xie bro,fireinrain
-// @description  Jav-鉴黄师 收藏、屏蔽、标记已下载; 屏蔽标签、屏蔽演员、同步收藏演员、新作品检测; 免VIP查看热播、Top250排行榜、Fc2ppv、可查看所有评论信息、相关清单; 支持云盘备份; 以图识图; 字幕搜索; JavDb|JavBus
+// @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
 // @license      MIT
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=javdb.com
 // @include      https://javdb*.com/*
@@ -728,9 +728,6 @@
     color: #374151;
     cursor: pointer;
     white-space: nowrap;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   .pdb-sub-checkbox {
     margin: 0;
@@ -781,7 +778,7 @@
   .pdb-sub-textarea {
     flex: 1;
     background: #1e1e1e;
-    color: #e5e7eb;
+    color: #2ecc71;
     border: none;
     padding: 14px;
     font-family: Consolas, Monaco, monospace;
@@ -6844,10 +6841,6 @@ ${value}\r
             return window.Req115 || null;
         }
 
-        static getGrant() {
-            return window.Grant || null;
-        }
-
         static getTargetCid() {
             var _a, _b;
             return ((_a = document.querySelector(".x-match-cont .zymatch-item [data-cid]")) == null ? void 0 : _a.dataset.cid) || ((_b = document.querySelector(".x-match-cont .zymatch-item")) == null ? void 0 : _b.dataset.cid) || "";
@@ -6998,7 +6991,8 @@ ${value}\r
                 dirWrap.style.display = "";
                 dirSelect.innerHTML = this.cached115Matches.map((m) => {
                     const checked = this.current115Cids.includes(m.cid) ? " checked" : "";
-                    return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span title="${this.escapeHtml(m.name)}">${this.escapeHtml(m.name)}</span></label>`;
+                    const displayName = m.name.length > 26 ? m.name.slice(0, 26) + "..." : m.name;
+                    return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span title="${this.escapeHtml(m.name)}">${this.escapeHtml(displayName)}</span></label>`;
                 }).join("");
             };
             dirSelect.addEventListener("change", () => {

@@ -39,11 +39,14 @@ git push → GitHub Actions 自动构建 → 发布 GitHub Release
 
 ## 功能概览
 
-- **列表页增强**：作品状态标签（屏蔽/收藏/已下载/已观看）、一键打开待鉴定/已收藏作品、新作品检测、演员黑名单过滤
-- **详情页增强**：磁力链接高亮、预览视频（DMM 多画质）、标题翻译、字幕搜索（SubTitleCat / 迅雷）、演员信息、相关清单
+- **列表页增强**：作品状态标签（屏蔽/收藏/已下载/已观看）、一键筛选已收藏/新作品、演员黑名单过滤、标题关键词过滤
+- **详情页增强**：磁力链接高亮匹配、DMM 多画质预览视频、标题翻译（Google 翻译）、字幕搜索（整合迅雷 + SubTitleCat，支持 115
+  网盘直传与多目录选择）、演员信息展示、相关清单、评论查看
+- **多源预览图**：javfree / projectjav / javstore 三源预览图，支持来源切换、下载、新窗口打开，带 sessionStorage 缓存
+- **115 网盘集成**：目录匹配与预加载、多目录选择上传、字幕一键直传
 - **数据管理**：IndexedDB 本地存储、云盘备份/恢复（阿里云盘 / 115 网盘 / WebDAV）、跨 Tab 数据同步
 - **自动化任务**：自动翻页、新作品检测、收藏演员同步、黑名单更新
-- **UI 优化**：分类折叠、热榜 Top250、免 VIP 查看热播、以图识图、截图功能
+- **UI 优化**：分类折叠、热榜 Top250、免 VIP 查看热播、以图识图、FC2 支持
 - **多站点支持**：JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers / SubTitleCat
 
 ---
@@ -68,11 +71,11 @@ JHS-enhance/
 │   ├── api/                     # API 层
 │   │   ├── javdb.js             # JavDB API 封装（签名、搜索、评论等）
 │   │   └── dmm.js               # DMM 预览视频获取（多画质）
-│   └── plugins/                 # 插件层（38 个功能插件）
+│   └── plugins/                 # 插件层（40+ 个功能插件）
 │       ├── list-page.js         # 列表页过滤与状态标签
 │       ├── list-page-button.js  # 列表页功能按钮（待鉴定/已收藏/新作品/黑名单）
 │       ├── detail-page.js       # 详情页数据加载
-│       ├── detail-page-button.js# 详情页操作按钮
+│       ├── detail-page-button.js# 详情页操作按钮（含 115 目录预加载）
 │       ├── setting.js           # 设置面板（Tabulator 表格）
 │       ├── translate.js         # 标题翻译（Google 翻译 API）
 │       ├── preview-video.js     # DMM 预览视频
@@ -101,11 +104,13 @@ JHS-enhance/
 │       ├── bus-img.js           # JavBus 图片处理
 │       ├── bus-preview-video.js # JavBus 预览视频
 │       ├── image-recognition.js # 以图识图
-│       ├── screenshot.js        # 截图功能
+│       ├── screenshot.js        # 多源预览图（javfree/projectjav/javstore）
+│       ├── subtitles.js         # 字幕搜索（整合迅雷+SubTitleCat）+ 115 直传
+│       ├── req115.js            # 115 网盘 API 封装（Req + Drive115 + Req115）
 │       ├── magnet-hub.js        # MagnetHub 磁力搜索
 │       ├── other-site.js        # 第三方站点链接
 │       ├── jav-trailers.js      # JavTrailers 站点
-│       ├── subtitle-cat.js      # SubTitleCat 字幕搜索
+│       ├── subtitle-cat.js      # SubTitleCat 字幕搜索（已整合到 subtitles.js，保留文件）
 │       ├── filter-title-keyword.js # 标题关键词过滤
 │       └── want-watched.js      # 想看/已看视频列表
 ├── vite.config.mjs              # Vite + vite-plugin-monkey 配置
