@@ -146,6 +146,7 @@ class WangPan115TaskPlugin extends BasePlugin {
         return fileId;
     }
 
+    //TODO: 暂时没有删除离线任务
     // async deleteOfflineTasksByKeyword(keyword) {
     //     try {
     //         const singInfo = await (async () => {
