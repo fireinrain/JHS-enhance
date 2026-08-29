@@ -56,9 +56,9 @@ class ListPagePlugin extends BasePlugin {
                 this.replaceHdImg();
                 this.addJumpPageControl();
                 this.fixBusTitleBox();
+                this.getBean("CoverButtonPlugin").addSvgBtn().then();
                 await this.doFilter();
                 await this.getBean("ListPageButtonPlugin").sortItems();
-                this.getBean("CoverButtonPlugin").addSvgBtn().then();
                 $(this.getSelector().itemSelector + " a").attr("target", "_blank");
                 this.getBean("AutoPagePlugin").checkLoad();
             } finally {

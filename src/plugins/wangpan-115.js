@@ -360,7 +360,7 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
             $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-btn a-success' \n                   data-keyword="${carNum2}"\n                   data-match='${JSON.stringify(matchList)}'\n                   title="点击查看匹配详情">匹配${matchList.length}个</a>`);
             const $deleteBtn = $box2.find(".delete115Svg");
             const $markBtn = $box2.find(".markDeleteSvg");
-            if ($deleteBtn.length > 0 && matchList[0].dirId) {
+            if ($deleteBtn.length > 0 && matchList.some(m => m.dirId != null)) {
                 $deleteBtn.attr("data-match", JSON.stringify(matchList));
                 $deleteBtn.show();
             }
@@ -569,7 +569,7 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
             $box2.find(".video-title").prepend(`<a class='jhs-match-btn a-success' \n                       data-keyword="${carNum2}"\n                       data-match='${JSON.stringify(matchList)}'\n                       title="${title}">匹配${matchList.length}个</a>`);
             const $deleteBtn = $box2.find(".delete115Svg");
             const $markBtn = $box2.find(".markDeleteSvg");
-            if ($deleteBtn.length > 0 && matchList[0].dirId) {
+            if ($deleteBtn.length > 0 && matchList.some(m => m.dirId != null)) {
                 $deleteBtn.attr("data-match", JSON.stringify(matchList));
                 $deleteBtn.show();
             }

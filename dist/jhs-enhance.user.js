@@ -8977,7 +8977,7 @@ ${err.stack}` : "");
                    title="点击查看匹配详情">匹配${matchList.length}个</a>`);
         const $deleteBtn = $box2.find(".delete115Svg");
           const $markBtn = $box2.find(".markDeleteSvg");
-        if ($deleteBtn.length > 0 && matchList[0].dirId) {
+          if ($deleteBtn.length > 0 && matchList.some((m) => m.dirId != null)) {
           $deleteBtn.attr("data-match", JSON.stringify(matchList));
           $deleteBtn.show();
         }
@@ -9194,7 +9194,7 @@ ${err.stack}` : "");
                        title="${title}">匹配${matchList.length}个</a>`);
         const $deleteBtn = $box2.find(".delete115Svg");
           const $markBtn = $box2.find(".markDeleteSvg");
-        if ($deleteBtn.length > 0 && matchList[0].dirId) {
+          if ($deleteBtn.length > 0 && matchList.some((m) => m.dirId != null)) {
           $deleteBtn.attr("data-match", JSON.stringify(matchList));
           $deleteBtn.show();
         }
@@ -12164,9 +12164,9 @@ ${err.stack}` : "");
           this.replaceHdImg();
           this.addJumpPageControl();
           this.fixBusTitleBox();
+            this.getBean("CoverButtonPlugin").addSvgBtn().then();
           await this.doFilter();
           await this.getBean("ListPageButtonPlugin").sortItems();
-          this.getBean("CoverButtonPlugin").addSvgBtn().then();
           $(this.getSelector().itemSelector + " a").attr("target", "_blank");
           this.getBean("AutoPagePlugin").checkLoad();
         } finally {
