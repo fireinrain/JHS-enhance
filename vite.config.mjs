@@ -9,7 +9,7 @@ export default defineConfig({
         name: 'JAV-JHS',
         namespace: 'JAV-JHS',
         version: '3.3.6-fix',
-        author: 'xie bro',
+        author: 'xie bro,fireinrain',
         description: 'Jav-鉴黄师 收藏、屏蔽、标记已下载; 屏蔽标签、屏蔽演员、同步收藏演员、新作品检测; 免VIP查看热播、Top250排行榜、Fc2ppv、可查看所有评论信息、相关清单; 支持云盘备份; 以图识图; 字幕搜索; JavDb|JavBus',
         license: 'MIT',
         icon: 'https://www.google.com/s2/favicons?sz=64&domain=javdb.com',
