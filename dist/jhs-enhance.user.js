@@ -10732,18 +10732,19 @@ ${err.stack}` : "");
                       continue;
                   }
                   let itemDeleted = 0;
-                  for (const m of safeMatchList) {
+                  const uniqueDirIds = [...new Set(safeMatchList.map((m) => m.dirId))];
+                  for (const dirId of uniqueDirIds) {
                       try {
                           const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
-                              pid: m.dirId,
-                              "fid[0]": m.folderId
+                              "fid[0]": dirId,
+                              ignore_warn: "1"
                           });
                           if (result && result.state) {
                               itemDeleted++;
                               deletedCount++;
                           }
                       } catch (e) {
-                          console.error(`删除失败: ${m.name}`, e);
+                          console.error(`删除目录失败: ${dirId}`, e);
                       }
                   }
                   onProgress && onProgress(i + 1, selectedItems.length, item, itemDeleted > 0 ? `已删除${itemDeleted}个` : "删除失败");
@@ -10800,6 +10801,7 @@ ${err.stack}` : "");
         btn: ["确定删除", "取消"],
         shadeClose: false,
         yes: async (index) => {
+            var _a, _b;
           const $layer = $(`#layui-layer${index}`);
           const checked = $layer.find(".jhs-delete-folder-cb:checked");
           if (0 === checked.length) {
@@ -10813,19 +10815,26 @@ ${err.stack}` : "");
           let loadObj = loading();
           let deletedCount = 0;
           try {
-            for (const i of selected) {
-              const m = safeMatchList[i];
+              const uniqueDirIds = [...new Set(selected.map((i) => safeMatchList[i].dirId))];
+              for (const dirId of uniqueDirIds) {
               const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
-                pid: m.dirId,
-                "fid[0]": m.folderId
+                  "fid[0]": dirId,
+                  ignore_warn: "1"
               });
-              result && result.state ? deletedCount++ : console.error(`删除失败: ${m.name}`, result);
+                  result && result.state ? deletedCount++ : console.error(`删除目录失败: ${dirId}`, result);
             }
             loadObj.close();
             show.ok(`作品 "${carNum2}" 已删除 ${deletedCount} 个文件夹`);
             const newMatchList = await this.searchFiles(carNum2);
             afterDelete && afterDelete(newMatchList);
-            this.getBean("WangPan115TaskPlugin").deleteOfflineTasksByKeyword(carNum2);
+              const remainingCids = new Set(newMatchList.map((m) => m.dirId));
+              JavPackSubtitle.cached115Matches = JavPackSubtitle.cached115Matches.filter((m) => remainingCids.has(m.cid));
+              JavPackSubtitle.current115Cids = JavPackSubtitle.current115Cids.filter((cid) => remainingCids.has(cid));
+              try {
+                  (_b = (_a = this.getBean("WangPan115TaskPlugin")).deleteOfflineTasksByKeyword) == null ? void 0 : _b.call(_a, carNum2);
+              } catch (e) {
+                  console.warn("删除离线任务暂不可用:", e.message);
+              }
           } catch (error) {
             loadObj.close();
             console.error("删除115文件失败:", error);
