@@ -22,7 +22,8 @@ class DetailPageButtonPlugin extends BasePlugin {
         window.isDetailPage && this.createMenuBtn();
     }
     async createMenuBtn() {
-        const pageInfo = this.getPageInfo(), carNum2 = pageInfo.carNum, buttonsHtml = '\n            <div style="margin: 10px auto; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap;gap: 20px;">\n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="filterBtn" class="menu-btn" style="width: 120px; background-color:#de3333; color: white; text-align: center; padding: 8px 0;">\n                        <span>🚫 屏蔽</span>\n                    </a>\n                    <a id="favoriteBtn" class="menu-btn" style="width: 120px; background-color:#25b1dc; color: white; text-align: center; padding: 8px 0;">\n                        <span>⭐ 收藏</span>\n                    </a>\n                    <a id="hasDownBtn" class="menu-btn" style="width: 120px; background-color:#7bc73b; color: white; text-align: center; padding: 8px 0;">\n                        <span>📥️ 已下载</span>\n                    </a>\n                    <a id="hasWatchBtn" class="menu-btn" style="width: 120px; background-color:#d7a80c; color: white; text-align: center; padding: 8px 0;">\n                        <span>🔍 已观看</span>\n                    </a>\n                </div>\n        \n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="enable-magnets-filter" class="menu-btn" style="width: 140px; background-color: #c2bd4c; color: white; text-align: center; padding: 8px 0;">\n                        <span id="magnets-span">关闭磁力过滤</span>\n                    </a>\n                    <a id="magnetSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to right, rgb(245,140,1), rgb(84,161,29)); color: white; text-align: center; padding: 8px 0;">\n                        <span>磁力搜索</span>\n                    </a>\n                    <a id="xunLeiSubtitleBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (迅雷)</span>\n                    </a>\n                    <a id="search-subtitle-btn" class="menu-btn" style="width: 160px; background: linear-gradient(to bottom, #8d5656, rgb(196,159,91)); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (SubTitleCat)</span>\n                    </a>\n                </div>\n            </div>\n        ';
+        const pageInfo = this.getPageInfo(), carNum2 = pageInfo.carNum,
+            buttonsHtml = '\n            <div style="margin: 10px auto; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap;gap: 20px;">\n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="filterBtn" class="menu-btn" style="width: 120px; background-color:#de3333; color: white; text-align: center; padding: 8px 0;">\n                        <span>🚫 屏蔽</span>\n                    </a>\n                    <a id="favoriteBtn" class="menu-btn" style="width: 120px; background-color:#25b1dc; color: white; text-align: center; padding: 8px 0;">\n                        <span>⭐ 收藏</span>\n                    </a>\n                    <a id="hasDownBtn" class="menu-btn" style="width: 120px; background-color:#7bc73b; color: white; text-align: center; padding: 8px 0;">\n                        <span>📥️ 已下载</span>\n                    </a>\n                    <a id="hasWatchBtn" class="menu-btn" style="width: 120px; background-color:#d7a80c; color: white; text-align: center; padding: 8px 0;">\n                        <span>🔍 已观看</span>\n                    </a>\n                </div>\n        \n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="enable-magnets-filter" class="menu-btn" style="width: 140px; background-color: #c2bd4c; color: white; text-align: center; padding: 8px 0;">\n                        <span id="magnets-span">关闭磁力过滤</span>\n                    </a>\n                    <a id="magnetSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to right, rgb(245,140,1), rgb(84,161,29)); color: white; text-align: center; padding: 8px 0;">\n                        <span>磁力搜索</span>\n                    </a>\n                    <a id="subtitleSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕搜索</span>\n                    </a>\n                    <!--\n                    <a id="xunLeiSubtitleBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (迅雷)</span>\n                    </a>\n                    <a id="search-subtitle-btn" class="menu-btn" style="width: 160px; background: linear-gradient(to bottom, #8d5656, rgb(196,159,91)); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (SubTitleCat)</span>\n                    </a>\n                    -->\n                </div>\n            </div>\n        ';
         isJavDb && $(".tabs").after(buttonsHtml);
         isJavBus && $("#mag-submit-show").before(buttonsHtml);
         $("#favoriteBtn").on("click", (() => this.favoriteOne()));
@@ -57,8 +58,12 @@ class DetailPageButtonPlugin extends BasePlugin {
                 storageManager.saveSettingItem("enableMagnetsFilter", YES);
             }
         }));
-        $("#search-subtitle-btn").on("click", (event => utils.openPage(`https://subtitlecat.com/index.php?search=${carNum2}`, carNum2, !1, event)));
-        $("#xunLeiSubtitleBtn").on("click", (() => this.searchXunLeiSubtitle(carNum2)));
+        $("#subtitleSearchBtn").on("click", (() => {
+            window.JavPackSubtitle.openSearchModal({details: {code: carNum2}});
+        }));
+        window.JavPackSubtitle.preload115Matches(carNum2);
+        // $("#search-subtitle-btn").on("click", (event => utils.openPage(`https://subtitlecat.com/index.php?search=${carNum2}`, carNum2, !1, event)));
+        // $("#xunLeiSubtitleBtn").on("click", (() => this.searchXunLeiSubtitle(carNum2)));
         this.showStatus(carNum2).then();
     }
     async showStatus(carNum2) {
@@ -124,6 +129,8 @@ class DetailPageButtonPlugin extends BasePlugin {
         window.refresh();
         utils.closePage();
     }
+
+    /*
     searchXunLeiSubtitle(carNum2) {
         let loadObj = loading();
         gmHttp.get(`https://api-shoulei-ssl.xunlei.com/oracle/subtitle?gcid=&cid=&name=${carNum2}`).then((res => {
@@ -205,6 +212,7 @@ class DetailPageButtonPlugin extends BasePlugin {
             loadObj.close();
         }));
     }
+    */
     async filterOne(event, noAlert) {
         event && event.preventDefault();
         let pageInfo = this.getPageInfo();

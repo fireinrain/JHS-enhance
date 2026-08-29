@@ -17,6 +17,8 @@ import { DetailPagePlugin } from './plugins/detail-page.js';
 import { PreviewVideoPlugin } from './plugins/preview-video.js';
 import { JavTrailersPlugin } from './plugins/jav-trailers.js';
 import { SubTitleCatPlugin } from './plugins/subtitle-cat.js';
+import {JavPackSubtitle} from './plugins/subtitles.js';
+import {Req115} from './plugins/req115.js';
 import { Fc2Plugin } from './plugins/fc2.js';
 import { HighlightMagnetPlugin } from './plugins/highlight-magnet.js';
 import { FoldCategoryPlugin } from './plugins/fold-category.js';
@@ -847,7 +849,7 @@ utils.importResource("https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toasti
 
 utils.importResource("https://cdn.jsdelivr.net/npm/viewerjs@1.11.1/dist/viewer.min.css");
 
-utils.importResource("https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.1/dist/css/tabulator_semanticui.min.css");
+utils.importResource("https://cdn.jsdelivr.net/npm/tabulator-tables@6.5.2/dist/css/tabulator_semanticui.min.css");
 
 const pluginManager = function() {
     const pluginManager2 = new PluginManager;

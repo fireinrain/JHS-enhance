@@ -38,7 +38,7 @@ export default defineConfig({
         ],
         require: [
           'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js',
-          'https://cdn.jsdelivr.net/npm/tabulator-tables@6.3.1/dist/js/tabulator.min.js',
+          'https://cdn.jsdelivr.net/npm/tabulator-tables@6.5.2/dist/js/tabulator.min.js',
           'https://cdn.jsdelivr.net/npm/layui-layer@1.0.9/dist/layer.min.js',
           'https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js',
           'https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js',
