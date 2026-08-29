@@ -359,18 +359,82 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         if (matchList.length > 0) {
             $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-btn a-success' \n                   data-keyword="${carNum2}"\n                   data-match='${JSON.stringify(matchList)}'\n                   title="点击查看匹配详情">匹配${matchList.length}个</a>`);
             const $deleteBtn = $box2.find(".delete115Svg");
+            const $markBtn = $box2.find(".markDeleteSvg");
             if ($deleteBtn.length > 0 && matchList[0].dirId) {
                 $deleteBtn.attr("data-match", JSON.stringify(matchList));
                 $deleteBtn.show();
             }
+            if ($markBtn.length > 0) {
+                $markBtn.show();
+                this.updateMarkBtnStyle($markBtn, carNum2);
+            }
         } else {
             $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn a-info' data-keyword="${carNum2}" \n                  title="点击重新尝试匹配">未匹配</a>`);
             const $deleteBtn = $box2.find(".delete115Svg");
+            const $markBtn = $box2.find(".markDeleteSvg");
             if ($deleteBtn.length > 0) {
                 $deleteBtn.removeAttr("data-match");
                 $deleteBtn.hide();
             }
+            if ($markBtn.length > 0) {
+                $markBtn.hide();
+            }
         }
+    }
+
+    async updateMarkBtnStyle($markBtn, carNum2) {
+        const markedList = await storageManager.forage.getItem("markedDeleteList") || [];
+        const isMarked = markedList.some(item => item.carNum === carNum2);
+        isMarked ? $markBtn.addClass("marked") : $markBtn.removeClass("marked");
+        $markBtn.attr("title", isMarked ? "取消标记删除" : "标记删除");
+    }
+
+    async batchDeleteMarked(selectedItems, onProgress) {
+        let deletedCount = 0;
+        let failedCount = 0;
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+        for (let i = 0; i < selectedItems.length; i++) {
+            const item = selectedItems[i];
+            try {
+                const matchList = await this.searchFiles(item.carNum);
+                if (matchList.length === 0) {
+                    failedCount++;
+                    onProgress && onProgress(i + 1, selectedItems.length, item, "未匹配到115文件");
+                    continue;
+                }
+                const upperCarNum = item.carNum.toUpperCase();
+                const safeMatchList = matchList.filter(m => m.name.toUpperCase().includes(upperCarNum));
+                if (safeMatchList.length === 0) {
+                    failedCount++;
+                    onProgress && onProgress(i + 1, selectedItems.length, item, "无安全可删除目录");
+                    continue;
+                }
+                let itemDeleted = 0;
+                for (const m of safeMatchList) {
+                    try {
+                        const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                            pid: m.dirId,
+                            "fid[0]": m.folderId
+                        });
+                        if (result && result.state) {
+                            itemDeleted++;
+                            deletedCount++;
+                        }
+                    } catch (e) {
+                        console.error(`删除失败: ${m.name}`, e);
+                    }
+                }
+                onProgress && onProgress(i + 1, selectedItems.length, item, itemDeleted > 0 ? `已删除${itemDeleted}个` : "删除失败");
+                if (i < selectedItems.length - 1) {
+                    await delay(800);
+                }
+            } catch (error) {
+                failedCount++;
+                onProgress && onProgress(i + 1, selectedItems.length, item, error.message || "出错");
+                console.error(`批量删除出错 [${item.carNum}]:`, error);
+            }
+        }
+        return {deletedCount, failedCount};
     }
 
     showDeleteDialog(carNum2, matchList, afterDelete) {
@@ -504,9 +568,14 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
             const title = 1 === matchList.length ? "点击直接播放" : `点击查看${matchList.length}个匹配结果`;
             $box2.find(".video-title").prepend(`<a class='jhs-match-btn a-success' \n                       data-keyword="${carNum2}"\n                       data-match='${JSON.stringify(matchList)}'\n                       title="${title}">匹配${matchList.length}个</a>`);
             const $deleteBtn = $box2.find(".delete115Svg");
+            const $markBtn = $box2.find(".markDeleteSvg");
             if ($deleteBtn.length > 0 && matchList[0].dirId) {
                 $deleteBtn.attr("data-match", JSON.stringify(matchList));
                 $deleteBtn.show();
+            }
+            if ($markBtn.length > 0) {
+                $markBtn.show();
+                this.updateMarkBtnStyle($markBtn, carNum2);
             }
         } else $box2.find(".video-title").prepend(`<a class='jhs-match-error-btn a-info' \n                   data-keyword="${carNum2}" \n                   title="未匹配,点击重试">未匹配</a>`);
     }

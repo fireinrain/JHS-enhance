@@ -1809,6 +1809,7 @@ ${value}\r
       __publicField(this, "videoSvg", '<svg t="1749003664455" class="jhs-icon icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1952" width="200" height="200"><path d="M825.6 153.6H198.4C124.5 153.6 64 214.1 64 288v448c0 73.9 60.5 134.4 134.4 134.4h627.2c73.9 0 134.4-60.5 134.4-134.4V288c0-73.9-60.5-134.4-134.4-134.4z m-138.2 44.8l112 112H706l-112-112h93.4z m-156.8 0l112 112H526.7l-112-112h115.9z m-179.2 0l112 112H347.5l-112-112h115.9zM108.8 288c0-41.4 28.4-76.1 66.7-86.3l108.7 108.7H108.8V288z m806.4 448c0 49.4-40.2 89.6-89.6 89.6H198.4c-49.4 0-89.6-40.2-89.6-89.6V355.2h806.4V736z m0-425.6h-52.5l-112-112h74.9c49.4 0 89.6 40.2 89.6 89.6v22.4z" p-id="1953"></path><path d="M454 687.2l149.3-77.6c27.5-13.8 27.5-53 0-66.8L468 472.2c-31.2-15.6-68 7.1-68 42v139.6c0 27.8 29.2 45.8 54 33.4zM444.8 512l134.4 67.2-134.4 67.2V512z" p-id="1954"></path></svg>');
       __publicField(this, "screenSvg", '<svg t="1750691468062" class="jhs-icon icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2693" width="200" height="200"><path d="M288 160a64 64 0 0 0-64 64v576a64 64 0 0 0 64 64h448a64 64 0 0 0 64-64v-576a64 64 0 0 0-64-64h-448m0-64h448a128 128 0 0 1 128 128v576a128 128 0 0 1-128 128h-448a128 128 0 0 1-128-128v-576a128 128 0 0 1 128-128z" fill="#4078FD" p-id="2694"></path><path d="M416 352m-64 0a64 64 0 1 0 128 0 64 64 0 1 0-128 0Z" fill="#FE9C23" p-id="2695"></path><path d="M352 732.448a32 32 0 0 1-32-32v-160a32 32 0 0 1 44.224-29.568l130.112 53.632 153.952-169.984a32 32 0 0 1 55.712 21.472v284.448a32 32 0 0 1-32 32z m0-32h320z" fill="#4078FD" opacity=".2" p-id="2696"></path><path d="M672 416l-169.088 186.656-150.912-62.208v160h320V416m0-32a32 32 0 0 1 32 32v284.448a32 32 0 0 1-32 32h-320a32 32 0 0 1-32-32v-160a32 32 0 0 1 44.192-29.6l130.112 53.632 153.984-169.984a32 32 0 0 1 23.712-10.496z" fill="#4078FD" p-id="2697"></path></svg>');
       __publicField(this, "recoveryVideoSvg", '<svg t="1749003779161" class="jhs-icon icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8204" width="200" height="200"><path d="M938.666667 553.92V768c0 64.8-52.533333 117.333333-117.333334 117.333333H202.666667c-64.8 0-117.333333-52.533333-117.333334-117.333333V256c0-64.8 52.533333-117.333333 117.333334-117.333333h618.666666c64.8 0 117.333333 52.533333 117.333334 117.333333v297.92z m-64-74.624V256a53.333333 53.333333 0 0 0-53.333334-53.333333H202.666667a53.333333 53.333333 0 0 0-53.333334 53.333333v344.48A290.090667 290.090667 0 0 1 192 597.333333a286.88 286.88 0 0 1 183.296 65.845334C427.029333 528.384 556.906667 437.333333 704 437.333333c65.706667 0 126.997333 16.778667 170.666667 41.962667z m0 82.24c-5.333333-8.32-21.130667-21.653333-43.648-32.917333C796.768 511.488 753.045333 501.333333 704 501.333333c-121.770667 0-229.130667 76.266667-270.432 188.693334-2.730667 7.445333-7.402667 20.32-13.994667 38.581333-7.68 21.301333-34.453333 28.106667-51.370666 13.056-16.437333-14.634667-28.554667-25.066667-36.138667-31.146667A222.890667 222.890667 0 0 0 192 661.333333c-14.464 0-28.725333 1.365333-42.666667 4.053334V768a53.333333 53.333333 0 0 0 53.333334 53.333333h618.666666a53.333333 53.333333 0 0 0 53.333334-53.333333V561.525333zM320 480a96 96 0 1 1 0-192 96 96 0 0 1 0 192z m0-64a32 32 0 1 0 0-64 32 32 0 0 0 0 64z" fill="#000000" p-id="8205"></path></svg>');
+        __publicField(this, "markDeleteSvg", '<svg class="jhs-icon icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 832c-212.1 0-384-171.9-384-384s171.9-384 384-384 384 171.9 384 384-171.9 384-384 384z"></path><path d="M717.3 338.7L685.3 306.7 512 480 338.7 306.7 306.7 338.7 480 512 306.7 685.3 338.7 717.3 512 544 685.3 717.3 717.3 685.3 544 512z"></path></svg>');
     }
     getName() {
       throw new Error(`${this.constructor.name} 未显示getName()`);
@@ -2777,6 +2778,7 @@ ${value}\r
                     <div class="side-menu-item ${"filter-panel" === defaultActivePanel ? "active" : ""}" data-panel="filter-panel">🚫 屏蔽配置</div>
                     <div class="side-menu-item ${"task-panel" === defaultActivePanel ? "active" : ""}" data-panel="task-panel">📋 定时任务</div>
                     <div class="side-menu-item ${"domain-panel" === defaultActivePanel ? "active" : ""}" data-panel="domain-panel" title="第三方视频资源域名配置">🌐 外部网站</div>
+                    <div class="side-menu-item ${"mark-delete-panel" === defaultActivePanel ? "active" : ""}" data-panel="mark-delete-panel">🗑️ 标记删除</div>
                     <div class="side-menu-item ${"hotkey-panel" === defaultActivePanel ? "active" : ""}" data-panel="hotkey-panel">⌨️ 快捷键配置</div>
                     <div class="side-menu-item ${"cache-panel" === defaultActivePanel ? "active" : ""}" data-panel="cache-panel">🧹 清理缓存</div>
                     <div class="side-menu-item ${"tip-author-panel" === defaultActivePanel ? "active" : ""}" data-panel="tip-author-panel">💵 打赏作者</div>
@@ -3208,6 +3210,25 @@ ${value}\r
                                     <input id="supJavUrl">
                                 </div>
                             </div>           
+                        </div>
+                         
+                         <!-- 标记删除 -->
+                        <div id="mark-delete-panel" class="content-panel" style="display: ${"mark-delete-panel" === defaultActivePanel ? "block" : "none"};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <span style="font-size: 14px; font-weight: bold;">标记删除列表</span>
+                                <button id="batchDeleteBtn" class="menu-btn" style="background-color:#e74c3c; color:white;">
+                                    <span>一键清除</span>
+                                </button>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="cursor: pointer;">
+                                    <input type="checkbox" id="markDeleteSelectAll" checked> <b>全选</b>
+                                </label>
+                                <span id="markDeleteCount" style="margin-left: 10px; color: #888; font-size: 13px;"></span>
+                            </div>
+                            <div id="markDeleteList" style="max-height: 450px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
+                                <div style="text-align: center; padding: 40px; color: #999;">加载中...</div>
+                            </div>
                         </div>
                          
                          <!-- 快捷键 -->
@@ -3945,19 +3966,23 @@ ${value}\r
       isJavBus$1 && this.getBean("BusImgPlugin").logImageHeightsByRow();
     }
     bindClick() {
+        const self = this;
       $(".side-menu-item").on("click", (function() {
         $(".side-menu-item").removeClass("active");
         $(this).addClass("active");
         $(".content-panel").hide();
         const panelId = $(this).data("panel");
         $("#" + panelId).show();
-        if ("cache-panel" === panelId) {
+          if ("cache-panel" === panelId || "mark-delete-panel" === panelId) {
           $("#saveBtn").hide();
-          $("#clean-all").show();
+              "cache-panel" === panelId ? $("#clean-all").show() : $("#clean-all").hide();
         } else {
           $("#saveBtn").show();
           $("#clean-all").hide();
         }
+          if ("mark-delete-panel" === panelId) {
+              self.loadMarkDeleteList();
+          }
       }));
       $("#importBtn").on("click", ((event) => this.importData(event)));
       $("#exportBtn").on("click", ((event) => this.exportData(event)));
@@ -4003,6 +4028,71 @@ ${value}\r
       }
       $widthInput.on("input", updateBorder);
       $colorPicker.on("input", updateBorder);
+        $("#markDeleteSelectAll").on("change", (function () {
+            const checked = $(this).prop("checked");
+            $(".mark-delete-item-cb").prop("checked", checked);
+        }));
+        $("#batchDeleteBtn").on("click", (async () => {
+            const markedList = await storageManager.forage.getItem("markedDeleteList") || [];
+            if (markedList.length === 0) {
+                show.error("没有标记删除的作品");
+                return;
+            }
+            const checkedItems = [];
+            $(".mark-delete-item-cb:checked").each((function () {
+                const index = parseInt($(this).data("index"));
+                checkedItems.push(markedList[index]);
+            }));
+            if (checkedItems.length === 0) {
+                show.error("请至少选择一个作品");
+                return;
+            }
+            utils.q(null, `确认一键删除 ${checkedItems.length} 个作品？此操作不可撤销！`, (async () => {
+                let loadObj = loading();
+                try {
+                    const matchPlugin = this.getBean("WangPan115MatchPlugin");
+                    const result = await matchPlugin.batchDeleteMarked(checkedItems, ((current, total, item, status) => {
+                        loadObj.close();
+                        loadObj = loading();
+                        $(`#markDeleteProgress`).text(`正在删除: ${current}/${total} - ${item.carNum} ${status}`);
+                    }));
+                    loadObj.close();
+                    const remaining = markedList.filter((item) => !checkedItems.some((ci) => ci.carNum === item.carNum));
+                    await storageManager.forage.setItem("markedDeleteList", remaining);
+                    show.ok(`删除完成: 成功 ${result.deletedCount} 个，失败 ${result.failedCount} 个`);
+                    this.loadMarkDeleteList();
+                } catch (error) {
+                    loadObj.close();
+                    console.error("批量删除失败:", error);
+                    show.error(`批量删除失败: ${error.message || "网络错误"}`);
+                }
+            }));
+        }));
+        $(document).on("click", ".mark-delete-remove-btn", (async (event) => {
+            event.preventDefault();
+            const $btn = $(event.currentTarget);
+            const index = parseInt($btn.data("index"));
+            const markedList = await storageManager.forage.getItem("markedDeleteList") || [];
+            if (index >= 0 && index < markedList.length) {
+                const item = markedList[index];
+                utils.q(null, `确认从标记列表中移除 "${item.title}"？`, (async () => {
+                    markedList.splice(index, 1);
+                    await storageManager.forage.setItem("markedDeleteList", markedList);
+                    show.ok(`已移除: ${item.title}`);
+                    const self2 = this;
+                    $(`.markDeleteSvg`).each((function () {
+                        const $markBtn = $(this);
+                        const $box2 = $markBtn.closest(".item");
+                        const {carNum: carNum2} = self2.getBoxCarInfo($box2);
+                        if (carNum2 === item.carNum) {
+                            $markBtn.removeClass("marked");
+                            $markBtn.attr("title", "标记删除");
+                        }
+                    }));
+                    this.loadMarkDeleteList();
+                }));
+            }
+        }));
     }
     async saveForm() {
       let settingObj = await storageManager.getSetting();
@@ -4077,6 +4167,35 @@ ${value}\r
       this.getBean("BlacklistPlugin").resetBtnTip();
       this.getBean("BlacklistPlugin").reloadTable();
     }
+
+      async loadMarkDeleteList() {
+          const markedList = await storageManager.forage.getItem("markedDeleteList") || [];
+          const $list = $("#markDeleteList");
+          const $count = $("#markDeleteCount");
+          $count.text(`共 ${markedList.length} 个作品`);
+          if (markedList.length === 0) {
+              $list.html('<div style="text-align: center; padding: 40px; color: #999;">暂无标记删除的作品</div>');
+              return;
+          }
+          let html = "";
+          for (let i = 0; i < markedList.length; i++) {
+              const item = markedList[i];
+              const truncatedTitle = item.title && item.title.length > 30 ? item.title.substring(0, 30) + "..." : item.title;
+              const detailUrl = item.url ? item.url.startsWith("http") ? item.url : window.location.origin + item.url : "#";
+              html += `<div style="display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #eee;">
+                <input type="checkbox" class="mark-delete-item-cb" data-index="${i}" checked style="margin-right: 10px; flex-shrink: 0;">
+                <span style="flex: 1; min-width: 0;">
+                    <div style="font-weight: bold; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.carNum}</div>
+                    <a href="${detailUrl}" target="_blank" title="${item.title}" style="font-size: 12px; color: #2980b9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; text-decoration: none;">${truncatedTitle}</a>
+                    <div style="font-size: 11px; color: #999;">${item.publishTime || "-"} | 评分: ${item.score || "-"}</div>
+                </span>
+                <a class="mark-delete-remove-btn" data-index="${i}" style="color: #e74c3c; cursor: pointer; margin-left: 8px; flex-shrink: 0; font-size: 12px;" title="从列表移除">✕</a>
+            </div>`;
+          }
+          html += `<div id="markDeleteProgress" style="text-align: center; padding: 8px; color: #e74c3c; font-size: 13px; font-weight: bold;"></div>`;
+          $list.html(html);
+          $("#markDeleteSelectAll").prop("checked", true);
+      }
     addLabelTag(containerId, keyword) {
       const $tagBox = $(`${containerId} .tag-box`);
       let $label, color = "#333";
@@ -8732,19 +8851,83 @@ ${err.stack}` : "");
                    data-match='${JSON.stringify(matchList)}'
                    title="点击查看匹配详情">匹配${matchList.length}个</a>`);
         const $deleteBtn = $box2.find(".delete115Svg");
+          const $markBtn = $box2.find(".markDeleteSvg");
         if ($deleteBtn.length > 0 && matchList[0].dirId) {
           $deleteBtn.attr("data-match", JSON.stringify(matchList));
           $deleteBtn.show();
         }
+          if ($markBtn.length > 0) {
+              $markBtn.show();
+              this.updateMarkBtnStyle($markBtn, carNum2);
+          }
       } else {
         $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn a-info' data-keyword="${carNum2}" 
                   title="点击重新尝试匹配">未匹配</a>`);
         const $deleteBtn = $box2.find(".delete115Svg");
+          const $markBtn = $box2.find(".markDeleteSvg");
         if ($deleteBtn.length > 0) {
           $deleteBtn.removeAttr("data-match");
           $deleteBtn.hide();
         }
+          if ($markBtn.length > 0) {
+              $markBtn.hide();
+          }
       }
+    }
+
+      async updateMarkBtnStyle($markBtn, carNum2) {
+          const markedList = await storageManager.forage.getItem("markedDeleteList") || [];
+          const isMarked = markedList.some((item) => item.carNum === carNum2);
+          isMarked ? $markBtn.addClass("marked") : $markBtn.removeClass("marked");
+          $markBtn.attr("title", isMarked ? "取消标记删除" : "标记删除");
+      }
+
+      async batchDeleteMarked(selectedItems, onProgress) {
+          let deletedCount = 0;
+          let failedCount = 0;
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          for (let i = 0; i < selectedItems.length; i++) {
+              const item = selectedItems[i];
+              try {
+                  const matchList = await this.searchFiles(item.carNum);
+                  if (matchList.length === 0) {
+                      failedCount++;
+                      onProgress && onProgress(i + 1, selectedItems.length, item, "未匹配到115文件");
+                      continue;
+                  }
+                  const upperCarNum = item.carNum.toUpperCase();
+                  const safeMatchList = matchList.filter((m) => m.name.toUpperCase().includes(upperCarNum));
+                  if (safeMatchList.length === 0) {
+                      failedCount++;
+                      onProgress && onProgress(i + 1, selectedItems.length, item, "无安全可删除目录");
+                      continue;
+                  }
+                  let itemDeleted = 0;
+                  for (const m of safeMatchList) {
+                      try {
+                          const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                              pid: m.dirId,
+                              "fid[0]": m.folderId
+                          });
+                          if (result && result.state) {
+                              itemDeleted++;
+                              deletedCount++;
+                          }
+                      } catch (e) {
+                          console.error(`删除失败: ${m.name}`, e);
+                      }
+                  }
+                  onProgress && onProgress(i + 1, selectedItems.length, item, itemDeleted > 0 ? `已删除${itemDeleted}个` : "删除失败");
+                  if (i < selectedItems.length - 1) {
+                      await delay(800);
+                  }
+              } catch (error) {
+                  failedCount++;
+                  onProgress && onProgress(i + 1, selectedItems.length, item, error.message || "出错");
+                  console.error(`批量删除出错 [${item.carNum}]:`, error);
+              }
+          }
+          return {deletedCount, failedCount};
     }
     showDeleteDialog(carNum2, matchList, afterDelete) {
       const upperCarNum = carNum2.toUpperCase();
@@ -8758,7 +8941,7 @@ ${err.stack}` : "");
         if (!bytes) return "-";
         const units = ["B", "KB", "MB", "GB", "TB"];
         let size = parseFloat(bytes), unit = 0;
-        for (; size >= 1024 && unit < units.length - 1;) size /= 1024, unit++;
+          for (; size >= 1024 && unit < units.length - 1;) size /= 1024, unit++;
         return size.toFixed(2) + " " + units[unit];
       };
       let html = '<div style="padding: 15px; max-height: 400px; overflow-y: auto;">';
@@ -8794,7 +8977,7 @@ ${err.stack}` : "");
             show.error("请至少选择一个文件夹");
             return;
           }
-          const selected = checked.map((function () {
+            const selected = checked.map((function () {
             return parseInt($(this).data("index"));
           })).get();
           layer.close(index);
@@ -8821,7 +9004,7 @@ ${err.stack}` : "");
           }
         }
       });
-      $(`#layui-layer${layerIndex}`).on("change", ".jhs-delete-select-all", (function () {
+        $(`#layui-layer${layerIndex}`).on("change", ".jhs-delete-select-all", (function () {
         const checked = $(this).prop("checked");
         $(`#layui-layer${layerIndex} .jhs-delete-folder-cb`).prop("checked", checked);
       }));
@@ -8885,10 +9068,15 @@ ${err.stack}` : "");
                        data-match='${JSON.stringify(matchList)}'
                        title="${title}">匹配${matchList.length}个</a>`);
         const $deleteBtn = $box2.find(".delete115Svg");
+          const $markBtn = $box2.find(".markDeleteSvg");
         if ($deleteBtn.length > 0 && matchList[0].dirId) {
           $deleteBtn.attr("data-match", JSON.stringify(matchList));
           $deleteBtn.show();
         }
+          if ($markBtn.length > 0) {
+              $markBtn.show();
+              this.updateMarkBtnStyle($markBtn, carNum2);
+          }
       } else $box2.find(".video-title").prepend(`<a class='jhs-match-error-btn a-info' 
                    data-keyword="${carNum2}" 
                    title="未匹配,点击重试">未匹配</a>`);
@@ -9873,7 +10061,7 @@ ${err.stack}` : "");
                     justify-content: space-between;
                 }
                 .tool-box span{
-                    opacity:.3
+                    opacity:.6
                 }
                 .tool-box span:hover{
                     opacity:1
@@ -9884,6 +10072,24 @@ ${err.stack}` : "");
                 }
                 [data-theme="dark"] .tool-box svg path {
                   fill: white;
+                }
+                .tool-box .delete115Svg svg path {
+                  fill: #e57373 !important;
+                }
+                [data-theme="dark"] .tool-box .delete115Svg svg path {
+                  fill: #ef9a9a !important;
+                }
+                .tool-box .markDeleteSvg svg path {
+                  fill: #81c784 !important;
+                }
+                [data-theme="dark"] .tool-box .markDeleteSvg svg path {
+                  fill: #66bb6a !important;
+                }
+                .tool-box .markDeleteSvg.marked svg path {
+                  fill: #d84315 !important;
+                }
+                [data-theme="dark"] .tool-box .markDeleteSvg.marked svg path {
+                  fill: #e64a19 !important;
                 }
                 
                 
@@ -9965,6 +10171,7 @@ ${err.stack}` : "");
         if (!($box2.find(".tool-box").length > 0)) {
           isJavDb$1 && $box2.find(".tags").append(`
                     <div class="tool-box" style="margin-left: auto; display: flex; align-items: center">
+                        <span class="markDeleteSvg" title="标记删除" style="margin-right: 15px; display: none;">${this.markDeleteSvg}</span>
                         <span class="delete115Svg" title="删除115作品" style="margin-right: 15px; display: none;">${this.removeSvg}</span>
                         <span class="screenSvg" title="长缩略图" style="margin-right: 15px;">${this.screenSvg}</span>
                         
@@ -10028,6 +10235,7 @@ ${err.stack}` : "");
             if ($box2.find(".avatar-box").length > 0) return;
             $box2.find(".photo-info").append(`
                     <div class="tool-box" style="display: flex; align-items: center;justify-content: flex-end">
+                        <span class="markDeleteSvg" title="标记删除" style="margin-right: 15px; display: none;">${this.markDeleteSvg}</span>
                         <span class="delete115Svg" title="删除115作品" style="margin-right: 15px; display: none;">${this.removeSvg}</span>
                         <span class="screenSvg" title="长缩略图" style="margin-right: 15px;">${this.screenSvg}</span>
 
@@ -10200,6 +10408,35 @@ ${err.stack}` : "");
         $(event.currentTarget).hasClass("titleSvg") ? utils.copyToClipboard("标题", title) : $(event.currentTarget).hasClass("carNumSvg") ? utils.copyToClipboard("番号", carNum2) : $(event.currentTarget).hasClass("downSvg") && fetch($img.attr("src")).then(((response) => response.blob())).then(((blob) => {
           utils.download(blob, carNum2 + " " + title + ".jpg");
         }));
+      }));
+        $(document).on("click", ".markDeleteSvg", (async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const $btn = $(event.currentTarget);
+            const $box2 = $btn.closest(".item");
+            const {carNum: carNum2, title, publishTime, url} = this.getBoxCarInfo($box2);
+            const score = $box2.find(".score").text().trim() || "无评分";
+            let markedList = await storageManager.forage.getItem("markedDeleteList") || [];
+            const existingIndex = markedList.findIndex((item) => item.carNum === carNum2);
+            if (existingIndex > -1) {
+                markedList.splice(existingIndex, 1);
+                $btn.removeClass("marked");
+                $btn.attr("title", "标记删除");
+                show.ok(`已取消标记: ${title}`);
+            } else {
+                markedList.push({
+                    carNum: carNum2,
+                    title,
+                    publishTime,
+                    score,
+                    url,
+                    markedTime: (/* @__PURE__ */ new Date()).toISOString()
+                });
+                $btn.addClass("marked");
+                $btn.attr("title", "取消标记删除");
+                show.ok(`已标记删除: ${title}`);
+            }
+            await storageManager.forage.setItem("markedDeleteList", markedList);
       }));
       $(document).on("click", ".delete115Svg", (async (event) => {
         event.preventDefault();
