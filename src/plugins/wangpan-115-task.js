@@ -145,6 +145,48 @@ class WangPan115TaskPlugin extends BasePlugin {
         }
         return fileId;
     }
+
+    // async deleteOfflineTasksByKeyword(keyword) {
+    //     try {
+    //         const singInfo = await (async () => {
+    //             const res = await gmHttp.get("https://115.com/?ct=offline&ac=space&_=" + (new Date).getTime());
+    //             return "object" == typeof res ? res : null;
+    //         })();
+    //         if (!singInfo) {
+    //             console.error("删除离线任务: 未登录115网盘");
+    //             return;
+    //         }
+    //         const {sign: sign, time: time} = singInfo, uid = singInfo.uid || (() => {
+    //             const match = document.cookie.match(/UID=(\d+)_/);
+    //             return match ? match[1] : null;
+    //         })() || await this.getUserId();
+    //         const taskListRes = await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_lists", {
+    //             page: 1,
+    //             uid: uid,
+    //             sign: sign,
+    //             time: time
+    //         });
+    //         const tasks = (null == taskListRes ? void 0 : taskListRes.tasks) || [];
+    //         const keyword2 = keyword.toLowerCase().replace("fc2-", "");
+    //         let deletedCount = 0;
+    //         for (const task of tasks) {
+    //             if (task.name && task.name.toLowerCase().includes(keyword2)) {
+    //                 console.log(`删除离线任务: ${task.name} (hash: ${task.info_hash})`);
+    //                 await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_del", {
+    //                     "hash[0]": task.info_hash,
+    //                     flag: 1,
+    //                     uid: uid,
+    //                     sign: sign,
+    //                     time: time
+    //                 });
+    //                 deletedCount++;
+    //             }
+    //         }
+    //         deletedCount > 0 && console.log(`共删除 ${deletedCount} 个离线任务`);
+    //     } catch (error) {
+    //         console.error("删除离线任务失败:", error);
+    //     }
+    // }
 }
 
 

@@ -8082,6 +8082,48 @@ ${err.stack}` : "");
       }
       return fileId;
     }
+
+    async deleteOfflineTasksByKeyword(keyword) {
+      try {
+        const singInfo = await (async () => {
+          const res = await gmHttp.get("https://115.com/?ct=offline&ac=space&_=" + (/* @__PURE__ */ new Date()).getTime());
+          return "object" == typeof res ? res : null;
+        })();
+        if (!singInfo) {
+          console.error("删除离线任务: 未登录115网盘");
+          return;
+        }
+        const {sign, time} = singInfo, uid = singInfo.uid || (() => {
+          const match = document.cookie.match(/UID=(\d+)_/);
+          return match ? match[1] : null;
+        })() || await this.getUserId();
+        const taskListRes = await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_lists", {
+          page: 1,
+          uid,
+          sign,
+          time
+        });
+        const tasks = (null == taskListRes ? void 0 : taskListRes.tasks) || [];
+        const keyword2 = keyword.toLowerCase().replace("fc2-", "");
+        let deletedCount = 0;
+        for (const task of tasks) {
+          if (task.name && task.name.toLowerCase().includes(keyword2)) {
+            console.log(`删除离线任务: ${task.name} (hash: ${task.info_hash})`);
+            await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=task_del", {
+              "hash[0]": task.info_hash,
+              flag: 1,
+              uid,
+              sign,
+              time
+            });
+            deletedCount++;
+          }
+        }
+        deletedCount > 0 && console.log(`共删除 ${deletedCount} 个离线任务`);
+      } catch (error) {
+        console.error("删除离线任务失败:", error);
+      }
+    }
   }
   class ScreenShotPlugin extends BasePlugin {
     getName() {
@@ -10085,6 +10127,7 @@ ${err.stack}` : "");
               const matchPlugin = this.getBean("WangPan115MatchPlugin");
               const matchList = await matchPlugin.searchFiles(carNum2);
               matchPlugin.updateMatchStatus($box2, carNum2, matchList);
+              this.getBean("WangPan115TaskPlugin").deleteOfflineTasksByKeyword(carNum2);
             } else {
               const errMsg = result && result.error_msg ? result.error_msg : "未知错误";
               show.error(`删除失败: ${errMsg}`);

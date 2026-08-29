@@ -150,9 +150,8 @@ class CoverButtonPlugin extends BasePlugin {
                 let loadObj = loading();
                 try {
                     // 使用旧版115删除API删除整个作品目录
-                    // 注意：此处仅删除文件目录，不会删除离线下载任务记录
-                    // 原因：旧版任务删除接口(task_del)已失效，新版接口需要安全验证（如验证码），脚本无法绕过
-                    // 如需重新下载同一作品，请先在115离线下载页面手动删除对应的任务记录，否则会提示"任务已存在"
+                    // 删除后也会尝试删除对应的离线下载任务记录，避免重新下载时提示"任务已存在"
+                    // 注意：旧版任务删除接口(task_del)可能已失效，新版接口需要安全验证，若删除失败请手动清理
                     const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
                         pid: 0,
                         "fid[0]": dirId
@@ -163,6 +162,7 @@ class CoverButtonPlugin extends BasePlugin {
                         const matchPlugin = this.getBean("WangPan115MatchPlugin");
                         const matchList = await matchPlugin.searchFiles(carNum2);
                         matchPlugin.updateMatchStatus($box2, carNum2, matchList);
+                        // this.getBean("WangPan115TaskPlugin").deleteOfflineTasksByKeyword(carNum2);
                     } else {
                         const errMsg = result && result.error_msg ? result.error_msg : "未知错误";
                         show.error(`删除失败: ${errMsg}`);
