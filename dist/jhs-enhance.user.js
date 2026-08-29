@@ -84,7 +84,6 @@
         value
     }) : obj[key] = value;
     var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-    var _a;
     var __defProp2 = Object.defineProperty, __typeError = (msg) => {
     throw TypeError(msg);
     }, __publicField2 = (obj, key, value) => ((obj2, key2, value2) => key2 in obj2 ? __defProp2(obj2, key2, {
@@ -514,6 +513,124 @@
     background: rgba(0, 0, 0, 0.3);
     z-index: 999998;
   }
+
+  .jhs-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2147483647;
+    display: flex;
+    overflow: auto;
+    cursor: zoom-out;
+    backdrop-filter: blur(5px);
+  }
+  .jhs-preview-img {
+    border-radius: 4px;
+    margin: auto;
+    cursor: zoom-in;
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    display: block;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+  .jhs-preview-img.zoomed {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+  }
+  .jhs-preview-toolbar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 2147483648;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  .jhs-preview-btn {
+    padding: 7px 16px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .jhs-preview-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+  }
+  .jhs-preview-btn.active {
+    color: #fff;
+    background: #3b82f6;
+    border-color: #3b82f6;
+  }
+  .jhs-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2147483649;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .jhs-loading-spinner {
+    text-align: center;
+  }
+  .jhs-loading-spinner .spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: jhs-spin 0.6s linear infinite;
+  }
+  @keyframes jhs-spin {
+    to { transform: rotate(360deg); }
+  }
+  .jhs-preview-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translate(-50%, -20px);
+    z-index: 2147483650;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+  .jhs-preview-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  .jhs-preview-toast-error {
+    background: rgba(220, 38, 38, 0.9);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+  }
+  .jhs-preview-toast-info {
+    background: rgba(59, 130, 246, 0.9);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  }
 </style>
 `;
     const subtitleModalCss = `
@@ -586,6 +703,32 @@
   }
   .pdb-sub-btn:hover {
     background: #2563eb;
+  }
+  .pdb-sub-115-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 16px;
+    flex-shrink: 0;
+  }
+  .pdb-sub-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pdb-sub-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .pdb-sub-checkbox {
+    margin: 0;
+    cursor: pointer;
   }
   .pdb-sub-close {
     font-size: 26px;
@@ -784,7 +927,7 @@
   window.YES = YES;
     const HAS_GM = typeof GM !== "undefined";
     const NEW_GM = ((scope, GM2) => {
-        if (GM_info.scriptHandler !== "Tampermonkey" || compareVersions(GM_info.version, "5.3.2") < 0) return;
+        if (typeof GM_info === "undefined" || GM_info.scriptHandler !== "Tampermonkey" || compareVersions(GM_info.version, "5.3.2") < 0) return;
         const GM_xmlhttpRequestOrig = GM_xmlhttpRequest;
         const GM_xmlHttpRequestOrig = GM2.xmlHttpRequest;
 
@@ -6647,7 +6790,7 @@ ${value}\r
     }
   }
 
-    window.JavPackSubtitle = (_a = class {
+    class JavPackSubtitle {
         static escapeHtml(value = "") {
             return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
         }
@@ -6669,8 +6812,8 @@ ${value}\r
         }
 
         static buildSubtitleBaseName(details = {}) {
-            var _a2;
-            if ((_a2 = window.JavPackMatch115Console) == null ? void 0 : _a2.buildRename) {
+            var _a;
+            if ((_a = window.JavPackMatch115Console) == null ? void 0 : _a.buildRename) {
                 return window.JavPackMatch115Console.buildRename(details, [{n: `${details.code || "subtitle"}.mp4`}]);
             }
             return this.sanitizeName([details.code, details.title].filter(Boolean).join(" ")) || this.buildDefaultKeyword(details);
@@ -6692,16 +6835,63 @@ ${value}\r
         }
 
         static getReq115() {
-            return typeof Req115 !== "undefined" ? Req115 : window.Req115;
+            return window.Req115 || null;
         }
 
         static getGrant() {
-            return typeof Grant !== "undefined" ? Grant : window.Grant;
+            return window.Grant || null;
         }
 
         static getTargetCid() {
-            var _a2, _b;
-            return ((_a2 = document.querySelector(".x-match-cont .zymatch-item [data-cid]")) == null ? void 0 : _a2.dataset.cid) || ((_b = document.querySelector(".x-match-cont .zymatch-item")) == null ? void 0 : _b.dataset.cid) || "";
+            var _a, _b;
+            return ((_a = document.querySelector(".x-match-cont .zymatch-item [data-cid]")) == null ? void 0 : _a.dataset.cid) || ((_b = document.querySelector(".x-match-cont .zymatch-item")) == null ? void 0 : _b.dataset.cid) || "";
+        }
+
+        static async find115Cid(code) {
+            if (!code) return "";
+            const req115 = this.getReq115();
+            if (!req115) return "";
+            try {
+                const {data} = await req115.filesSearchAllFolders(code);
+                if (!(data == null ? void 0 : data.length)) return "";
+                const exact = data.find((f) => f.n === code);
+                if (exact) return exact.cid;
+                const upper = data.find((f) => f.n.toUpperCase() === code.toUpperCase());
+                if (upper) return upper.cid;
+                const contains = data.find((f) => f.n.toUpperCase().includes(code.toUpperCase()));
+                return (contains == null ? void 0 : contains.cid) || "";
+            } catch (e) {
+                console.warn("[JavPackSubtitle] 115搜索目录失败:", e.message);
+                return "";
+            }
+        }
+
+        static async preload115Matches(code) {
+            this.cached115Matches = [];
+            this.current115Cids = [];
+            if (!code) return;
+            const req115 = this.getReq115();
+            if (!req115) return;
+            try {
+                const {data} = await req115.filesSearchAllFolders(code);
+                if (!(data == null ? void 0 : data.length)) return;
+                const codeUpper = code.toUpperCase();
+                const matches = data.filter((f) => f.n.toUpperCase().includes(codeUpper)).map((f) => ({
+                    cid: f.cid,
+                    name: f.n
+                })).sort((a, b) => {
+                    const aExact = a.name.toUpperCase() === codeUpper;
+                    const bExact = b.name.toUpperCase() === codeUpper;
+                    if (aExact && !bExact) return -1;
+                    if (!aExact && bExact) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                this.cached115Matches = matches;
+                this.current115Cids = matches.length === 1 ? [matches[0].cid] : matches.map((m) => m.cid);
+                this.last115Code = code;
+            } catch (e) {
+                console.warn("[JavPackSubtitle] 115预加载目录失败:", e.message);
+            }
         }
 
         static ensureDetailButton({details, getTargetCid, getSubtitleEntries} = {}) {
@@ -6755,9 +6945,13 @@ ${value}\r
       <div class="pdb-sub-modal">
         <div class="pdb-sub-header">
           <div class="pdb-sub-search-wrap">
-            <span class="pdb-sub-title">迅雷字幕检索:</span>
+            <span class="pdb-sub-title">字幕检索:</span>
             <input type="text" id="sub-search-input" value="${this.escapeHtml(defaultKw)}" class="pdb-sub-input" placeholder="输入检索词..." />
             <button id="sub-search-btn" class="pdb-sub-btn">重新搜索</button>
+          </div>
+          <div class="pdb-sub-115-wrap" id="sub-115-wrap" style="display:none;">
+            <span class="pdb-sub-title">115目录:</span>
+            <div id="sub-115-select" class="pdb-sub-checkbox-group"></div>
           </div>
           <span class="pdb-sub-close" id="sub-close-btn">&times;</span>
         </div>
@@ -6775,10 +6969,10 @@ ${value}\r
         }
 
         static openSearchModal({details = {}, getTargetCid} = {}) {
-            var _a2;
+            var _a;
             const defaultKw = this.buildDefaultKeyword(details);
             this.currentDetails = details;
-            (_a2 = document.getElementById(this.MODAL_ID)) == null ? void 0 : _a2.remove();
+            (_a = document.getElementById(this.MODAL_ID)) == null ? void 0 : _a.remove();
             const overlay = document.createElement("div");
             overlay.id = this.MODAL_ID;
             overlay.className = "pdb-sub-overlay";
@@ -6788,6 +6982,27 @@ ${value}\r
             const previewBox = overlay.querySelector(".pdb-sub-textarea");
             const statusNode = overlay.querySelector("#preview-status");
             const input = overlay.querySelector("#sub-search-input");
+            const dirWrap = overlay.querySelector("#sub-115-wrap");
+            const dirSelect = overlay.querySelector("#sub-115-select");
+            const refresh115DirUI = () => {
+                if (!this.cached115Matches.length) {
+                    dirWrap.style.display = "none";
+                    return;
+                }
+                dirWrap.style.display = "";
+                dirSelect.innerHTML = this.cached115Matches.map((m) => {
+                    const checked = this.current115Cids.includes(m.cid) ? " checked" : "";
+                    return `<label class="pdb-sub-checkbox-label"><input type="checkbox" class="pdb-sub-checkbox" value="${m.cid}"${checked}><span>${this.escapeHtml(m.name)}</span></label>`;
+                }).join("");
+            };
+            dirSelect.addEventListener("change", () => {
+                this.current115Cids = Array.from(dirSelect.querySelectorAll("input:checked")).map((cb) => cb.value);
+            });
+            if (this.last115Code === details.code && this.cached115Matches.length) {
+                refresh115DirUI();
+            } else {
+                this.preload115Matches(details.code).then(refresh115DirUI);
+            }
             const closeModal = () => {
                 this.clearPreviewCache();
                 previewBox.value = "";
@@ -6802,26 +7017,34 @@ ${value}\r
                 contentWrap.innerHTML = '<div class="pdb-sub-msg">正在搜索字幕来源，请稍候...</div>';
                 previewBox.value = "";
                 statusNode.textContent = "暂无预览";
-                const results = await Promise.allSettled([
-                    this.searchXunlei(kw),
-                    this.searchSubtitleCat(kw)
-                ]);
-                const dataList = results.flatMap((result) => result.status === "fulfilled" ? result.value : []);
-                const chineseResults = this.sortResults(dataList, kw, details);
-                if (!chineseResults.length) {
-                    contentWrap.innerHTML = '<div class="pdb-sub-msg">未找到简中或繁中字幕，请尝试使用完整番号搜索</div>';
-                    return;
+                try {
+                    const results = await Promise.allSettled([
+                        this.searchXunlei(kw),
+                        this.searchSubtitleCat(kw)
+                    ]);
+                    const dataList = results.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+                    const chineseResults = this.sortResults(dataList, kw, details);
+                    if (!chineseResults.length) {
+                        contentWrap.innerHTML = '<div class="pdb-sub-msg">未找到简中或繁中字幕，请尝试使用完整番号搜索</div>';
+                        return;
+                    }
+                    this.renderTable({
+                        container: contentWrap,
+                        dataList: chineseResults,
+                        previewBox,
+                        statusNode,
+                        overlay,
+                        details,
+                        getTargetCid,
+                        kw
+                    });
+                    if (kw.toUpperCase() !== (details.code || "").toUpperCase()) {
+                        this.preload115Matches(kw).then(refresh115DirUI);
+                    }
+                } catch (e) {
+                    console.error("字幕搜索失败:", e);
+                    contentWrap.innerHTML = '<div class="pdb-sub-msg">搜索失败，请稍后重试</div>';
                 }
-                this.renderTable({
-                    container: contentWrap,
-                    dataList: chineseResults,
-                    previewBox,
-                    statusNode,
-                    overlay,
-                    details,
-                    getTargetCid,
-                    kw
-                });
             };
             overlay.querySelector("#sub-search-btn").addEventListener("click", () => performSearch(input.value.trim()));
             input.addEventListener("keypress", (e) => {
@@ -6831,23 +7054,12 @@ ${value}\r
         }
 
         static requestText(url) {
-            return new Promise((resolve, reject) => {
-                GM_xmlhttpRequest({
-                    method: "GET",
-                    url,
-                    onload: (res) => {
-                        if (res.status >= 200 && res.status < 300) resolve(res.responseText || "");
-                        else reject(new Error(`HTTP ${res.status}`));
-                    },
-                    onerror: () => reject(new Error("网络请求失败"))
-                });
-            });
+            return window.gmHttp.get(url);
         }
 
         static async searchXunlei(kw) {
-            const text = await this.requestText(`https://api-shoulei-ssl.xunlei.com/oracle/subtitle?name=${encodeURIComponent(kw)}`);
-            const root = JSON.parse(text);
-            if (root.code !== 0 || !Array.isArray(root.data)) return [];
+            const root = await this.requestText(`https://api-shoulei-ssl.xunlei.com/oracle/subtitle?name=${encodeURIComponent(kw)}`);
+            if (!root || root.code !== 0 || !Array.isArray(root.data)) return [];
             const results = root.data.slice(0, 20).map((item) => this.normalizeXunleiResult(item));
             const labeledResults = await Promise.all(results.map((item) => this.labelXunleiChineseSubtitle(item)));
             return labeledResults.filter(Boolean);
@@ -6902,9 +7114,9 @@ ${value}\r
         static parseSubtitleCatSearch(html) {
             const doc = new DOMParser().parseFromString(html, "text/html");
             return [...doc.querySelectorAll("table.sub-table tbody tr")].flatMap((row) => {
-                var _a2;
+                var _a;
                 const link = row.querySelector('a[href*="subs/"]');
-                const name2 = (_a2 = link == null ? void 0 : link.textContent) == null ? void 0 : _a2.trim();
+                const name2 = (_a = link == null ? void 0 : link.textContent) == null ? void 0 : _a.trim();
                 if (!link || !name2) return [];
                 return [{
                     name: name2,
@@ -6916,8 +7128,8 @@ ${value}\r
         static parseSubtitleCatLanguages(html, entry) {
             const doc = new DOMParser().parseFromString(html, "text/html");
             return [...doc.querySelectorAll(".sub-single")].flatMap((node) => {
-                var _a2;
-                const languageCode = ((_a2 = node.querySelector("img.flag")) == null ? void 0 : _a2.getAttribute("alt")) || "";
+                var _a;
+                const languageCode = ((_a = node.querySelector("img.flag")) == null ? void 0 : _a.getAttribute("alt")) || "";
                 const language = this.SUBTITLECAT_CHINESE_LANGUAGES.get(languageCode);
                 const link = node.querySelector("a.green-link[href$='.srt']");
                 if (!language || !link) return [];
@@ -6994,8 +7206,8 @@ ${value}\r
         }
 
         static renderRow(item, index, highlightRegex) {
-            var _a2;
-            const lang = ((_a2 = item.languages) == null ? void 0 : _a2[0]) || "未知";
+            var _a;
+            const lang = ((_a = item.languages) == null ? void 0 : _a[0]) || "未知";
             const name2 = item.name || item.extra_name || "未知字幕";
             const provider = item.provider || "迅雷";
             const providerClass = provider === "SubtitleCat" ? "pdb-sub-provider--subtitlecat" : "pdb-sub-provider--xunlei";
@@ -7016,7 +7228,6 @@ ${value}\r
         }
 
         static async handleAction({btn, item, previewBox, statusNode, overlay, details, getTargetCid}) {
-            var _a2, _b, _c;
             const action = btn.dataset.action;
             const oldText = btn.textContent;
             const url = item.url;
@@ -7035,21 +7246,24 @@ ${value}\r
                 } else if (action === "download") {
                     this.downloadBuffer(buffer, filename);
                 } else if (action === "upload") {
-                    const cid = (getTargetCid == null ? void 0 : getTargetCid()) || this.getTargetCid();
+                    const jdbCid = (getTargetCid == null ? void 0 : getTargetCid()) || this.getTargetCid();
+                    let cids = jdbCid ? [jdbCid] : [...this.current115Cids];
                     const req115 = this.getReq115();
-                    if (!cid || !req115) throw new Error("未检测到 115 目标目录，请先等待匹配完成");
+                    if (!cids.length || !req115) throw new Error("未在 115 找到匹配目录，请确认作品已下载到 115");
                     btn.textContent = "直传中...";
-                    await this.uploadSubtitle({req115, cid, filename, buffer});
-                    (_b = (_a2 = this.getGrant()) == null ? void 0 : _a2.notify) == null ? void 0 : _b.call(_a2, {
-                        icon: "success",
-                        msg: "字幕已上传到 115"
-                    });
-                    (_c = document.getElementById(this.BTN_ID)) == null ? void 0 : _c.classList.add("is-success");
-                    document.getElementById(this.BTN_ID).textContent = "已有字幕";
+                    for (const cid of cids) {
+                        await this.uploadSubtitle({req115, cid, filename, buffer});
+                    }
+                    show.ok(`字幕已上传到 115（${cids.length}个目录）`);
+                    const detailBtn = document.getElementById(this.BTN_ID);
+                    if (detailBtn) {
+                        detailBtn.classList.add("is-success");
+                        detailBtn.textContent = "已有字幕";
+                    }
                     window.dispatchEvent(new CustomEvent("JavDB_SubtitleUploaded", {
                         detail: {
                             code: details.code || "",
-                            cid: String(cid),
+                            cid: String(cids[0]),
                             subtitle: {n: filename, s: buffer.byteLength}
                         }
                     }));
@@ -7091,7 +7305,7 @@ ${value}\r
 
         static fetchBinary(url) {
             return new Promise((resolve, reject) => {
-                GM_xmlhttpRequest({
+                _GM_xmlhttpRequest({
                     method: "GET",
                     url,
                     responseType: "arraybuffer",
@@ -7133,10 +7347,492 @@ ${value}\r
             }
             throw new Error((uploadRes == null ? void 0 : uploadRes.error_msg) || (uploadRes == null ? void 0 : uploadRes.error) || "115 服务器拒绝接收回调");
         }
-    }, __publicField(_a, "BTN_ID", "x-subtitle-search-btn"), __publicField(_a, "MODAL_ID", "x-subtitle-modal"), __publicField(_a, "previewCache", /* @__PURE__ */ new Map()), __publicField(_a, "SUBTITLECAT_ORIGIN", "https://www.subtitlecat.com"), __publicField(_a, "SUBTITLECAT_CHINESE_LANGUAGES", /* @__PURE__ */ new Map([
+    }
+
+    __publicField(JavPackSubtitle, "BTN_ID", "x-subtitle-search-btn");
+    __publicField(JavPackSubtitle, "MODAL_ID", "x-subtitle-modal");
+    __publicField(JavPackSubtitle, "previewCache", /* @__PURE__ */ new Map());
+    __publicField(JavPackSubtitle, "cached115Matches", []);
+    __publicField(JavPackSubtitle, "current115Cids", []);
+    __publicField(JavPackSubtitle, "last115Code", "");
+    __publicField(JavPackSubtitle, "SUBTITLECAT_ORIGIN", "https://www.subtitlecat.com");
+    __publicField(JavPackSubtitle, "SUBTITLECAT_CHINESE_LANGUAGES", /* @__PURE__ */ new Map([
         ["zh-CN", "简中"],
         ["zh-TW", "繁中"]
-    ])), _a);
+    ]));
+    window.JavPackSubtitle = JavPackSubtitle;
+
+    class Req {
+        static _serializeToFormData(formData, data, parentKey = "") {
+            Object.entries(data).forEach(([key, val]) => {
+                const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+                if (val === void 0) return;
+                if (val !== null && typeof val === "object" && !(val instanceof Blob || val instanceof Date)) {
+                    this._serializeToFormData(formData, val, fullKey);
+                } else {
+                    formData.append(fullKey, val instanceof Date ? val.toISOString() : val);
+                }
+            });
+        }
+
+        static request(config) {
+            let options;
+            if (typeof config === "string") {
+                options = {url: config};
+            } else if (config !== null && typeof config === "object") {
+                options = {...config};
+            } else {
+                return Promise.reject(new TypeError("Request config must be a string or an object"));
+            }
+            if (!options.url) return Promise.reject(new Error("Request URL is required"));
+            options.method = (options.method || this.DEFAULT_METHOD).toUpperCase();
+            options.timeout || (options.timeout = this.DEFAULT_TIMEOUT);
+            const {params, method, data, signal} = options;
+            try {
+                const urlInstance = new URL(options.url, location.origin);
+                if (params) {
+                    const cleanParams = this._isPlainObject(params) ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null)) : params;
+                    new URLSearchParams(cleanParams).forEach((v, k) => urlInstance.searchParams.set(k, v));
+                }
+                options.url = urlInstance.toString();
+            } catch {
+                return Promise.reject(new Error(`Invalid Request URL: ${options.url}`));
+            }
+            if (method === "POST") {
+                options.responseType ?? (options.responseType = this.DEFAULT_POST_RESPONSE_TYPE);
+                if (this._isPlainObject(data) && !this._isRawBody(data)) {
+                    const formData = new FormData();
+                    this._serializeToFormData(formData, data);
+                    options.data = formData;
+                }
+            } else if (method === "GET") {
+                options.responseType ?? (options.responseType = options.url.split(/[?#]/)[0].endsWith(".json") ? "json" : this.DEFAULT_GET_RESPONSE_TYPE);
+            }
+            return new Promise((resolve, reject) => {
+                if (signal == null ? void 0 : signal.aborted) return reject(new DOMException("Aborted", "AbortError"));
+                const {url: targetUrl} = options;
+                let xhrHandler;
+                const handleAbort = () => xhrHandler == null ? void 0 : xhrHandler.abort();
+                const finalize = (settleFn, ...args) => {
+                    signal == null ? void 0 : signal.removeEventListener("abort", handleAbort);
+                    settleFn(...args);
+                };
+                xhrHandler = _GM_xmlhttpRequest({
+                    onabort: () => reject(new DOMException("Aborted", "AbortError")),
+                    ontimeout: () => finalize(reject, new Error(`Timeout: ${targetUrl}`)),
+                    onerror: () => finalize(reject, new Error(`Network Error: ${targetUrl}`)),
+                    onload: ({
+                                 status,
+                                 finalUrl,
+                                 response
+                             }) => status >= 400 ? finalize(reject, new Error(`HTTP ${status}: ${targetUrl}`)) : finalize(resolve, method === "HEAD" ? finalUrl : response),
+                    ...options,
+                    params: void 0
+                });
+                signal == null ? void 0 : signal.addEventListener("abort", handleAbort, {once: true});
+            });
+        }
+
+        static async tasks(initial, steps, signal) {
+            let ctx = initial;
+            for (const step of steps) {
+                if (signal == null ? void 0 : signal.aborted) throw new DOMException("Aborted", "AbortError");
+                if (typeof ctx === "string" || (ctx == null ? void 0 : ctx.url)) ctx = await this.request(typeof ctx === "string" ? {
+                    url: ctx,
+                    signal
+                } : {...ctx, signal});
+                ctx = await step(ctx);
+            }
+            return ctx;
+        }
+    }
+
+    __publicField(Req, "DEFAULT_GET_RESPONSE_TYPE", "document");
+    __publicField(Req, "DEFAULT_POST_RESPONSE_TYPE", "json");
+    __publicField(Req, "DEFAULT_TIMEOUT", 3e4);
+    __publicField(Req, "DEFAULT_METHOD", "GET");
+    __publicField(Req, "_isRawBody", (v) => v instanceof FormData || v instanceof Blob || v instanceof ArrayBuffer || v instanceof URLSearchParams);
+    __publicField(Req, "_isPlainObject", (v) => Object.prototype.toString.call(v) === "[object Object]");
+
+    class Drive115 extends Req {
+        static files(cid = "0", params = {}) {
+            return this.request({
+                url: "https://webapi.115.com/files",
+                params: {cid, ...params}
+            });
+        }
+
+        static filesSearch(search_value, params = {}) {
+            return this.request({
+                url: "https://webapi.115.com/files/search",
+                params: {search_value, ...params}
+            });
+        }
+
+        static lixianTaskLists(page = 1) {
+            return this.request({
+                url: "https://115.com/web/lixian/",
+                params: {ct: "lixian", ac: "task_lists", page}
+            });
+        }
+
+        static labelList() {
+            return this.request({
+                url: "https://webapi.115.com/label/list",
+                params: {keyword: "", limit: 11150}
+            });
+        }
+
+        /**
+         * @connect 115vod.com
+         */
+        static filesVideo(pickcode) {
+            return this.request({
+                url: "https://115vod.com/webapi/files/video",
+                params: {pickcode, local: 1}
+            });
+        }
+
+        static post(details) {
+            return this.request({method: "POST", ...details});
+        }
+
+        static filesAdd(cname, pid) {
+            return this.post({
+                url: "https://webapi.115.com/files/add",
+                data: {cname, pid}
+            });
+        }
+
+        static lixianAddTaskUrl(url, wp_path_id) {
+            return this.post({
+                url: "https://115.com/web/lixian/",
+                params: {ct: "lixian", ac: "add_task_url"},
+                data: {url, wp_path_id}
+            });
+        }
+
+        /**
+         * Bulk delete offline tasks and source files
+         * @param {string[]} hash Array of info_hashes
+         */
+        static lixianTaskDel(hash) {
+            return this.post({
+                url: "https://115.com/web/lixian/",
+                params: {ct: "lixian", ac: "task_del"},
+                data: {hash}
+            });
+        }
+
+        /**
+         * Bulk delete files
+         * @param {string[]} fid Array of file IDs
+         * @param {string} pid Parent folder ID
+         */
+        static rbDelete(fid, pid = "") {
+            return this.post({
+                url: "https://webapi.115.com/rb/delete",
+                data: {fid, pid, ignore_warn: 1}
+            });
+        }
+
+        /**
+         * Batch move files
+         * @param {string[]} fid Array of file IDs
+         * @param {string} pid Destination folder ID
+         */
+        static filesMove(fid, pid) {
+            return this.post({
+                url: "https://webapi.115.com/files/move",
+                data: {fid, pid, move_proid: ""}
+            });
+        }
+
+        /**
+         * Bulk label files
+         * @param {string} file_ids fid1,fid2,fid3...
+         * @param {string} file_label label_id1,label_id2,label_id3...
+         */
+        static filesBatchLabel(file_ids, file_label, action = "add") {
+            return this.post({
+                url: "https://webapi.115.com/files/batch_label",
+                data: {file_ids, file_label, action}
+            });
+        }
+
+        /**
+         * Bulk rename files
+         * @param {object} files_new_name { [fid]: rename }
+         */
+        static filesBatchRename(files_new_name) {
+            return this.post({
+                url: "https://webapi.115.com/files/batch_rename",
+                data: {files_new_name}
+            });
+        }
+
+        static sampleInitUpload({filename, filesize, cid}) {
+            return this.post({
+                url: "https://uplb.115.com/3.0/sampleinitupload.php",
+                data: {filename, filesize, target: `U_1_${cid}`}
+            });
+        }
+
+        /**
+         * @connect aliyuncs.com
+         */
+        static upload({
+                          host: url,
+                          filename: name2,
+                          object: key,
+                          policy,
+                          accessid: OSSAccessKeyId,
+                          callback,
+                          signature,
+                          file
+                      }) {
+            return this.post({
+                url,
+                data: {
+                    name: name2,
+                    key,
+                    policy,
+                    OSSAccessKeyId,
+                    success_action_status: "200",
+                    callback,
+                    signature,
+                    file
+                }
+            });
+        }
+
+        static filesEdit(fid, fid_cover) {
+            return this.post({
+                url: "https://webapi.115.com/files/edit",
+                data: {fid, fid_cover}
+            });
+        }
+    }
+
+    __publicField(Drive115, "DEFAULT_GET_RESPONSE_TYPE", "json");
+
+    class Req115 extends Drive115 {
+        static async filesAll(cid, params = {}) {
+            const res = await this.files(cid, params);
+            const {count, page_size, data} = res;
+            return count > page_size && data.length ? this.files(cid, {...params, limit: count}) : res;
+        }
+
+        static filesAllVideos(cid, params = {}) {
+            return this.filesAll(cid, {...params, type: 4});
+        }
+
+        static filesAllSRTs(cid, params = {}) {
+            return this.filesAll(cid, {...params, suffix: "srt"});
+        }
+
+        static async filesSearchAll(search_value, params = {}) {
+            const res = await this.filesSearch(search_value, params);
+            const {count, page_size, data} = res;
+            return count > page_size && data.length ? this.filesSearch(search_value, {...params, limit: count}) : res;
+        }
+
+        static filesSearchAllVideos(search_value, params = {}) {
+            return this.filesSearchAll(search_value, {...params, type: 4});
+        }
+
+        static filesSearchAllFolders(search_value, params = {}) {
+            return this.filesSearchAll(search_value, {...params, fc: 1});
+        }
+
+        static async handleDir(routes) {
+            var _a;
+            if (routes.length === 1 && /^\d{5,}$/.test(routes[0])) return routes[0];
+            let cid;
+            const routesStr = routes.join("/");
+            const cachedCid = localStorage.getItem(routesStr);
+            if (cachedCid) {
+                const res = await this.files(cachedCid);
+                if ((_a = res == null ? void 0 : res.path) == null ? void 0 : _a.length) {
+                    const path = res.path.slice(1).map((p) => p.name);
+                    if (path.join("/") === routesStr) cid = cachedCid;
+                }
+            }
+            if (!cid) {
+                cid = "0";
+                for (const route of routes) {
+                    const {data} = await this.filesSearchAllFolders(route, {cid});
+                    let folder = data.find((folder2) => folder2.n === route);
+                    if (!folder) folder = await this.filesAdd(route, cid);
+                    cid = folder == null ? void 0 : folder.cid;
+                    if (!cid) break;
+                }
+            }
+            const month = (/* @__PURE__ */ new Date()).getMonth().toString();
+            if (localStorage.getItem("115_CD") !== month) {
+                localStorage.clear();
+                localStorage.setItem("115_CD", month);
+            }
+            if (cid) localStorage.setItem(routesStr, cid);
+            return cid;
+        }
+
+        static async handleVerify(info_hash, {regex, codes}, {max, filter}) {
+            const sleep = () => {
+                return new Promise((r) => {
+                    setTimeout(r, 1e3);
+                });
+            };
+            let file_id = "";
+            let videos = [];
+            for (let index = 0; index < max; index++) {
+                if (index) await sleep();
+                const {tasks} = await this.lixianTaskLists();
+                const task = tasks.find((task2) => task2.info_hash === info_hash);
+                if (!task || task.status === -1) break;
+                file_id = task.file_id;
+                if (file_id) break;
+            }
+            if (!file_id) return {file_id, videos};
+            for (let index = 0; index < max; index++) {
+                if (index) await sleep();
+                const {data} = await this.filesAllVideos(file_id);
+                videos = data.filter((item) => regex.test(item.n));
+                if (videos.length) break;
+            }
+            if (!videos.length) {
+                const {tasks} = await this.lixianTaskLists();
+                const task = tasks.find((task2) => task2.info_hash === info_hash);
+                if (task.status === 2) {
+                    const {data} = await this.filesAllVideos(file_id);
+                    codes = codes.map((code) => code.toUpperCase());
+                    videos = data.filter((item) => {
+                        const name2 = item.n.toUpperCase();
+                        return codes.some((code) => name2.includes(code));
+                    });
+                }
+            }
+            return {videos: videos.filter(filter), file_id};
+        }
+
+        static async handleClean(keepFiles, cid) {
+            const needMove = keepFiles.filter((file) => file.cid !== cid).map((file) => file.fid);
+            if (needMove.length) await this.filesMove(needMove, cid);
+            const {data} = await this.filesAll(cid);
+            const needRemove = data.filter((item) => !keepFiles.some((file) => file.fid === item.fid)).map((item) => item.fid ?? item.cid);
+            if (needRemove.length) return this.rbDelete(needRemove, cid);
+        }
+
+        static async handleTags(files, tags) {
+            var _a;
+            const {data} = await this.labelList();
+            if (!((_a = data == null ? void 0 : data.list) == null ? void 0 : _a.length)) return;
+            const {list} = data;
+            const labels = [];
+            tags.forEach((tag) => {
+                const item = list.find((item2) => item2.name === tag);
+                if (item) labels.push(item.id);
+            });
+            if (labels.length) return this.filesBatchLabel(files.map((it) => it.fid).toString(), labels.toString());
+        }
+
+        static handleRename(files, cid, {rename, renameTxt, zh, crack}) {
+            rename = rename.replaceAll("$zh", zh ? renameTxt.zh : "");
+            rename = rename.replaceAll("$crack", crack ? renameTxt.crack : "");
+            rename = rename.split("$sep").filter(Boolean).join(renameTxt.sep);
+            rename = rename.trim();
+            const renameObj = {[cid]: rename};
+            if (files.length === 1) {
+                const {fid, ico} = files[0];
+                renameObj[fid] = `${rename}.${ico}`;
+                return this.filesBatchRename(renameObj);
+            }
+            const icoMap = files.reduce((acc, {ico, ...item}) => {
+                acc[ico] ?? (acc[ico] = []);
+                acc[ico].push(item);
+                return acc;
+            }, {});
+            const noTxt = renameTxt.no;
+            for (const [ico, items] of Object.entries(icoMap)) {
+                if (items.length === 1) {
+                    renameObj[items[0].fid] = `${rename}.${ico}`;
+                    continue;
+                }
+                items.toSorted((a, b) => a.n.localeCompare(b.n)).forEach(({fid}, idx) => {
+                    const no = noTxt.replaceAll(`\${no}`, `${idx + 1}`.padStart(2, "0"));
+                    renameObj[fid] = `${rename}${no}.${ico}`;
+                });
+            }
+            return this.filesBatchRename(renameObj);
+        }
+
+        static async handleCover(url, cid, filename) {
+            const file = await this.request({url, timeout: 6e4, responseType: "blob"});
+            if (!file) return;
+            const res = await this.sampleInitUpload({cid, filename, filesize: file.size});
+            if (res == null ? void 0 : res.host) return this.upload({...res, filename, file});
+        }
+
+        static async handleOffline({
+                                       dir,
+                                       regex,
+                                       codes,
+                                       verifyOptions,
+                                       code,
+                                       rename,
+                                       renameTxt,
+                                       tags,
+                                       clean,
+                                       cover
+                                   }, magnets) {
+            const res = {status: "error", msg: `获取目录失败: ${dir.join("/")}`};
+            const cid = await this.handleDir(dir);
+            if (!cid) return res;
+            for (let index = 0, {length} = magnets; index < length; index++) {
+                const {url, zh, crack} = magnets[index];
+                const {state, error_msg, errcode, info_hash} = await this.lixianAddTaskUrl(url, cid);
+                if (!state) {
+                    res.msg = error_msg;
+                    res.status = "error";
+                    res.currIdx = index;
+                    if (errcode === 10008) continue;
+                    if (errcode === 911) res.status = "warn";
+                    break;
+                }
+                const {videos, file_id} = await this.handleVerify(info_hash, {regex, codes}, verifyOptions);
+                if (!videos.length) {
+                    if (verifyOptions.clean) this.lixianTaskDel([info_hash]);
+                    if (file_id && clean) this.rbDelete([file_id], cid);
+                    res.msg = `${code} 离线验证失败`;
+                    res.status = "error";
+                    continue;
+                }
+                const {data: srts = []} = await this.filesAllSRTs(file_id);
+                const files = [...videos, ...srts];
+                if (clean) await this.handleClean(files, file_id);
+                if (tags.length) this.handleTags(videos, tags);
+                if (rename) this.handleRename(files, file_id, {rename, renameTxt, zh: zh || srts.length, crack});
+                if (cover) {
+                    try {
+                        const {data} = await this.handleCover(cover, file_id, `${code}.cover.jpg`);
+                        if (data == null ? void 0 : data.file_id) this.filesEdit(file_id, data.file_id);
+                    } catch (err) {
+                        console.warn("[Req115.handleCover]", err == null ? void 0 : err.message);
+                    }
+                }
+                res.msg = `${code} 离线任务成功`;
+                res.status = "success";
+                break;
+            }
+            return res;
+        }
+
+        static async queueMutation(name2, fn) {
+            return fn();
+        }
+    }
+
+    window.Req115 = Req115;
   class Fc2Plugin extends BasePlugin {
     getName() {
       return "Fc2Plugin";
@@ -7228,6 +7924,7 @@ ${value}\r
             $("#subtitleSearchBtn").on("click", (() => {
                 window.JavPackSubtitle.openSearchModal({details: {code: carNum2}});
             }));
+            window.JavPackSubtitle.preload115Matches(carNum2);
           $("#magnetSearchBtn").on("click", (() => {
             let magnetHub = this.getBean("MagnetHubPlugin").createMagnetHub(carNum2);
             layer.open({
@@ -7312,7 +8009,7 @@ ${value}\r
       utils.loopDetector((() => $(".movie-gallery .image-list").length > 0), (async () => {
         $(".movie-gallery .image-list").prepend(' <a class="tile-item screen-container" style="overflow:hidden;max-height: 150px;max-width:150px; text-align:center;"><div style="margin-top: 50px;color: #000;cursor: auto">正在加载缩略图</div></a> ');
         const screenShotPlugin = this.getBean("ScreenShotPlugin"), imgUrl = await screenShotPlugin.getScreenshot(carNum2);
-        imgUrl && await screenShotPlugin.addImg("缩略图", imgUrl);
+          imgUrl && await screenShotPlugin.addImg("缩略图", imgUrl, carNum2);
       }));
     }
     handleMagnets(movieId) {
@@ -8916,6 +9613,428 @@ ${err.stack}` : "");
       return results;
     }
   }
+
+    const Thumbnail = {
+        sources: ["javfree", "projectjav", "javstore"],
+        cacheKey(code) {
+            return `thumb_cache_v3_${code}`;
+        },
+        lookupCode(code) {
+            const text = String(code || "").trim();
+            const fc2 = text.match(/^(?:FC2[-_\s]?(?:PPV[-_\s]?)?)?(\d{6,9})$/i);
+            return fc2 ? fc2[1] : text;
+        },
+        sourceOrder() {
+            const savedOrder = ["javfree", "projectjav", "javstore"];
+            const seen = /* @__PURE__ */ new Set();
+            return [...savedOrder, ...this.sources].filter((src) => {
+                if (seen.has(src) || typeof this[src] !== "function") return false;
+                seen.add(src);
+                return true;
+            });
+        },
+        async fetchFromSource(source, code) {
+            try {
+                return await this[source](this.lookupCode(code));
+            } catch (e) {
+                clog.debug(`Thumbnail[${source}] 异常:`, e.message);
+                return null;
+            }
+        },
+        normalizeForCompare(text) {
+            return String(text || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        },
+        isCodeMatched(text, code) {
+            const normalizedText = this.normalizeForCompare(text);
+            const normalizedCode = this.normalizeForCompare(code);
+            return !!normalizedCode && normalizedText.includes(normalizedCode);
+        },
+        isDetailMatched(doc, url, code) {
+            var _a, _b;
+            const title = ((_a = doc == null ? void 0 : doc.querySelector("title")) == null ? void 0 : _a.textContent) || "";
+            const headings = [...(doc == null ? void 0 : doc.querySelectorAll("h1,h2,h3,.entry-title,.movie-title,.post-title")) || []].map((el) => el.textContent || "").join(" ");
+            const bodyText = (((_b = doc == null ? void 0 : doc.body) == null ? void 0 : _b.textContent) || "").slice(0, 5e3);
+            return this.isCodeMatched([url, title, headings, bodyText].join(" "), code);
+        },
+        normalizePreviewUrl(url, baseUrl = "") {
+            if (!url) return "";
+            const absolute = /^https?:\/\//i.test(url) ? url : baseUrl ? new URL(url, baseUrl).href : url;
+            return absolute.replace(/^http:/, "https:");
+        },
+        isJavfreePreviewImage(url, code) {
+            const cleanUrl = String(url || "").split("?")[0];
+            const lookupCode = this.lookupCode(code);
+            const isFc2Numeric = /^\d{6,9}$/.test(lookupCode);
+            const fc2ShotPattern = isFc2Numeric ? new RegExp(`${lookupCode}_\\d+\\.(?:jpe?g|png|webp)$`, "i") : null;
+            return this.isCodeMatched(cleanUrl, code) && (/-(?:1080p|demosaic)\.(?:jpe?g|png|webp)$/i.test(cleanUrl) || isFc2Numeric && fc2ShotPattern.test(cleanUrl));
+        },
+        selectJavfreePreviewUrl(doc, detailUrl, code) {
+            const urls = [...doc.querySelectorAll("p > img[src]")].map((img) => this.normalizePreviewUrl(img.getAttribute("src") || img.src || "", detailUrl)).filter((url) => this.isJavfreePreviewImage(url, code));
+            return urls.find((url) => /-1080p\./i.test(url)) || urls.find((url) => /-demosaic\./i.test(url)) || urls.find((url) => /_1\.(?:jpe?g|png|webp)$/i.test(url)) || "";
+        },
+        async javfree(code) {
+            var _a;
+            code = this.lookupCode(code);
+            const cacheKey = this.cacheKey(code);
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) return cached;
+            try {
+                const html = await gmHttp.get(`https://javfree.me/search/${code}`);
+                const doc = new DOMParser().parseFromString(html, "text/html");
+                const link = (_a = [...doc.querySelectorAll(".entry-title>a")].find((a) => this.isCodeMatched([a.href, a.textContent].join(" "), code))) == null ? void 0 : _a.href;
+                if (!link) return null;
+                const dHtml = await gmHttp.get(link);
+                const dDoc = new DOMParser().parseFromString(dHtml, "text/html");
+                if (!this.isDetailMatched(dDoc, link, code)) return null;
+                const url = this.selectJavfreePreviewUrl(dDoc, link, code);
+                if (url) {
+                    sessionStorage.setItem(cacheKey, url);
+                    return url;
+                }
+                return null;
+            } catch {
+                return null;
+            }
+        },
+        async javstore(code) {
+            code = this.lookupCode(code);
+            try {
+                const normalizedCode = code.replace(/^fc2-?/i, "").replace(/-/g, "").toLowerCase();
+                const searchUrl = `https://javstore.net/search?q=${encodeURIComponent(code)}`;
+                const searchHtml = await gmHttp.get(searchUrl);
+                const searchDoc = new DOMParser().parseFromString(searchHtml, "text/html");
+                const candidateLinks = searchDoc.querySelectorAll('a[href*="/"]');
+                const detailUrls = [];
+                for (const link of candidateLinks) {
+                    const href = link.getAttribute("href");
+                    if (!href) continue;
+                    if (href.startsWith("http") && !href.includes("javstore.net")) continue;
+                    const urlObj = new URL(href, searchUrl);
+                    if (!/javstore\.net$/i.test(urlObj.hostname)) continue;
+                    if (/^\/search(?:[/?#]|$)/i.test(urlObj.pathname)) continue;
+                    const fullUrl = urlObj.href;
+                    const pathLastPart = decodeURIComponent(urlObj.pathname.split("/").pop() || "");
+                    const normalizedPath = pathLastPart.toLowerCase().replace(/-/g, "");
+                    const looksLikeDetail = /\.html$/i.test(urlObj.pathname) || /^\/\d+[-/]/.test(urlObj.pathname);
+                    if (looksLikeDetail && normalizedPath.includes(normalizedCode) && !detailUrls.includes(fullUrl)) {
+                        detailUrls.push(fullUrl);
+                    }
+                }
+                if (detailUrls.length === 0) return null;
+                for (const detailUrl of detailUrls) {
+                    const imgUrl = await this._extractImgFromDetail(detailUrl, code);
+                    if (imgUrl) return imgUrl;
+                }
+                return null;
+            } catch (e) {
+                clog.debug("javstore 获取失败", e);
+                return null;
+            }
+        },
+        async _extractImgFromDetail(detailUrl, code) {
+            try {
+                const detailHtml = await gmHttp.get(detailUrl);
+                const detailDoc = new DOMParser().parseFromString(detailHtml, "text/html");
+                if (!this.isDetailMatched(detailDoc, detailUrl, code)) return null;
+                for (const link of detailDoc.querySelectorAll("a")) {
+                    if (link.textContent.includes("CLICK HERE")) {
+                        const imgUrl = link.href || link.getAttribute("href") || "";
+                        if (imgUrl) return this.normalizePreviewUrl(imgUrl, detailUrl);
+                    }
+                }
+                const img = detailDoc.querySelector('img[src*="_s.jpg"]');
+                if (img) {
+                    let src = img.getAttribute("src") || "";
+                    if (!src.startsWith("http")) src = new URL(src, detailUrl).href;
+                    return this.normalizePreviewUrl(src.replace(/_s\.jpg$/, "_l.jpg"), detailUrl);
+                }
+                return null;
+            } catch (e) {
+                clog.debug("javstore: 详情页请求失败", detailUrl, e.message);
+                return null;
+            }
+        },
+        async projectjav(code) {
+            var _a;
+            code = this.lookupCode(code);
+            try {
+                const request = (url) => gmHttp.get(url, {}, {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
+                });
+                const searchUrl = `https://projectjav.com/?searchTerm=${encodeURIComponent(code)}`;
+                const searchHtml = await request(searchUrl);
+                const searchDoc = new DOMParser().parseFromString(searchHtml, "text/html");
+                let detailUrl = "";
+                const allMovieLinks = [...searchDoc.querySelectorAll('a[href*="/movie/"]')];
+                const firstLink = ((_a = allMovieLinks[0]) == null ? void 0 : _a.getAttribute("href")) || "";
+                if (firstLink) {
+                    detailUrl = firstLink.startsWith("http") ? firstLink : `https://projectjav.com${firstLink}`;
+                }
+                if (!detailUrl) return null;
+                const detailHtml = await request(detailUrl);
+                const detailDoc = new DOMParser().parseFromString(detailHtml, "text/html");
+                const screenshotLink = [...detailDoc.querySelectorAll('.col-md-12.thumbnail a[data-featherlight="image"], .thumbnail a[data-featherlight="image"]')].find((a) => {
+                    var _a2;
+                    return this.isCodeMatched([a.outerHTML, (_a2 = a.closest(".thumbnail")) == null ? void 0 : _a2.outerHTML, detailUrl].join(" "), code);
+                });
+                if (screenshotLink) {
+                    const thumbImg = screenshotLink.querySelector("img");
+                    const href = screenshotLink.getAttribute("href") || "";
+                    if (href) return this.normalizePreviewUrl(href, detailUrl);
+                    if (thumbImg) {
+                        const src = (thumbImg.getAttribute("src") || "").replace(/\?.*$/, "");
+                        if (src) return this.normalizePreviewUrl(src, detailUrl);
+                    }
+                }
+                return null;
+            } catch (e) {
+                clog.debug("[projectjav] 异常:", e.message);
+                return null;
+            }
+        },
+        async get(code) {
+            const cacheKey = this.cacheKey(code);
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) return {url: cached, source: null};
+            let url = null, source = null;
+            for (const src of this.sourceOrder()) {
+                url = await this.fetchFromSource(src, code);
+                if (url) {
+                    source = src;
+                    break;
+                }
+            }
+            if (url) sessionStorage.setItem(cacheKey, url);
+            return {url, source};
+        }
+    };
+    let previewOverlay = null;
+
+    function showPreviewOverlay$1(imgUrl, code, source = null) {
+        if (previewOverlay) {
+            previewOverlay.close();
+        }
+        let currentBlobUrl = null;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        const originalBodyOverflow = document.body.style.overflow;
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.overflow = "hidden";
+        const container = document.createElement("div");
+        container.className = "jhs-preview-overlay";
+        const img = document.createElement("img");
+        img.src = imgUrl;
+        img.className = "jhs-preview-img";
+        img.onclick = (e) => {
+            e.stopPropagation();
+            img.classList.toggle("zoomed");
+        };
+        img.onerror = () => {
+            img.src = imgUrl;
+        };
+        const toolbar = document.createElement("div");
+        toolbar.className = "jhs-preview-toolbar";
+        const createButton = (text, className, onClick) => {
+            const btn = document.createElement("button");
+            btn.className = `jhs-preview-btn ${className}`;
+            btn.textContent = text;
+            btn.onclick = onClick;
+            return btn;
+        };
+        const setActiveSource = (activeSource) => {
+            toolbar.querySelectorAll(".jhs-preview-btn").forEach((b) => b.classList.remove("active"));
+            const activeBtn = toolbar.querySelector(`.jhs-preview-btn-${activeSource}`);
+            if (activeBtn) activeBtn.classList.add("active");
+        };
+        const changeSource = async (src, srcName) => {
+            const loadingOverlay = document.createElement("div");
+            loadingOverlay.className = "jhs-loading-overlay";
+            loadingOverlay.innerHTML = '<div class="jhs-loading-spinner"><div class="spinner"></div><div>正在加载预览图...</div></div>';
+            document.body.appendChild(loadingOverlay);
+            try {
+                const newUrl = src === "javfree" ? await Thumbnail.javfree(code) : src === "projectjav" ? await Thumbnail.projectjav(code) : await Thumbnail.javstore(code);
+                if (newUrl) {
+                    if (currentBlobUrl) {
+                        URL.revokeObjectURL(currentBlobUrl);
+                        currentBlobUrl = null;
+                    }
+                    img.src = newUrl;
+                    setActiveSource(src);
+                } else {
+                    showToast(`${srcName} 未找到预览图`, "error");
+                }
+            } catch (err) {
+                showToast(`${srcName} 加载失败: ${err.message}`, "error");
+            } finally {
+                loadingOverlay.remove();
+            }
+        };
+        let toastTimer = null;
+        const showToast = (msg, type = "info") => {
+            const existing = container.querySelector(".jhs-preview-toast");
+            if (existing) existing.remove();
+            if (toastTimer) clearTimeout(toastTimer);
+            const toast = document.createElement("div");
+            toast.className = `jhs-preview-toast jhs-preview-toast-${type}`;
+            toast.textContent = msg;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add("show"));
+            toastTimer = setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 300);
+            }, 3e3);
+        };
+        const javfreeBtn = createButton("javfree", "jhs-preview-btn-javfree javfree", (e) => {
+            e.stopPropagation();
+            changeSource("javfree", "javfree");
+        });
+        const projectjavBtn = createButton("projectjav", "jhs-preview-btn-projectjav projectjav", (e) => {
+            e.stopPropagation();
+            changeSource("projectjav", "projectjav");
+        });
+        const javstoreBtn = createButton("javstore", "jhs-preview-btn-javstore javstore", (e) => {
+            e.stopPropagation();
+            changeSource("javstore", "javstore");
+        });
+        const newWindowBtn = createButton("新窗口打开", "jhs-preview-btn-action action", (e) => {
+            e.stopPropagation();
+            window.open(img.src);
+        });
+        const downloadBtn = createButton("下载", "jhs-preview-btn-action action", (e) => {
+            e.stopPropagation();
+            const a = document.createElement("a");
+            a.href = img.src;
+            a.download = `${code}.jpg`;
+            a.click();
+        });
+        toolbar.appendChild(javfreeBtn);
+        toolbar.appendChild(projectjavBtn);
+        toolbar.appendChild(javstoreBtn);
+        toolbar.appendChild(newWindowBtn);
+        toolbar.appendChild(downloadBtn);
+        if (source === "javfree") setActiveSource("javfree");
+        else if (source === "projectjav") setActiveSource("projectjav");
+        else if (source === "javstore") setActiveSource("javstore");
+        else setActiveSource("javfree");
+        container.appendChild(img);
+        const closeOverlay = () => {
+            if (container.parentNode) {
+                container.remove();
+                toolbar.remove();
+                document.documentElement.style.overflow = originalHtmlOverflow;
+                document.body.style.overflow = originalBodyOverflow;
+                if (currentBlobUrl) {
+                    URL.revokeObjectURL(currentBlobUrl);
+                    currentBlobUrl = null;
+                }
+            }
+        };
+        container.onclick = closeOverlay;
+        const escHandler = (e) => {
+            if (e.key === "Escape") {
+                closeOverlay();
+                document.removeEventListener("keydown", escHandler);
+            }
+        };
+        document.addEventListener("keydown", escHandler);
+        document.body.appendChild(container);
+        document.body.appendChild(toolbar);
+        previewOverlay = {container, toolbar, close: closeOverlay};
+    }
+
+    class ScreenShotPlugin extends BasePlugin {
+        getName() {
+            return "ScreenShotPlugin";
+        }
+
+        async handle() {
+            this.loadScreenShot().then();
+        }
+
+        async loadScreenShot() {
+            if (!window.isDetailPage) return;
+            if ("yes" !== await storageManager.getSetting("enableLoadScreenShot", "yes")) return;
+            let carNum2 = this.getPageInfo().carNum;
+            isJavDb$1 && $(".preview-images .tile-item").first().before(
+                '<a class="tile-item screen-container" style="overflow:hidden;max-height:215px;text-align:center;"><div style="margin-top:50px;color:#000;cursor:auto">正在加载缩略图</div></a>'
+            );
+            isJavBus$1 && $("#sample-waterfall .sample-box:first").after(
+                '<a class="sample-box screen-container" style="overflow:hidden;height:110px;text-align:center;"><div style="margin-top:30px;color:#000;cursor:auto">正在加载缩略图</div></a>'
+            );
+            try {
+                const result = await Thumbnail.get(carNum2);
+                if (result.url) {
+                    this.addImg("缩略图", result.url, carNum2, result.source);
+                    clog.log("加载缩略图:", result.url, result.source);
+                } else {
+                    this.showErrorFallback(carNum2, new Error("所有来源均未找到预览图"));
+                }
+            } catch (e) {
+                this.showErrorFallback(carNum2, e);
+            }
+        }
+
+        async getScreenshot(carNum2) {
+            const result = await Thumbnail.get(carNum2);
+            if (result.url) return result.url;
+            throw new Error("未找到预览图");
+        }
+
+        async getJavStoreScreenShot(carNum2) {
+            return await Thumbnail.javstore(carNum2);
+        }
+
+        async getJavFreeScreenShot(carNum2) {
+            return await Thumbnail.javfree(carNum2);
+        }
+
+        addImg(title, imgUrl, code, source) {
+            if (!imgUrl) return;
+            isJavDb$1 && $(".screen-container").html(
+                `<img src="${imgUrl}" alt="${title}" loading="lazy" style="width:100%;">`
+            );
+            isJavBus$1 && $(".screen-container").html(
+                `<div class="photo-frame"><img src="${imgUrl}" style="height:inherit;width:100%;" title="${title}" alt="${title}"></div>`
+            );
+            $(".screen-container").on("click", (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                showPreviewOverlay$1(imgUrl, code || title, source);
+            });
+        }
+
+        showErrorFallback(carNum2, error) {
+            var _a, _b;
+            console.error("获取缩略图失败:", ((_b = (_a = error == null ? void 0 : error.message) == null ? void 0 : _a.substring) == null ? void 0 : _b.call(_a, 0, 100)) || error);
+            let differentCss = isJavBus$1 ? "margin-top:30px" : "margin-top:50px";
+            $(".screen-container").html(
+                `<div style="${differentCss};cursor:auto;color:#000;">获取缩略图失败</div><br/><a href='#' class='retry-link'>点击重试</a> 或 <a class="check-link" href='https://javstore.net/search?q=${encodeURIComponent(carNum2)}' target='_blank'>前往确认</a>`
+            ).off("click", ".retry-link").off("click", ".check-link").on("click", ".retry-link", async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                $(".screen-container").html(
+                    `<div style="${differentCss};cursor:auto;color:#000;">正在重新加载...</div>`
+                );
+                try {
+                    const result = await Thumbnail.get(carNum2);
+                    if (result.url) {
+                        this.addImg("缩略图", result.url, carNum2, result.source);
+                    } else {
+                        this.showErrorFallback(carNum2, new Error("所有来源均未找到预览图"));
+                    }
+                } catch (err) {
+                    this.showErrorFallback(carNum2, err);
+                }
+            }).on("click", ".check-link", (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                window.open(`https://javstore.net/search?q=${encodeURIComponent(carNum2)}`, "_blank");
+            });
+        }
+    }
+
+    window.showPreviewOverlay = showPreviewOverlay$1;
   const getDownPathList = async () => {
     const res = await gmHttp.get("https://webapi.115.com/offine/downpath");
     return "object" == typeof res ? res.data : null;
@@ -9100,153 +10219,6 @@ ${err.stack}` : "");
     //         console.error("删除离线任务失败:", error);
     //     }
     // }
-  }
-  class ScreenShotPlugin extends BasePlugin {
-    getName() {
-      return "ScreenShotPlugin";
-    }
-    async handle() {
-      this.loadScreenShot().then();
-    }
-    async loadScreenShot() {
-      if (!window.isDetailPage) return;
-      if ("yes" !== await storageManager.getSetting("enableLoadScreenShot", "yes")) return;
-      let carNum2 = this.getPageInfo().carNum;
-      isJavDb$1 && $(".preview-images .tile-item").first().before(' <a class="tile-item screen-container" style="overflow:hidden;max-height: 215px;text-align:center;"><div style="margin-top: 50px;color: #000;cursor: auto">正在加载缩略图</div></a> ');
-      isJavBus$1 && $("#sample-waterfall .sample-box:first").after(' <a class="sample-box screen-container" style="overflow:hidden; height: 110px; text-align:center;"><div style="margin-top: 30px;color: #000;cursor: auto">正在加载缩略图</div></a> ');
-      try {
-        const imgUrl = await this.getScreenshot(carNum2);
-        this.addImg("缩略图", imgUrl);
-        clog.log("加载缩略图:", imgUrl);
-      } catch (e) {
-        this.showErrorFallback(carNum2, e);
-      }
-    }
-    async getScreenshot(carNum2) {
-      const cacheData = localStorage.getItem("jhs_screenShot") ? JSON.parse(localStorage.getItem("jhs_screenShot")) : {};
-      if (cacheData[carNum2]) {
-        clog.debug("缓存中存在缩略图:", carNum2, cacheData[carNum2]);
-        return cacheData[carNum2];
-      }
-      let imgUrl;
-      try {
-        imgUrl = await Promise.any([this.getJavStoreScreenShot(carNum2)]);
-      } catch (e) {
-        clog.error("获取缩略图资源失败:", imgUrl, e);
-        throw e;
-      }
-      if (!imgUrl) {
-        this.showErrorFallback(carNum2, null);
-        return null;
-      }
-      const httpsIndex = imgUrl.indexOf("https://");
-      -1 !== httpsIndex && (imgUrl = imgUrl.substring(httpsIndex));
-      cacheData[carNum2] = imgUrl;
-      clog.log("缩略图获取成功:", imgUrl);
-      localStorage.setItem("jhs_screenShot", JSON.stringify(cacheData));
-      return imgUrl;
-    }
-    async getJavStoreScreenShot(carNum2) {
-      let url = `https://javstore.net/search/${carNum2}.html`;
-      clog.log("正在解析缩略图:", url);
-      let html = await gmHttp.get(url);
-      const $dom = utils.htmlTo$dom(html);
-      let detailPageUrl = null;
-      $dom.find("#content_news h3 span a").each((function() {
-        if ($(this).attr("title").toLowerCase().includes(carNum2.toLowerCase())) {
-          detailPageUrl = $(this).attr("href");
-          return false;
-        }
-      }));
-      if (!detailPageUrl) {
-        clog.error("JavStore, 查询番号失败:", url);
-        return null;
-      }
-      let detailPageHtml = await gmHttp.get(detailPageUrl);
-      const $detailPageDom = utils.htmlTo$dom(detailPageHtml);
-      let imgUrl = $detailPageDom.find("a:contains('CLICK HERE')").attr("href") || $detailPageDom.find("img[src*='_s.jpg']").attr("src");
-      if (!imgUrl) {
-        clog.error("JavStore, 解析预览图失败:", url);
-        return null;
-      }
-      return imgUrl.replace(".th", "");
-    }
-    async getJavBestScreenShot(carNum2) {
-      let url = `https://javbest.net/?s=${carNum2}`;
-      clog.log("正在解析缩略图:", url);
-      let html = await gmHttp.get(url);
-      const $dom = utils.htmlTo$dom(html), href = $dom.find(".app_loop_thumb a").first().attr("href");
-      if (!href) {
-        clog.error("解析JavBest搜索页失败:", url);
-        throw new Error("解析JavBest搜索页失败");
-      }
-      const title = $dom.find(".app_loop_thumb a").first().attr("title");
-      if (!title.toLowerCase().includes(carNum2.toLowerCase())) {
-        clog.error("解析JavBest搜索页失败:", title);
-        throw new Error("解析JavBest搜索页失败");
-      }
-      const detailPageHtml = await gmHttp.get(href);
-      let imgUrl = $(detailPageHtml).find('#content a img[src*="_t.jpg"]').attr("src");
-      if (!imgUrl) {
-        clog.error("解析JavBest缩略图失败:", url);
-        throw new Error("解析JavBest缩略图失败");
-      }
-      imgUrl = imgUrl.replace("_t", "").replace("http:", "https:");
-      return imgUrl;
-    }
-    async getJavFreeScreenShot(carNum2) {
-      let url = `https://javfree.me/search/${carNum2}/`, html = await gmHttp.get(url);
-      const $itemList = utils.htmlTo$dom(html).find("article h2.entry-title a");
-      if (!$itemList || 0 === $itemList.length) {
-        clog.error("解析JavFree搜索页失败:", url);
-        throw new Error("解析JavFree搜索页失败");
-      }
-      let detailPageUrl = $($itemList[0]).attr("href"), detailPageHtml = await gmHttp.get(detailPageUrl);
-      const $imgList = utils.htmlTo$dom(detailPageHtml).find("#main > article > .entry-content > p img");
-      if (!$imgList || 0 === $imgList.length) {
-        clog.error("解析JavFree详情页失败:", detailPageUrl);
-        throw new Error("解析JavFree详情页失败");
-      }
-      const srcList = $imgList.filter((function() {
-        const src = $(this).attr("src");
-        return src && src.toLowerCase().endsWith(".jpeg");
-      })).map((function() {
-        return $(this).attr("src");
-      })).get();
-      console.log(srcList);
-      return srcList.at(-1);
-    }
-    addImg(title, imgUrl) {
-      if (imgUrl) {
-        isJavDb$1 && $(".screen-container").html(`<img src="${imgUrl}" alt="${title}" loading="lazy" style="width: 100%;">`);
-        isJavBus$1 && $(".screen-container").html(`<div class="photo-frame"><img src="${imgUrl}" style="height: inherit;width: 100%;" title="${title}" alt="${title}"></div>`);
-        $(".screen-container").on("click", ((event) => {
-          event.stopPropagation();
-          event.preventDefault();
-          showImageViewer(event.currentTarget);
-        }));
-      }
-    }
-    showErrorFallback(carNum2, error) {
-      var _a2;
-      console.error("获取缩略图失败:", null == (_a2 = null == error ? void 0 : error.message) ? void 0 : _a2.substring(0, 100));
-      let differentCss = isJavBus$1 ? "margin-top: 30px" : "margin-top: 50px";
-      $(".screen-container").html(`<div style="${differentCss}; cursor:auto;color:#000;">获取缩略图失败</div><br/><a href='#' class='retry-link'>点击重试</a> 或 <a class="check-link" href='https://javstore.net/search/${carNum2}.html' target='_blank'>前往确认</a>`).off("click", ".retry-link").off("click", ".check-link").on("click", ".retry-link", (async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        $(".screen-container").html(`<div style="${differentCss};cursor:auto;color:#000;">正在重新加载...</div>`);
-        try {
-          const imgUrl = await this.getScreenshot(carNum2);
-          this.addImg("缩略图", imgUrl);
-        } catch (err) {
-          this.showErrorFallback(carNum2, err);
-        }
-      })).on("click", ".check-link", (async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        window.open(`https://javstore.net/search/${carNum2}.html`, "_blank");
-      }));
-    }
   }
   class WangPan115Plugin extends BasePlugin {
     constructor() {
@@ -11299,7 +12271,7 @@ ${err.stack}` : "");
           carNum2 = carNum2.replace("FC2-", "");
           const imgUrl = await this.getBean("ScreenShotPlugin").getScreenshot(carNum2);
           loadObj.close();
-          showImageViewer(imgUrl);
+            showPreviewOverlay(imgUrl, carNum2);
         } catch (error) {
           console.error("图片预览出错:", error);
           show.error("图片预览出错:" + error);
@@ -11738,6 +12710,7 @@ ${err.stack}` : "");
             $("#subtitleSearchBtn").on("click", (() => {
                 window.JavPackSubtitle.openSearchModal({details: {code: carNum2}});
             }));
+            window.JavPackSubtitle.preload115Matches(carNum2);
           let tempCarNum = carNum2.replace("FC2-", "");
           this.getBean("OtherSitePlugin").loadOtherSite(tempCarNum, carNum2).then();
         }
@@ -11790,7 +12763,7 @@ ${err.stack}` : "");
           $(".screen-container").on("click", ((event) => {
             event.stopPropagation();
             event.preventDefault();
-            showImageViewer(event.currentTarget);
+              showPreviewOverlay(imgUrl, carNum2);
           }));
         }
       }));
@@ -11952,6 +12925,7 @@ ${err.stack}` : "");
         $("#subtitleSearchBtn").on("click", (() => {
             window.JavPackSubtitle.openSearchModal({details: {code: carNum2}});
         }));
+        window.JavPackSubtitle.preload115Matches(carNum2);
       this.showStatus(carNum2).then();
     }
     async showStatus(carNum2) {

@@ -451,6 +451,124 @@ const mainCss = `
     background: rgba(0, 0, 0, 0.3);
     z-index: 999998;
   }
+
+  .jhs-preview-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2147483647;
+    display: flex;
+    overflow: auto;
+    cursor: zoom-out;
+    backdrop-filter: blur(5px);
+  }
+  .jhs-preview-img {
+    border-radius: 4px;
+    margin: auto;
+    cursor: zoom-in;
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+    display: block;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+  .jhs-preview-img.zoomed {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+  }
+  .jhs-preview-toolbar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 2147483648;
+    background: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
+  .jhs-preview-btn {
+    padding: 7px 16px;
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .jhs-preview-btn:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+  }
+  .jhs-preview-btn.active {
+    color: #fff;
+    background: #2ecc71;
+    border-color: #2ecc71;
+  }
+  .jhs-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2147483649;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .jhs-loading-spinner {
+    text-align: center;
+  }
+  .jhs-loading-spinner .spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: jhs-spin 0.6s linear infinite;
+  }
+  @keyframes jhs-spin {
+    to { transform: rotate(360deg); }
+  }
+  .jhs-preview-toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translate(-50%, -20px);
+    z-index: 2147483650;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+  .jhs-preview-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  .jhs-preview-toast-error {
+    background: rgba(220, 38, 38, 0.9);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+  }
+  .jhs-preview-toast-info {
+    background: rgba(59, 130, 246, 0.9);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  }
 </style>
 `;
 

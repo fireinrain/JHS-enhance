@@ -269,7 +269,7 @@ class Fc2By123AvPlugin extends BasePlugin {
                 $(".screen-container").on("click", (event => {
                     event.stopPropagation();
                     event.preventDefault();
-                    showImageViewer(event.currentTarget);
+                    showPreviewOverlay(imgUrl, carNum2);
                 }));
             }
         }));

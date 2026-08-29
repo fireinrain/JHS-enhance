@@ -151,7 +151,7 @@ class Fc2Plugin extends BasePlugin {
         utils.loopDetector((() => $(".movie-gallery .image-list").length > 0), (async () => {
             $(".movie-gallery .image-list").prepend(' <a class="tile-item screen-container" style="overflow:hidden;max-height: 150px;max-width:150px; text-align:center;"><div style="margin-top: 50px;color: #000;cursor: auto">正在加载缩略图</div></a> ');
             const screenShotPlugin = this.getBean("ScreenShotPlugin"), imgUrl = await screenShotPlugin.getScreenshot(carNum2);
-            imgUrl && await screenShotPlugin.addImg("缩略图", imgUrl);
+            imgUrl && await screenShotPlugin.addImg("缩略图", imgUrl, carNum2);
         }));
     }
     handleMagnets(movieId) {

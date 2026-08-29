@@ -101,7 +101,7 @@ class CoverButtonPlugin extends BasePlugin {
                 carNum2 = carNum2.replace("FC2-", "");
                 const imgUrl = await this.getBean("ScreenShotPlugin").getScreenshot(carNum2);
                 loadObj.close();
-                showImageViewer(imgUrl);
+                showPreviewOverlay(imgUrl, carNum2);
             } catch (error) {
                 console.error("图片预览出错:", error);
                 show.error("图片预览出错:" + error);
