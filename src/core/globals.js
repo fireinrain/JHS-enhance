@@ -12,6 +12,9 @@ if (typeof $.trim !== 'function') {
         return text == null ? '' : (text + '').trim();
     };
 }
+if (typeof jQuery !== 'undefined' && typeof layer === 'undefined') {
+    await import('layui-layer');
+}
 window.localforage = localforage;
 window.Toastify = Toastify;
 window.md5 = md5;

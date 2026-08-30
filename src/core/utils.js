@@ -98,7 +98,7 @@ class Utils {
         }
         if (!viewerExists) {
             this.layerIndexStack.pop();
-            layer.close(topLayerIndex);
+            typeof layer !== 'undefined' && layer.close(topLayerIndex);
         }
     }
     setupEscClose(layerIndex) {
