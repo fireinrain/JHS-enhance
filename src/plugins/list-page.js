@@ -402,11 +402,13 @@ class ListPagePlugin extends BasePlugin {
         }
         if (this.cache[carNum2]) {
             let _this = this;
+            $title.attr("data-original-title", content);
             $title.contents().each((function() {
                 3 === this.nodeType && "" !== this.textContent.trim() && (this.textContent = " " + _this.cache[carNum2] + " ");
             }));
             $title.attr("title", _this.cache[carNum2]);
         } else translateText(content).then((result => {
+            $title.attr("data-original-title", content);
             if (isJavDb) {
                 $title.contents().each((function() {
                     3 !== this.nodeType || "" === this.textContent.trim() || this.textContent.includes(carNum2) || (this.textContent = " " + result + " ");
@@ -424,7 +426,7 @@ class ListPagePlugin extends BasePlugin {
     async revertTranslation() {
         $(this.getSelector().itemSelector).toArray().forEach((ele => {
             let $box2 = $(ele);
-            const originalContent = $box2.find(".box").attr("title") || $box2.find(".video-title").attr("title") || $box2.find("img").attr("data-title");
+            const originalContent = $box2.find(".video-title").attr("data-original-title") || $box2.find(".box").attr("title") || $box2.find(".video-title").attr("title") || $box2.find("img").attr("data-title");
             let carNum2;
             isJavDb && (carNum2 = $box2.find(".video-title strong").text().trim());
             const $title = $box2.find(".video-title");
