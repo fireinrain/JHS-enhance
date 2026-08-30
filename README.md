@@ -291,7 +291,7 @@ window.show.ok('操作成功');                     // Toast 通知
 
 如果当前项目有帮到您的话，赞助我喝瓶水 :)
 
-![赞助](https://i.imgur.com/KM5I6dD.jpeg)
+![赞助](https://i.imgur.com/ynGK6he.jpeg)
 
 ## 构建配置
 
