@@ -6,8 +6,9 @@ const getDownPathList = async () => {
     return "object" == typeof res ? res.data : null;
 };
 
-const searchFiles = async (search_value, offset = 0, limit = 30) => {
-    const url = `https://webapi.115.com/files/search?search_value=${encodeURIComponent(search_value)}&offset=${offset}&limit=${limit}`;
+const searchFiles = async (search_value, offset = 0, limit = 30, params = {}) => {
+    const queryParams = new URLSearchParams({search_value, offset, limit, ...params});
+    const url = `https://webapi.115.com/files/search?${queryParams}`;
     return await gmHttp.get(url);
 };
 

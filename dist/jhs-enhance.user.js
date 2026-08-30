@@ -12146,8 +12146,9 @@ ${err.stack}` : "");
                 const res = await gmHttp.get("https://webapi.115.com/offine/downpath");
                 return "object" == typeof res ? res.data : null;
             };
-            const searchFiles = async (search_value, offset = 0, limit = 30) => {
-                const url = `https://webapi.115.com/files/search?search_value=${encodeURIComponent(search_value)}&offset=${offset}&limit=${limit}`;
+            const searchFiles = async (search_value, offset = 0, limit = 30, params = {}) => {
+                const queryParams = new URLSearchParams({search_value, offset, limit, ...params});
+                const url = `https://webapi.115.com/files/search?${queryParams}`;
                 return await gmHttp.get(url);
             };
 
@@ -12873,8 +12874,8 @@ ${err.stack}` : "");
                                 onProgress && onProgress(i + 1, selectedItems.length, item, "未匹配到115文件");
                                 continue;
                             }
-                            const upperCarNum = item.carNum.toUpperCase();
-                            const safeMatchList = matchList.filter((m) => m.name.toUpperCase().includes(upperCarNum));
+                            const {regex: safeRegex} = codeParse(item.carNum);
+                            const safeMatchList = matchList.filter((m) => safeRegex.test(m.name));
                             if (safeMatchList.length === 0) {
                                 failedCount++;
                                 onProgress && onProgress(i + 1, selectedItems.length, item, "无安全可删除目录");
@@ -12973,8 +12974,8 @@ ${err.stack}` : "");
                 }
 
                 showDeleteDialog(carNum2, matchList, afterDelete) {
-                    const upperCarNum = carNum2.toUpperCase();
-                    const safeMatchList = matchList.filter((m) => m.name.toUpperCase().includes(upperCarNum));
+                    const {regex: safeRegex} = codeParse(carNum2);
+                    const safeMatchList = matchList.filter((m) => safeRegex.test(m.name));
                     const unsafeCount = matchList.length - safeMatchList.length;
                     if (safeMatchList.length === 0) {
                         show.error(`作品 "${carNum2}" 匹配到的 ${matchList.length} 个项目均不含番号，无法安全删除。请手动在115中删除。`);
@@ -13085,20 +13086,27 @@ ${err.stack}` : "");
                 }
 
                 async searchFiles(carNum2) {
+                    const {regex} = codeParse(carNum2);
+                    const searchKeyword = carNum2.toLowerCase().replace("fc2-", "");
+                    const mapAndFilter = (rawData) => {
+                        return rawData.map(((data) => ({
+                            folderId: data.fid,
+                            dirId: data.cid,
+                            videoId: data.pc,
+                            name: data.n,
+                            createTime: utils.formatDate(new Date(1e3 * data.te)),
+                            size: data.s,
+                            isVideo: true
+                        }))).filter(((x) => x.folderId && regex.test(x.name)));
+                    };
                     var _a2;
-                    let searchKeyword = carNum2.toLowerCase().replace("fc2-", "");
-                    return (null == (_a2 = (await searchFiles(searchKeyword)).data) ? void 0 : _a2.map(((data) => ({
-                        folderId: data.fid,
-                        dirId: data.cid,
-                        videoId: data.pc,
-                        name: data.n,
-                        createTime: utils.formatDate(new Date(1e3 * data.te)),
-                        size: data.s,
-                        isVideo: [".mp4", ".avi", ".mov", ".mkv", ".flv", ".wmv"].some(((ext) => {
-                            var _a3;
-                            return null == (_a3 = data.n) ? void 0 : _a3.toLowerCase().endsWith(ext);
-                        }))
-                    }))).filter(((x) => x.folderId && x.isVideo && x.name.toLowerCase().includes(searchKeyword)))) || [];
+                    const preciseData = (null == (_a2 = (await searchFiles(searchKeyword, 0, 30, {type: 4})).data) ? void 0 : _a2) || [];
+                    const preciseResults = mapAndFilter(preciseData);
+                    if (preciseResults.length > 0) return preciseResults;
+                    const numberPart = extractNumberPart(carNum2);
+                    if (numberPart === searchKeyword) return preciseResults;
+                    const fuzzyData = (null == (_a2 = (await searchFiles(numberPart, 0, 30, {type: 4})).data) ? void 0 : _a2) || [];
+                    return mapAndFilter(fuzzyData);
                 }
 
                 showMatchError($box2, carNum2, error) {
@@ -13176,6 +13184,23 @@ ${err.stack}` : "");
                 LOGGED_IN: 1
             });
             let WangPan115MatchPlugin = _WangPan115MatchPlugin;
+            const extractNumberPart = (carNum2) => {
+                let cleaned = carNum2.replace(/^fc2[-_]?(ppv[-_])?/i, "");
+                const match = cleaned.match(/(\d+)$/);
+                return match ? match[1] : cleaned;
+            };
+            const codeParse = (code) => {
+                const codes = code.split(/-|_/);
+                const sep = "\\s?(0|-|_){0,2}\\s?";
+                let pattern = codes.join(sep);
+                if (/^fc2/i.test(code)) pattern = `${codes[0]}${sep}(ppv)?${sep}${codes.at(-1)}`;
+                return {
+                    code,
+                    codes,
+                    prefix: codes[0],
+                    regex: new RegExp(`(?<![a-z])${pattern}(?!\\d)`, "i")
+                };
+            };
 
             class FavoriteActressesPlugin extends BasePlugin {
                 getName() {
