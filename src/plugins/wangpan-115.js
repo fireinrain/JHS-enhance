@@ -414,46 +414,31 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
                     continue;
                 }
                 let itemDeleted = 0;
-                const uniqueDirIds = [...new Set(safeMatchList.map((m) => m.dirId))];
-                for (let d = 0; d < uniqueDirIds.length; d++) {
-                    if (d > 0) {
+                const groupedByDir = {};
+                for (const m of safeMatchList) {
+                    if (!groupedByDir[m.dirId]) groupedByDir[m.dirId] = [];
+                    groupedByDir[m.dirId].push(m);
+                }
+                const entries = Object.entries(groupedByDir);
+                for (let g = 0; g < entries.length; g++) {
+                    if (g > 0) {
                         await randomDelay();
                     }
-                    const dirId = uniqueDirIds[d];
-                    let retryCount = 0;
-                    const maxRetries = 3;
-                    while (retryCount <= maxRetries) {
-                        try {
-                            const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
-                                "fid[0]": dirId,
-                                ignore_warn: "1"
-                            });
-                            if (result && result.state) {
+                    const [dirId, items] = entries[g];
+                    if (items.length === 1) {
+                        const result = await this._deleteOne(dirId, false, i, selectedItems, item, onProgress);
+                        if (result) {
+                            itemDeleted++;
+                            deletedCount++;
+                        }
+                    } else {
+                        for (let f = 0; f < items.length; f++) {
+                            if (f > 0) await randomDelay();
+                            const fileDeleted = await this._deleteOne(items[f].folderId, true, i, selectedItems, item, onProgress);
+                            if (fileDeleted) {
                                 itemDeleted++;
                                 deletedCount++;
-                                break;
-                            } else {
-                                const errMsg = (result && result.error) || "未知错误";
-                                if (retryCount < maxRetries && this.isRateLimited(result)) {
-                                    retryCount++;
-                                    const backoff = (retryCount + 1) * 2000 + Math.random() * 1000;
-                                    onProgress && onProgress(i + 1, selectedItems.length, item, `风控触发，${backoff / 1000}秒后重试(${retryCount}/${maxRetries})`);
-                                    await new Promise(resolve => setTimeout(resolve, backoff));
-                                    continue;
-                                }
-                                console.error(`删除目录失败: ${dirId}`, errMsg);
-                                break;
                             }
-                        } catch (e) {
-                            if (retryCount < maxRetries && this.isRateLimited(e)) {
-                                retryCount++;
-                                const backoff = (retryCount + 1) * 2000 + Math.random() * 1000;
-                                onProgress && onProgress(i + 1, selectedItems.length, item, `风控触发，${backoff / 1000}秒后重试(${retryCount}/${maxRetries})`);
-                                await new Promise(resolve => setTimeout(resolve, backoff));
-                                continue;
-                            }
-                            console.error(`删除目录失败: ${dirId}`, e);
-                            break;
                         }
                     }
                 }
@@ -480,6 +465,45 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
             return true;
         }
         return false;
+    }
+
+    async _deleteOne(deleteId, isFile, batchIndex, selectedItems, item, onProgress) {
+        let retryCount = 0;
+        const maxRetries = 3;
+        const label = isFile ? "文件" : "目录";
+        while (retryCount <= maxRetries) {
+            try {
+                const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                    "fid[0]": deleteId,
+                    ignore_warn: "1"
+                });
+                if (result && result.state) {
+                    return 1;
+                } else {
+                    const errMsg = (result && result.error) || "未知错误";
+                    if (retryCount < maxRetries && this.isRateLimited(result)) {
+                        retryCount++;
+                        const backoff = (retryCount + 1) * 2000 + Math.random() * 1000;
+                        onProgress && onProgress(batchIndex + 1, selectedItems.length, item, `风控触发，${backoff / 1000}秒后重试(${retryCount}/${maxRetries})`);
+                        await new Promise(resolve => setTimeout(resolve, backoff));
+                        continue;
+                    }
+                    console.error(`删除${label}失败: ${deleteId}`, errMsg);
+                    return 0;
+                }
+            } catch (e) {
+                if (retryCount < maxRetries && this.isRateLimited(e)) {
+                    retryCount++;
+                    const backoff = (retryCount + 1) * 2000 + Math.random() * 1000;
+                    onProgress && onProgress(batchIndex + 1, selectedItems.length, item, `风控触发，${backoff / 1000}秒后重试(${retryCount}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    continue;
+                }
+                console.error(`删除${label}失败: ${deleteId}`, e);
+                return 0;
+            }
+        }
+        return 0;
     }
 
     showDeleteDialog(carNum2, matchList, afterDelete) {
@@ -537,13 +561,32 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
                 let loadObj = loading();
                 let deletedCount = 0;
                 try {
-                    const uniqueDirIds = [...new Set(selected.map((i) => safeMatchList[i].dirId))];
-                    for (const dirId of uniqueDirIds) {
-                        const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
-                            "fid[0]": dirId,
-                            ignore_warn: "1"
-                        });
-                        result && result.state ? deletedCount++ : console.error(`删除目录失败: ${dirId}`, result);
+                    const selectedItems = selected.map((i) => safeMatchList[i]);
+                    const totalByDir = {};
+                    for (const m of safeMatchList) {
+                        totalByDir[m.dirId] = (totalByDir[m.dirId] || 0) + 1;
+                    }
+                    const groupedByDir = {};
+                    for (const item of selectedItems) {
+                        if (!groupedByDir[item.dirId]) groupedByDir[item.dirId] = [];
+                        groupedByDir[item.dirId].push(item);
+                    }
+                    for (const [dirId, items] of Object.entries(groupedByDir)) {
+                        if (items.length === totalByDir[dirId]) {
+                            const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                                "fid[0]": dirId,
+                                ignore_warn: "1"
+                            });
+                            result && result.state ? deletedCount++ : console.error(`删除目录失败: ${dirId}`, result);
+                        } else {
+                            for (const item of items) {
+                                const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                                    "fid[0]": item.folderId,
+                                    ignore_warn: "1"
+                                });
+                                result && result.state ? deletedCount++ : console.error(`删除文件失败: ${item.folderId}`, result);
+                            }
+                        }
                     }
                     loadObj.close();
                     show.ok(`作品 "${carNum2}" 已删除 ${deletedCount} 个文件夹`);
