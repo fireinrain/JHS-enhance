@@ -103,5 +103,19 @@ export default defineConfig({
         },
       },
     }),
+    {
+      name: 'layui-layer-dev-shim',
+      apply: 'serve',
+      resolveId(id) {
+        if (id === 'layui-layer') {
+          return '\0layui-layer-shim';
+        }
+      },
+      load(id) {
+        if (id === '\0layui-layer-shim') {
+          return 'export default window.layer;';
+        }
+      },
+    },
   ],
 });
