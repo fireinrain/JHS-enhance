@@ -71,8 +71,32 @@ class PreviewVideoPlugin extends BasePlugin {
         videoEl.addEventListener("volumechange", (function() {
             localStorage.setItem("jhs_videoMuted", videoEl.muted ? "yes" : "no");
         }));
-        videoEl.play();
         let carNum2 = this.getPageInfo().carNum;
+        const CACHE_KEY = "jhs_dmm_video";
+        let dmmErrorRetryCount = 0;
+        const attachVideoErrorHandler = () => {
+            videoEl.addEventListener("error", async function onVideoError(e) {
+                if (dmmErrorRetryCount >= 2) return;
+                dmmErrorRetryCount++;
+                clog.warn(`预览视频加载失败(第${dmmErrorRetryCount}次)，清除缓存后重试...`);
+                const cachedData = localStorage.getItem(CACHE_KEY) ? JSON.parse(localStorage.getItem(CACHE_KEY)) : {};
+                delete cachedData[carNum2];
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cachedData));
+                const freshMap = await getDmmVideo(carNum2);
+                if (!freshMap) {
+                    show.error("预览视频获取失败，请稍后重试");
+                    return;
+                }
+                const storedQuality = await storageManager.getSetting("videoQuality");
+                const quality = selectDefaultQuality(Object.keys(freshMap), storedQuality);
+                const freshUrl = freshMap[quality];
+                $videoEl.attr("src", freshUrl);
+                videoEl.load();
+                videoEl.play();
+            }, {once: false});
+        };
+        attachVideoErrorHandler();
+        videoEl.play();
         const dmmVideoMap = await getDmmVideo(carNum2);
         let $bottomToolbar = $("<div></div>").attr("id", "video-bottom-toolbar").css({
             display: "flex",
