@@ -1101,6 +1101,11 @@
   insertStyle(mainCss);
     insertStyle(subtitleModalCss);
   window.$ = window.jQuery = $$1;
+    if (typeof $$1.trim !== "function") {
+        $$1.trim = function (text) {
+            return text == null ? "" : (text + "").trim();
+        };
+    }
   window.localforage = localforage$1;
   window.Toastify = Toastify$1;
   window.md5 = md5$1;
@@ -4098,7 +4103,7 @@ ${value}\r
                             <div>
                                 <div style="display: flex; justify-content: space-around; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap;">
                                     <div style="text-align: center; margin: 10px; flex: 1 1 30%; min-width: 150px;">
-                                        <img src="https://i.imgur.com/KM5I6dD.jpeg" alt="SOL二维码" style="width: 350px; height: 350px; border: 1px solid #ddd; padding: 5px; display: block; margin: 0 auto 5px;">
+                                        <img src="https://i.imgur.com/ynGK6he.jpeg" alt="SOL二维码" style="width: 350px; height: 350px; border: 1px solid #ddd; padding: 5px; display: block; margin: 0 auto 5px;">
                                         <p>SOL</p>
                                         <input type="text" readonly value="5xvRp1jhWkCasT1H7Nh8G5eAuvdCFD5s2Xux2w3rJ8RG" onclick="this.select();document.execCommand('copy');alert('地址已复制！');" 
                                             style="width: 90%; padding: 5px; margin-top: 5px; border: 1px solid #a99087; background-color: #fff; text-align: center; font-size: 0.8em; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
