@@ -39,15 +39,55 @@ git push → GitHub Actions 自动构建 → 发布 GitHub Release
 
 ## 功能概览
 
-- **列表页增强**：作品状态标签（屏蔽/收藏/已下载/已观看）、一键筛选已收藏/新作品、演员黑名单过滤、标题关键词过滤
-- **详情页增强**：磁力链接高亮匹配、DMM 多画质预览视频、标题翻译（Google 翻译）、字幕搜索（整合迅雷 + SubTitleCat，支持 115
-  网盘直传与多目录选择）、演员信息展示、相关清单、评论查看
-- **多源预览图**：javfree / projectjav / javstore 三源预览图，支持来源切换、下载、新窗口打开，带 sessionStorage 缓存
-- **115 网盘集成**：目录匹配与预加载、多目录选择上传、字幕一键直传
-- **数据管理**：IndexedDB 本地存储、云盘备份/恢复（阿里云盘 / 115 网盘 / WebDAV）、跨 Tab 数据同步
-- **自动化任务**：自动翻页、新作品检测、收藏演员同步、黑名单更新
-- **UI 优化**：分类折叠、热榜 Top250、免 VIP 查看热播、以图识图、FC2 支持
-- **多站点支持**：JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers / SubTitleCat
+### 列表页增强
+
+- 作品状态标签（屏蔽/收藏/已下载/已观看）
+- 一键筛选已收藏/新作品/待鉴定
+- 演员黑名单过滤、标题关键词过滤
+- 封面快捷按钮（长缩略图/预览视频/鉴定按钮/第三方跳转/复制番号）
+- 分类折叠、热榜 Top250、免 VIP 查看热播
+- 自动翻页
+
+### 详情页增强
+
+- **磁力排序与过滤（JavDB）**：按发布日期/文件大小/文件数量拖拽排序，勾选启用；高清/4K/字幕/无码多条件并集过滤，4K 磁力行高亮显示
+- 磁力链接高亮匹配已收藏/已下载状态
+- DMM 多画质预览视频
+- **标题翻译**：Google 翻译，支持开关多次切换不失效
+- **字幕搜索**：合并迅雷 + SubTitleCat 为单一入口，支持 115 网盘直传、详情页预匹配目录、多目录选择上传、长目录名截断展示、字幕预览绿色字体
+- **多源预览图**：javfree / projectjav / javstore 三源切换，来源按钮绿色高亮，sessionStorage 缓存，错误提示弹窗内显示
+- 演员信息展示、相关清单、评论查看
+- 以图识图、第三方站点跳转
+
+### 115 网盘集成
+
+- 作品目录匹配与详情页预加载
+- 多目录选择上传字幕
+- 字幕一键直传至匹配目录
+- **作品删除增强**：删除整个文件夹（非仅视频），支持标记删除批量操作，删除后字幕目录列表联动；批量删除含风控保护（1~3s
+  随机延迟 + 触发风控自动重试退避）
+
+### 数据管理
+
+- IndexedDB 本地存储
+- 云盘备份/恢复（阿里云盘 / WebDAV）
+- 跨 Tab 数据同步（BroadcastChannel）
+
+### 自动化任务
+
+- 新作品检测
+- 收藏演员同步
+- 黑名单自动检测与更新
+- 后台定时任务调度
+
+### 其他
+
+- FC2 站点支持（含 123AV 补全）
+- MagnetHub 磁力搜索
+- JavTrailers 站点处理
+- 设置面板：快捷键配置、域名配置、缓存清理、标记删除列表、打赏作者（二维码/钱包地址可自定义）
+- 浏览历史、想看/已看列表
+- 多站点支持：JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers / SubTitleCat
 
 ---
 
@@ -59,63 +99,65 @@ git push → GitHub Actions 自动构建 → 发布 GitHub Release
 ```
 JHS-enhance/
 ├── src/
-│   ├── main.js                  # 入口文件：全局初始化、插件注册、页面启动
-│   ├── core/                    # 基础设施层
-│   │   ├── constants.js         # 全局常量、CSS 样式、页面类型判断
-│   │   ├── base-plugin.js       # 插件基类（含 SVG 图标、页面信息解析）
-│   │   ├── plugin-manager.js    # 插件管理器（注册、CSS/插件生命周期）
-│   │   ├── globals.js           # 全局依赖挂载（jQuery、localforage 等）
-│   │   ├── storage.js           # IndexedDB 存储管理器（localforage 封装）
-│   │   ├── utils.js             # 工具函数集（DOM 操作、弹窗、快捷键等）
-│   │   └── gmHttp.js            # GM_xmlhttpRequest 封装（带重试/并发控制）
-│   ├── api/                     # API 层
-│   │   ├── javdb.js             # JavDB API 封装（签名、搜索、评论等）
-│   │   └── dmm.js               # DMM 预览视频获取（多画质）
-│   └── plugins/                 # 插件层（40+ 个功能插件）
-│       ├── list-page.js         # 列表页过滤与状态标签
-│       ├── list-page-button.js  # 列表页功能按钮（待鉴定/已收藏/新作品/黑名单）
-│       ├── detail-page.js       # 详情页数据加载
-│       ├── detail-page-button.js# 详情页操作按钮（含 115 目录预加载）
-│       ├── setting.js           # 设置面板（Tabulator 表格）
-│       ├── translate.js         # 标题翻译（Google 翻译 API）
-│       ├── preview-video.js     # DMM 预览视频
-│       ├── highlight-magnet.js  # 磁力链接高亮匹配
-│       ├── auto-page.js         # 自动翻页 / 云盘备份
-│       ├── blacklist.js         # 黑名单管理（演员/番号）
-│       ├── favorite-actresses.js# 收藏演员同步
-│       ├── new-video.js         # 新作品检测
-│       ├── task.js              # 后台任务调度
-│       ├── history.js           # 浏览历史
-│       ├── wangpan-115.js       # 115 网盘匹配
-│       ├── wangpan-115-task.js  # 115 网盘任务处理
-│       ├── aliyun-pan.js        # 阿里云盘
+│   ├── main.js                  # 入口文件：全局初始化、插件注册、页面启动、loading/Toast/Viewer 全局函数
+│   ├── core/                    # 基础设施层（7 个模块）
+│   │   ├── constants.js         # 全局常量、CSS 样式、页面类型判断、枚举值
+│   │   ├── base-plugin.js       # 插件基类（含 SVG 图标、页面信息解析、getBean 跨插件调用）
+│   │   ├── plugin-manager.js    # 插件管理器（注册、CSS 注入、插件生命周期、按站点分组）
+│   │   ├── globals.js           # 全局依赖挂载（jQuery、localforage、layer 等）
+│   │   ├── storage.js           # IndexedDB 存储管理器（localforage 封装，含缓存）
+│   │   ├── utils.js             # 工具函数集（DOM 操作、弹窗确认、快捷键、重试、日期格式化）
+│   │   └── gmHttp.js            # GM_xmlhttpRequest 封装（GET/POST/Form/File、超时重试、分块下载）
+│   ├── api/                     # API 层（2 个模块）
+│   │   ├── javdb.js             # JavDB API 封装（签名算法、搜索、评论、磁力列表）
+│   │   └── dmm.js               # DMM 预览视频获取（多画质、默认画质选择）
+│   ├── lib/                     # 第三方补丁库
+│   │   └── gm-xhr-parallel.js   # Tampermonkey MV3 并行请求修复（redirect: manual）
+│   └── plugins/                 # 插件层（41 个功能插件）
+│       ├── list-page.js         # 列表页过滤与状态标签渲染
+│       ├── list-page-button.js  # 列表页功能按钮（待鉴定/已收藏/新作品/黑名单管理）
+│       ├── detail-page.js       # 详情页数据加载与基础增强
+│       ├── detail-page-button.js# 详情页操作按钮（115 目录预加载 + 磁力排序过滤面板）
+│       ├── setting.js           # 设置面板（Tab 页：基础/任务/域名/快捷键/屏蔽/缓存/标记删除/打赏作者）
+│       ├── translate.js         # 标题翻译（Google 翻译 API，原始标题缓存）
+│       ├── preview-video.js     # DMM 预览视频播放器
+│       ├── highlight-magnet.js  # 磁力链接高亮 + 排序 + 过滤（多键排序、并集过滤、4K 高亮）
+│       ├── auto-page.js         # 自动翻页
+│       ├── blacklist.js         # 黑名单管理（屏蔽演员/番号/关键词）
+│       ├── favorite-actresses.js# 收藏演员同步与高亮
+│       ├── new-video.js         # 新作品检测与通知
+│       ├── task.js              # 后台任务调度（黑名单/收藏演员/新作品定时执行）
+│       ├── history.js           # 浏览历史表格
+│       ├── wangpan-115.js       # 115 网盘匹配/标签/删除（含风控保护的批量删除）
+│       ├── wangpan-115-task.js  # 115 网盘任务处理（文件搜索 API 封装）
+│       ├── aliyun-pan.js        # 阿里云盘备份/恢复
 │       ├── fc2.js               # FC2 页面处理
-│       ├── fc2-by123av.js       # FC2 通过 123AV 搜索
-│       ├── actress-info.js      # 演员信息展示
-│       ├── related.js           # 相关清单
-│       ├── review.js            # 评论展示
-│       ├── cover-button.js      # 封面按钮
-│       ├── fold-category.js     # 分类折叠
-│       ├── hit-show.js          # 热播榜单
+│       ├── fc2-by123av.js       # FC2 通过 123AV 补全番号信息
+│       ├── actress-info.js      # 演员信息展示（含头像、生日、三围等）
+│       ├── related.js           # 相关作品清单
+│       ├── review.js            # 评论区展示
+│       ├── cover-button.js      # 封面快捷按钮（SVG 图标 + 5 种封面操作）
+│       ├── fold-category.js     # 分类折叠展开
+│       ├── hit-show.js          # 热播榜单 + 免 VIP 查看
 │       ├── top250.js            # Top250 排行榜
 │       ├── nav-bar.js           # JavDB 导航栏增强
 │       ├── bus-nav-bar.js       # JavBus 导航栏增强
-│       ├── bus-detail-page.js   # JavBus 详情页
+│       ├── bus-detail-page.js   # JavBus 详情页专属处理
 │       ├── bus-img.js           # JavBus 图片处理
 │       ├── bus-preview-video.js # JavBus 预览视频
-│       ├── image-recognition.js # 以图识图
-│       ├── screenshot.js        # 多源预览图（javfree/projectjav/javstore）
-│       ├── subtitles.js         # 字幕搜索（整合迅雷+SubTitleCat）+ 115 直传
-│       ├── req115.js            # 115 网盘 API 封装（Req + Drive115 + Req115）
+│       ├── image-recognition.js # 以图识图（第三方识图接口）
+│       ├── screenshot.js        # 多源预览图（javfree/projectjav/javstore + 来源切换弹窗）
+│       ├── subtitles.js         # 字幕搜索（整合迅雷+SubTitleCat）+ 115 多目录直传
+│       ├── req115.js            # 115 网盘 API 封装（Req 基类 + Drive115 + Req115）
 │       ├── magnet-hub.js        # MagnetHub 磁力搜索
-│       ├── other-site.js        # 第三方站点链接
-│       ├── jav-trailers.js      # JavTrailers 站点
-│       ├── subtitle-cat.js      # SubTitleCat 字幕搜索（已整合到 subtitles.js，保留文件）
+│       ├── other-site.js        # 第三方站点跳转链接
+│       ├── jav-trailers.js      # JavTrailers 站点处理
+│       ├── subtitle-cat.js      # SubTitleCat 字幕搜索（已整合，保留原文件）
 │       ├── filter-title-keyword.js # 标题关键词过滤
 │       └── want-watched.js      # 想看/已看视频列表
-├── vite.config.mjs              # Vite + vite-plugin-monkey 配置
+├── vite.config.mjs              # Vite + vite-plugin-monkey 配置（元数据/CDN 依赖/域名匹配）
 ├── package.json
-└── JHS-origin.js                # 原始单体脚本（参考）
+└── JHS-origin.js                # 原始单体脚本（参考归档）
 ```
 
 ---
@@ -245,6 +287,12 @@ window.show.ok('操作成功');                     // Toast 通知
 
 ---
 
+## 赞助
+
+如果当前项目有帮到您的话，赞助我喝瓶水 :)
+
+![赞助](https://i.imgur.com/KM5I6dD.jpeg)
+
 ## 构建配置
 
 `vite-plugin-monkey` 在 `vite.config.mjs` 中配置了：
@@ -258,7 +306,21 @@ window.show.ok('操作成功');                     // Toast 通知
 
 ## 版本历史
 
-- **v3.3.6** — 工程化重构版本，模块化拆分，支持 HMR 开发
+- **v3.3.7**
+  - 新增：JavDB 磁力排序与过滤（拖拽排序、多条件并集过滤、4K 高亮）
+  - 新增：多源预览图（javfree/projectjav/javstore + 来源切换弹窗 + 绿色高亮）
+  - 新增：字幕搜索合并为单一入口（迅雷+SubTitleCat），详情页预匹配 115 目录，多目录选择上传
+  - 新增：标记删除批量 115 删除（含风控保护：1~3s 随机延迟 + 风控自动退避重试）
+  - 优化：作品删除改为删除整个文件夹（非仅视频），删除后字幕目录列表联动更新
+  - 修复：标题翻译开关多次切换后失效（原始标题 data-original-title 缓存）
+  - 修复：115 目录名过长截断展示（最多 26 字符）
+  - 修复：字幕预览区域字体改为绿色
+  - 修复：JavBus/JavDB 磁力列表 DOM 精确提取（data-rank/data-size/data-files/data-date 属性）
+  - 修复：无码过滤条件新增 -U/-UC/-u/-uc 匹配
+  - 优化：删除作品 115 风控提示（标记删除面板）
+  - 优化：设置面板打赏作者二维码/钱包地址可自定义
+
+- **v3.3.6** — 工程化重构版本，模块化拆分（41 个插件），支持 Vite HMR 开发热更新
 
 ---
 
