@@ -275,7 +275,13 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         const $detail = $('\n            <div class="jhs-match-detail jhs-115-match-detail" id="115-match-table">\n                <table>\n                    <thead>\n                        <tr style="text-align: center">\n                            <th colspan="4">115匹配</th>\n                        </tr>\n                        <tr>\n                            <th>名称</th>\n                            <th>大小</th>\n                            <th>时间</th>\n                            <th>播放</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                    </tbody>\n                </table>\n            </div>\n        '), $tbody = $detail.find("tbody");
         try {
             const carNum2 = this.getPageInfo().carNum;
-            matchList || (matchList = await this.searchFiles(carNum2));
+            if (!matchList) {
+                const {results, usedPhase2} = await this._searchFilesWithPhase(carNum2);
+                matchList = results;
+                if (usedPhase2 && matchList.length > 0) {
+                    await this.autoRenameFiles(carNum2, matchList);
+                }
+            }
             await this.checkLoginStatus();
             if (this.loginStatus === _WangPan115MatchPlugin.LoginStatus.LOGGED_OUT) $tbody.append(`<tr><td colspan="4">\n                     <a class='jhs-match-no-login-btn a-info'\n                        data-keyword="${carNum2}"\n                        title="未登录115网盘">未登录</a>\n                 </td></tr>`); else if (matchList.length > 0) {
                 const rowsHtml = matchList.map((match => `\n                <tr>\n                    <td>${match.name}</td>\n                    <td>${this.formatSize(match.size)}</td>\n                    <td>${match.createTime}</td>\n                    <td>\n                        <a href="https://115vod.com/?pickcode=${match.videoId}&share_id=0"\n                           target="_blank"\n                           class="a-success"\n                           title="播放">播放</a>\n                    </td>\n                </tr>\n            `)).join("");
@@ -616,6 +622,10 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         window.open("https://115.com");
     }
     async searchFiles(carNum2) {
+        return (await this._searchFilesWithPhase(carNum2)).results;
+    }
+
+    async _searchFilesWithPhase(carNum2) {
         const {regex} = codeParse(carNum2);
         const searchKeyword = carNum2.toLowerCase().replace("fc2-", "");
 
@@ -634,13 +644,54 @@ const _WangPan115MatchPlugin = class _WangPan115MatchPlugin extends BasePlugin {
         var _a2;
         const preciseData = (null == (_a2 = (await searchFiles(searchKeyword, 0, 30, {type: 4})).data) ? void 0 : _a2) || [];
         const preciseResults = mapAndFilter(preciseData);
-        if (preciseResults.length > 0) return preciseResults;
+        if (preciseResults.length > 0) return {results: preciseResults, usedPhase2: false};
 
         const numberPart = extractNumberPart(carNum2);
-        if (numberPart === searchKeyword) return preciseResults;
+        if (numberPart === searchKeyword) return {results: preciseResults, usedPhase2: false};
 
         const fuzzyData = (null == (_a2 = (await searchFiles(numberPart, 0, 30, {type: 4})).data) ? void 0 : _a2) || [];
-        return mapAndFilter(fuzzyData);
+        return {results: mapAndFilter(fuzzyData), usedPhase2: true};
+    }
+
+    buildRenameTarget(carNum, originalName) {
+        const {regex} = codeParse(carNum);
+        const match = regex.exec(originalName);
+        if (!match) return null;
+        const before = originalName.slice(0, match.index);
+        const after = originalName.slice(match.index + match[0].length);
+        return before + carNum + after;
+    }
+
+    async autoRenameFiles(carNum, matchList) {
+        try {
+            const enableAutoRename = await storageManager.getSetting("enable115AutoRename", NO);
+            if (enableAutoRename !== YES) return;
+            const scope = await storageManager.getSetting("autoRenameScope", "vr_only");
+            if (scope === "vr_only" && !carNum.toUpperCase().includes("VR")) return;
+            const renameObj = {};
+            matchList.forEach(match => {
+                const newName = this.buildRenameTarget(carNum, match.name);
+                if (newName && newName !== match.name) {
+                    renameObj[match.folderId] = newName;
+                }
+            });
+            if (Object.keys(renameObj).length === 0) return;
+            const formData = {};
+            Object.entries(renameObj).forEach(([fid, newName]) => {
+                formData[`files_new_name[${fid}]`] = newName;
+            });
+            const result = await gmHttp.postForm("https://webapi.115.com/files/batch_rename", formData);
+            if (result && result.state) {
+                Object.entries(renameObj).forEach(([fid, newName]) => {
+                    const match = matchList.find(m => m.folderId === fid);
+                    console.log(`[115重命名] ${match.name} → ${newName}`);
+                });
+            } else {
+                console.warn("[115重命名] 重命名失败:", (result && result.error) || "未知错误");
+            }
+        } catch (e) {
+            console.warn("[115重命名] 重命名失败，跳过:", e.message);
+        }
     }
     showMatchError($box2, carNum2, error) {
         $box2.find(".jhs-match-btn").replaceWith(`<a class='jhs-match-error-btn' data-keyword="${carNum2}" \n              title="匹配失败，点击重试">匹配失败</a>`);

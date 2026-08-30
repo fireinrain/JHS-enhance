@@ -256,7 +256,7 @@ System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueim
                 isSearchPage = currentHref$1.includes("/search?q") || currentHref$1.includes("/search/") || currentHref$1.includes("/users/"),
                 Status_RUNNING = "RUNNING", Status_SUCCESS = "SUCCESS", Status_FAIL = "FAIL",
                 Status_LOADING = "LOADING", Status_FILTER$1 = "filter", Status_FAVORITE$1 = "favorite",
-                Status_HAS_DOWN$1 = "hasDown", Status_HAS_WATCH$1 = "hasWatch", NO = "no", YES = "yes",
+                Status_HAS_DOWN$1 = "hasDown", Status_HAS_WATCH$1 = "hasWatch", NO = "no", YES$1 = "yes",
                 qualityOptions = [{
                     id: "video-mhb",
                     quality: "dmb_w",
@@ -1285,7 +1285,7 @@ System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueim
             window.Status_HAS_DOWN = Status_HAS_DOWN$1;
             window.Status_HAS_WATCH = Status_HAS_WATCH$1;
             window.NO = NO;
-            window.YES = YES;
+            window.YES = YES$1;
             const HAS_GM = typeof GM !== "undefined";
             const NEW_GM = ((scope, GM2) => {
                 if (typeof GM_info === "undefined" || GM_info.scriptHandler !== "Tampermonkey" || compareVersions(GM_info.version, "5.3.2") < 0) return;
@@ -3433,7 +3433,7 @@ ${value}\r
 
                 async loadNextPage() {
                     var _a2;
-                    if (await storageManager.getSetting("autoPage", YES) === NO) {
+                    if (await storageManager.getSetting("autoPage", YES$1) === NO) {
                         this.setState("waterfall-loading", "");
                         return;
                     }
@@ -3529,7 +3529,7 @@ ${value}\r
 
                 async shouldDisablePaging() {
                     if (!window.isListPage) return true;
-                    await storageManager.getSetting("autoPage", YES);
+                    await storageManager.getSetting("autoPage", YES$1);
                     return ["search?q", "handlePlayback=1", "handleTop=1", "/want_watch_videos", "/watched_videos", "/advanced_search?type=100"].some(((path) => currentHref$1.includes(path)));
                 }
 
@@ -4145,7 +4145,7 @@ ${value}\r
                 }
 
                 async handle() {
-                    await storageManager.getSetting("enableClog", YES) === YES && clog.show();
+                    await storageManager.getSetting("enableClog", YES$1) === YES$1 && clog.show();
                     if (isJavDb$1) {
                         let handleResize2 = function () {
                             if ($(".navbar-search").is(":hidden")) {
@@ -4941,6 +4941,24 @@ ${value}\r
                         </div>
                     </div>
                     
+                    <div class="setting-item">
+                        <span class="setting-label">
+                            <span data-tip="匹配到不规则文件名时自动重命名为标准番号格式，如 mdvr00317-3.mp4 → MDVR-317-3.mp4">❓ </span>启用不规则重命名:
+                        </span>
+                        <div class="form-content" style="text-align: right;">
+                            <input type="checkbox" id="enable115AutoRename" class="mini-switch">
+                        </div>
+                    </div>
+                    <div class="setting-item" id="autoRenameScopeRow" style="display:none;">
+                        <span class="setting-label">重命名范围:</span>
+                        <div class="form-content" style="text-align: right;">
+                            <select id="autoRenameScope" style="padding: 2px 4px;">
+                                <option value="vr_only">仅VR</option>
+                                <option value="all">全部</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                                         
                     <div class="setting-item">
                         <span class="setting-label">启用115视频匹配: </span>
@@ -5020,17 +5038,17 @@ ${value}\r
                     $("#tagPosition").val(settingObj.tagPosition || "rightTop");
                     $("#movieShowType").val(settingObj.movieShowType || "hide");
                     $("#waitCheckCount").val(settingObj.waitCheckCount || 5);
-                    $("#showWaitCheckBtn").prop("checked", !settingObj.showWaitCheckBtn || settingObj.showWaitCheckBtn === YES);
-                    $("#showWaitDownBtn").prop("checked", !settingObj.showWaitDownBtn || settingObj.showWaitDownBtn === YES);
-                    $("#randomOpenWaitDown").prop("checked", !!settingObj.randomOpenWaitDown && settingObj.randomOpenWaitDown === YES);
+                    $("#showWaitCheckBtn").prop("checked", !settingObj.showWaitCheckBtn || settingObj.showWaitCheckBtn === YES$1);
+                    $("#showWaitDownBtn").prop("checked", !settingObj.showWaitDownBtn || settingObj.showWaitDownBtn === YES$1);
+                    $("#randomOpenWaitDown").prop("checked", !!settingObj.randomOpenWaitDown && settingObj.randomOpenWaitDown === YES$1);
                     $("#checkConcurrencyCount").val(settingObj.checkConcurrencyCount || 2);
                     $("#checkRequestSleep").val(settingObj.checkRequestSleep || 100);
-                    $("#enableCheckBlacklist").val(settingObj.enableCheckBlacklist || YES);
+                    $("#enableCheckBlacklist").val(settingObj.enableCheckBlacklist || YES$1);
                     $("#checkBlacklist_intervalTime").val(settingObj.checkBlacklist_intervalTime || 12);
                     $("#checkBlacklist_ruleTime").val(settingObj.checkBlacklist_ruleTime || 8760);
-                    $("#enableCheckFavoriteActress").val(settingObj.enableCheckFavoriteActress || YES);
+                    $("#enableCheckFavoriteActress").val(settingObj.enableCheckFavoriteActress || YES$1);
                     $("#checkFavoriteActress_IntervalTime").val(settingObj.checkFavoriteActress_IntervalTime || 24);
-                    $("#enableCheckNewVideo").val(settingObj.enableCheckNewVideo || YES);
+                    $("#enableCheckNewVideo").val(settingObj.enableCheckNewVideo || YES$1);
                     $("#checkNewVideo_intervalTime").val(settingObj.checkNewVideo_intervalTime || 12);
                     $("#checkNewVideo_ruleTime").val(settingObj.checkNewVideo_ruleTime || 8760);
                     const highlightedTagNumber = settingObj.highlightedTagNumber || 1,
@@ -5038,7 +5056,7 @@ ${value}\r
                     $("#highlightedTagNumber").val(settingObj.highlightedTagNumber || 1);
                     $("#highlightedTagColor").val(settingObj.highlightedTagColor || "#ce2222");
                     $("#highlightedTagLabel").css("border", `${highlightedTagNumber}px solid ${highlightedTagColor}`);
-                    $("#enableClog").val(settingObj.enableClog || YES);
+                    $("#enableClog").val(settingObj.enableClog || YES$1);
                     $("#clogMsgCount").val(settingObj.clogMsgCount || 2e3);
                     $("#refresh_token").val(settingObj.refresh_token || "");
                     $("#httpTimeout").val(settingObj.httpTimeout || 5e3);
@@ -5046,14 +5064,14 @@ ${value}\r
                     $("#webDavUrl").val(settingObj.webDavUrl || "");
                     $("#webDavUsername").val(settingObj.webDavUsername || "");
                     $("#webDavPassword").val(settingObj.webDavPassword || "");
-                    $("#enableTitleSelectFilter").prop("checked", !settingObj.enableTitleSelectFilter || settingObj.enableTitleSelectFilter === YES);
-                    $("#enableFavoriteActresses").prop("checked", !settingObj.enableFavoriteActresses || settingObj.enableFavoriteActresses === YES);
-                    $("#enableSaveActressCarInfo").prop("checked", !!settingObj.enableSaveActressCarInfo && settingObj.enableSaveActressCarInfo === YES);
-                    $("#enableScreenSvg").prop("checked", !settingObj.enableScreenSvg || settingObj.enableScreenSvg === YES);
-                    $("#enableVideoSvg").prop("checked", !settingObj.enableVideoSvg || settingObj.enableVideoSvg === YES);
-                    $("#enableHandleSvg").prop("checked", !settingObj.enableHandleSvg || settingObj.enableHandleSvg === YES);
-                    $("#enableSiteSvg").prop("checked", !settingObj.enableSiteSvg || settingObj.enableSiteSvg === YES);
-                    $("#enableCopySvg").prop("checked", !settingObj.enableCopySvg || settingObj.enableCopySvg === YES);
+                    $("#enableTitleSelectFilter").prop("checked", !settingObj.enableTitleSelectFilter || settingObj.enableTitleSelectFilter === YES$1);
+                    $("#enableFavoriteActresses").prop("checked", !settingObj.enableFavoriteActresses || settingObj.enableFavoriteActresses === YES$1);
+                    $("#enableSaveActressCarInfo").prop("checked", !!settingObj.enableSaveActressCarInfo && settingObj.enableSaveActressCarInfo === YES$1);
+                    $("#enableScreenSvg").prop("checked", !settingObj.enableScreenSvg || settingObj.enableScreenSvg === YES$1);
+                    $("#enableVideoSvg").prop("checked", !settingObj.enableVideoSvg || settingObj.enableVideoSvg === YES$1);
+                    $("#enableHandleSvg").prop("checked", !settingObj.enableHandleSvg || settingObj.enableHandleSvg === YES$1);
+                    $("#enableSiteSvg").prop("checked", !settingObj.enableSiteSvg || settingObj.enableSiteSvg === YES$1);
+                    $("#enableCopySvg").prop("checked", !settingObj.enableCopySvg || settingObj.enableCopySvg === YES$1);
                     const otherSitePlugin = this.getBean("OtherSitePlugin"),
                         missAvUrl = await otherSitePlugin.getMissAvUrl(),
                         jableUrl = await otherSitePlugin.getjableUrl(),
@@ -5093,7 +5111,7 @@ ${value}\r
                             }
                         })).on("keydown", ((event) => this.handleHotkeyInput(event, $element)));
                     }));
-                    $("#enableImageHotKey").prop("checked", !!settingObj.enableImageHotKey && settingObj.enableImageHotKey === YES);
+                    $("#enableImageHotKey").prop("checked", !!settingObj.enableImageHotKey && settingObj.enableImageHotKey === YES$1);
                 }
 
                 handleHotkeyInput(event, $input) {
@@ -5139,12 +5157,12 @@ ${value}\r
                     $("#showContainerColumns").text(settingObj.containerColumns || 5);
                     $("#containerWidth").val((settingObj.containerWidth || 100) - 70);
                     $("#showContainerWidth").text((settingObj.containerWidth || 100) + "%");
-                    $("#dialogOpenDetail").prop("checked", !settingObj.dialogOpenDetail || settingObj.dialogOpenDetail === YES);
-                    $("#needClosePage").prop("checked", !settingObj.needClosePage || settingObj.needClosePage === YES);
-                    $("#autoPage").prop("checked", !settingObj.autoPage || settingObj.autoPage === YES);
-                    $("#translateTitle").prop("checked", !settingObj.translateTitle || settingObj.translateTitle === YES);
-                    $("#enableLoadActressInfo").prop("checked", !settingObj.enableLoadActressInfo || settingObj.enableLoadActressInfo === YES);
-                    $("#enableLoadOtherSite").prop("checked", !settingObj.enableLoadOtherSite || settingObj.enableLoadOtherSite === YES);
+                    $("#dialogOpenDetail").prop("checked", !settingObj.dialogOpenDetail || settingObj.dialogOpenDetail === YES$1);
+                    $("#needClosePage").prop("checked", !settingObj.needClosePage || settingObj.needClosePage === YES$1);
+                    $("#autoPage").prop("checked", !settingObj.autoPage || settingObj.autoPage === YES$1);
+                    $("#translateTitle").prop("checked", !settingObj.translateTitle || settingObj.translateTitle === YES$1);
+                    $("#enableLoadActressInfo").prop("checked", !settingObj.enableLoadActressInfo || settingObj.enableLoadActressInfo === YES$1);
+                    $("#enableLoadOtherSite").prop("checked", !settingObj.enableLoadOtherSite || settingObj.enableLoadOtherSite === YES$1);
                     $("#containerColumns").on("input", (async (event) => {
                         let columns = $("#containerColumns").val();
                         $("#showContainerColumns").text(columns);
@@ -5170,42 +5188,42 @@ ${value}\r
                         storageManager.saveSettingItem("containerWidth", containerWidth + 70);
                     }));
                     $("#dialogOpenDetail").on("change", ((event) => {
-                        let dialogOpenDetail = $("#dialogOpenDetail").is(":checked") ? YES : NO;
+                        let dialogOpenDetail = $("#dialogOpenDetail").is(":checked") ? YES$1 : NO;
                         storageManager.saveSettingItem("dialogOpenDetail", dialogOpenDetail);
                     }));
-                    $("#showFilterItem").prop("checked", !!settingObj.showFilterItem && settingObj.showFilterItem === YES);
-                    $("#showFilterActorItem").prop("checked", !!settingObj.showFilterActorItem && settingObj.showFilterActorItem === YES);
-                    $("#showFilterKeywordItem").prop("checked", !!settingObj.showFilterKeywordItem && settingObj.showFilterKeywordItem === YES);
-                    $("#showFavoriteItem").prop("checked", !settingObj.showFavoriteItem || settingObj.showFavoriteItem === YES);
-                    $("#showHasDownItem").prop("checked", !settingObj.showHasDownItem || settingObj.showHasDownItem === YES);
-                    $("#showHasWatchItem").prop("checked", !settingObj.showHasWatchItem || settingObj.showHasWatchItem === YES);
+                    $("#showFilterItem").prop("checked", !!settingObj.showFilterItem && settingObj.showFilterItem === YES$1);
+                    $("#showFilterActorItem").prop("checked", !!settingObj.showFilterActorItem && settingObj.showFilterActorItem === YES$1);
+                    $("#showFilterKeywordItem").prop("checked", !!settingObj.showFilterKeywordItem && settingObj.showFilterKeywordItem === YES$1);
+                    $("#showFavoriteItem").prop("checked", !settingObj.showFavoriteItem || settingObj.showFavoriteItem === YES$1);
+                    $("#showHasDownItem").prop("checked", !settingObj.showHasDownItem || settingObj.showHasDownItem === YES$1);
+                    $("#showHasWatchItem").prop("checked", !settingObj.showHasWatchItem || settingObj.showHasWatchItem === YES$1);
                     $("#showFilterItem").on("change", (async (event) => {
-                        let showFilterItem = $("#showFilterItem").is(":checked") ? YES : NO;
+                        let showFilterItem = $("#showFilterItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showFilterItem", showFilterItem);
                         window.refresh();
                     }));
                     $("#showFilterActorItem").on("change", (async (event) => {
-                        let showFilterActorItem = $("#showFilterActorItem").is(":checked") ? YES : NO;
+                        let showFilterActorItem = $("#showFilterActorItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showFilterActorItem", showFilterActorItem);
                         window.refresh();
                     }));
                     $("#showFilterKeywordItem").on("change", (async (event) => {
-                        let showFilterKeywordItem = $("#showFilterKeywordItem").is(":checked") ? YES : NO;
+                        let showFilterKeywordItem = $("#showFilterKeywordItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showFilterKeywordItem", showFilterKeywordItem);
                         window.refresh();
                     }));
                     $("#showFavoriteItem").on("change", (async (event) => {
-                        let showFavoriteItem = $("#showFavoriteItem").is(":checked") ? YES : NO;
+                        let showFavoriteItem = $("#showFavoriteItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showFavoriteItem", showFavoriteItem);
                         window.refresh();
                     }));
                     $("#showHasDownItem").on("change", (async (event) => {
-                        let showHasDownItem = $("#showHasDownItem").is(":checked") ? YES : NO;
+                        let showHasDownItem = $("#showHasDownItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showHasDownItem", showHasDownItem);
                         window.refresh();
                     }));
                     $("#showHasWatchItem").on("change", (async (event) => {
-                        let showHasWatchItem = $("#showHasWatchItem").is(":checked") ? YES : NO;
+                        let showHasWatchItem = $("#showHasWatchItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showHasWatchItem", showHasWatchItem);
                         window.refresh();
                     }));
@@ -5215,27 +5233,27 @@ ${value}\r
                             $otherCheckboxes.prop("disabled", isShowAllChecked);
                             isShowAllChecked ? $otherCheckboxes.attr("data-tip", "请先关闭显示所有才可点击") : $otherCheckboxes.removeAttr("data-tip");
                         };
-                    $("#showAllItem").prop("checked", !!settingObj.showAllItem && settingObj.showAllItem === YES);
+                    $("#showAllItem").prop("checked", !!settingObj.showAllItem && settingObj.showAllItem === YES$1);
                     $("#showAllItem").on("change", (async (event) => {
-                        let showAllItem = $("#showAllItem").is(":checked") ? YES : NO;
+                        let showAllItem = $("#showAllItem").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("showAllItem", showAllItem);
                         updateOtherCheckboxesState();
                         window.refresh();
                     }));
                     updateOtherCheckboxesState();
                     $("#needClosePage").on("change", (async (event) => {
-                        await storageManager.saveSettingItem("needClosePage", $("#needClosePage").is(":checked") ? YES : NO);
+                        await storageManager.saveSettingItem("needClosePage", $("#needClosePage").is(":checked") ? YES$1 : NO);
                         window.refresh();
                     }));
                     $("#autoPage").on("change", (async (event) => {
-                        const autoPage = $("#autoPage").is(":checked") ? YES : NO;
+                        const autoPage = $("#autoPage").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("autoPage", autoPage);
-                        autoPage === YES ? ($("#sort-toggle-btn").hide(), $("#one-time-sort-btn").show()) : ($("#sort-toggle-btn").show(), $("#one-time-sort-btn").hide());
+                        autoPage === YES$1 ? ($("#sort-toggle-btn").hide(), $("#one-time-sort-btn").show()) : ($("#sort-toggle-btn").show(), $("#one-time-sort-btn").hide());
                     }));
                     $("#translateTitle").on("change", (async (event) => {
-                        const translateTitle = $("#translateTitle").is(":checked") ? YES : NO;
+                        const translateTitle = $("#translateTitle").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("translateTitle", translateTitle);
-                        if (translateTitle === YES) {
+                        if (translateTitle === YES$1) {
                             await this.getBean("ListPagePlugin").doFilter();
                             window.isDetailPage && await this.getBean("TranslatePlugin").translate();
                         } else {
@@ -5243,45 +5261,56 @@ ${value}\r
                             $(".translated-title").remove();
                         }
                     }));
-                    $("#hoverBigImg").prop("checked", !!settingObj.hoverBigImg && settingObj.hoverBigImg === YES);
+                    $("#hoverBigImg").prop("checked", !!settingObj.hoverBigImg && settingObj.hoverBigImg === YES$1);
                     $("#hoverBigImg").on("change", (async (event) => {
-                        const hoverBigImg = $("#hoverBigImg").is(":checked") ? YES : NO;
+                        const hoverBigImg = $("#hoverBigImg").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("hoverBigImg", hoverBigImg);
-                        hoverBigImg === YES ? window.imageHoverPreviewObj = new ImageHoverPreview({
+                        hoverBigImg === YES$1 ? window.imageHoverPreviewObj = new ImageHoverPreview({
                             selector: this.getSelector().coverImgSelector
                         }) : window.imageHoverPreviewObj && window.imageHoverPreviewObj.destroy();
                     }));
                     $("#enableLoadActressInfo").on("change", (async (event) => {
-                        const enableLoadActressInfo = $("#enableLoadActressInfo").is(":checked") ? YES : NO;
+                        const enableLoadActressInfo = $("#enableLoadActressInfo").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("enableLoadActressInfo", enableLoadActressInfo);
-                        enableLoadActressInfo === YES ? this.getBean("ActressInfoPlugin").loadActressInfo() : $(".actress-info").remove();
+                        enableLoadActressInfo === YES$1 ? this.getBean("ActressInfoPlugin").loadActressInfo() : $(".actress-info").remove();
                     }));
                     $("#enableLoadOtherSite").on("change", (async (event) => {
-                        const enableLoadOtherSite = $("#enableLoadOtherSite").is(":checked") ? YES : NO;
+                        const enableLoadOtherSite = $("#enableLoadOtherSite").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("enableLoadOtherSite", enableLoadOtherSite);
-                        enableLoadOtherSite === YES ? this.getBean("OtherSitePlugin").loadOtherSite().then() : $("#otherSiteBox").remove();
+                        enableLoadOtherSite === YES$1 ? this.getBean("OtherSitePlugin").loadOtherSite().then() : $("#otherSiteBox").remove();
                     }));
-                    $("#enableLoadScreenShot").prop("checked", !settingObj.enableLoadScreenShot || settingObj.enableLoadScreenShot === YES);
+                    $("#enableLoadScreenShot").prop("checked", !settingObj.enableLoadScreenShot || settingObj.enableLoadScreenShot === YES$1);
                     $("#enableLoadScreenShot").on("change", (async (event) => {
-                        const enableLoadScreenShot = $("#enableLoadScreenShot").is(":checked") ? YES : NO;
+                        const enableLoadScreenShot = $("#enableLoadScreenShot").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("enableLoadScreenShot", enableLoadScreenShot);
-                        enableLoadScreenShot === YES ? this.getBean("ScreenShotPlugin").loadScreenShot().then() : $(".screen-container").remove();
+                        enableLoadScreenShot === YES$1 ? this.getBean("ScreenShotPlugin").loadScreenShot().then() : $(".screen-container").remove();
                     }));
-                    $("#enableLoadPreviewVideo").prop("checked", !settingObj.enableLoadPreviewVideo || settingObj.enableLoadPreviewVideo === YES);
+                    $("#enableLoadPreviewVideo").prop("checked", !settingObj.enableLoadPreviewVideo || settingObj.enableLoadPreviewVideo === YES$1);
                     $("#enableLoadPreviewVideo").on("change", (async (event) => {
-                        const enableLoadPreviewVideo = $("#enableLoadPreviewVideo").is(":checked") ? YES : NO;
+                        const enableLoadPreviewVideo = $("#enableLoadPreviewVideo").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("enableLoadPreviewVideo", enableLoadPreviewVideo);
                     }));
-                    $("#enable115Match").prop("checked", !!settingObj.enable115Match && settingObj.enable115Match === YES);
+                    $("#enable115AutoRename").prop("checked", !!settingObj.enable115AutoRename && settingObj.enable115AutoRename === YES$1);
+                    $("#autoRenameScope").val(settingObj.autoRenameScope || "vr_only");
+                    $("#autoRenameScopeRow").toggle(!!settingObj.enable115AutoRename && settingObj.enable115AutoRename === YES$1);
+                    $("#enable115AutoRename").on("change", (async (event) => {
+                        const enable115AutoRename = $("#enable115AutoRename").is(":checked") ? YES$1 : NO;
+                        await storageManager.saveSettingItem("enable115AutoRename", enable115AutoRename);
+                        $("#autoRenameScopeRow").toggle(enable115AutoRename === YES$1);
+                    }));
+                    $("#autoRenameScope").on("change", (async (event) => {
+                        await storageManager.saveSettingItem("autoRenameScope", $("#autoRenameScope").val());
+                    }));
+                    $("#enable115Match").prop("checked", !!settingObj.enable115Match && settingObj.enable115Match === YES$1);
                     $("#enable115Match").on("change", (async (event) => {
-                        const enable115Match = $("#enable115Match").is(":checked") ? YES : NO;
+                        const enable115Match = $("#enable115Match").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("enable115Match", enable115Match);
                         let movieList = $(this.getSelector().itemSelector).toArray();
                         await this.getBean("WangPan115MatchPlugin").matchMovieList(movieList);
                     }));
-                    $("#enableVerticalModel").prop("checked", !!settingObj.enableVerticalModel && settingObj.enableVerticalModel === YES);
+                    $("#enableVerticalModel").prop("checked", !!settingObj.enableVerticalModel && settingObj.enableVerticalModel === YES$1);
                     $("#enableVerticalModel").on("change", (async (event) => {
-                        const enableVerticalModel = $("#enableVerticalModel").is(":checked") ? YES : NO;
+                        const enableVerticalModel = $("#enableVerticalModel").is(":checked") ? YES$1 : NO;
                         await storageManager.saveSettingItem("enableVerticalModel", enableVerticalModel);
                         this.applyImageMode();
                     }));
@@ -5391,7 +5420,7 @@ ${value}\r
 
                 async applyImageMode() {
                     $("#verticalImgStyle").remove();
-                    if (await storageManager.getSetting("enableVerticalModel", NO) === YES) {
+                    if (await storageManager.getSetting("enableVerticalModel", NO) === YES$1) {
                         let imgPosition = "100% 50% !important";
                         window.location.href.includes("/advanced_search?type=100") && (imgPosition = "50% 50% !important");
                         const verticalStyle = `
@@ -5566,11 +5595,11 @@ ${value}\r
                     settingObj.refresh_token = $("#refresh_token").val();
                     settingObj.highlightedTagNumber = $("#highlightedTagNumber").val();
                     settingObj.highlightedTagColor = $("#highlightedTagColor").val();
-                    settingObj.showWaitCheckBtn = $("#showWaitCheckBtn").is(":checked") ? YES : NO;
-                    settingObj.showWaitCheckBtn === YES ? $("#waitCheckBtn").show() : $("#waitCheckBtn").hide();
-                    settingObj.showWaitDownBtn = $("#showWaitDownBtn").is(":checked") ? YES : NO;
-                    settingObj.showWaitDownBtn === YES ? $("#waitDownBtn").show() : $("#waitDownBtn").hide();
-                    settingObj.randomOpenWaitDown = $("#randomOpenWaitDown").is(":checked") ? YES : NO;
+                    settingObj.showWaitCheckBtn = $("#showWaitCheckBtn").is(":checked") ? YES$1 : NO;
+                    settingObj.showWaitCheckBtn === YES$1 ? $("#waitCheckBtn").show() : $("#waitCheckBtn").hide();
+                    settingObj.showWaitDownBtn = $("#showWaitDownBtn").is(":checked") ? YES$1 : NO;
+                    settingObj.showWaitDownBtn === YES$1 ? $("#waitDownBtn").show() : $("#waitDownBtn").hide();
+                    settingObj.randomOpenWaitDown = $("#randomOpenWaitDown").is(":checked") ? YES$1 : NO;
                     settingObj.checkConcurrencyCount = $("#checkConcurrencyCount").val();
                     settingObj.checkRequestSleep = $("#checkRequestSleep").val();
                     settingObj.enableCheckBlacklist = $("#enableCheckBlacklist").val();
@@ -5584,7 +5613,7 @@ ${value}\r
                     settingObj.httpTimeout = $("#httpTimeout").val();
                     settingObj.httpRetryCount = $("#httpRetryCount").val();
                     settingObj.enableClog = $("#enableClog").val();
-                    settingObj.enableClog === YES ? clog.show() : clog.hide();
+                    settingObj.enableClog === YES$1 ? clog.show() : clog.hide();
                     settingObj.clogMsgCount = $("#clogMsgCount").val();
                     settingObj.webDavUrl = $("#webDavUrl").val();
                     settingObj.webDavUsername = $("#webDavUsername").val();
@@ -5596,18 +5625,18 @@ ${value}\r
                     settingObj.javDbUrl = $("#javDbUrl").val().replace(/\/$/, "");
                     settingObj.javBusUrl = $("#javBusUrl").val().replace(/\/$/, "");
                     settingObj.supJavUrl = $("#supJavUrl").val().replace(/\/$/, "");
-                    settingObj.enableTitleSelectFilter = $("#enableTitleSelectFilter").is(":checked") ? YES : NO;
-                    settingObj.enableFavoriteActresses = $("#enableFavoriteActresses").is(":checked") ? YES : NO;
-                    settingObj.enableSaveActressCarInfo = $("#enableSaveActressCarInfo").is(":checked") ? YES : NO;
-                    settingObj.enableScreenSvg = $("#enableScreenSvg").is(":checked") ? YES : NO;
-                    settingObj.enableVideoSvg = $("#enableVideoSvg").is(":checked") ? YES : NO;
-                    settingObj.enableHandleSvg = $("#enableHandleSvg").is(":checked") ? YES : NO;
-                    settingObj.enableSiteSvg = $("#enableSiteSvg").is(":checked") ? YES : NO;
-                    settingObj.enableCopySvg = $("#enableCopySvg").is(":checked") ? YES : NO;
+                    settingObj.enableTitleSelectFilter = $("#enableTitleSelectFilter").is(":checked") ? YES$1 : NO;
+                    settingObj.enableFavoriteActresses = $("#enableFavoriteActresses").is(":checked") ? YES$1 : NO;
+                    settingObj.enableSaveActressCarInfo = $("#enableSaveActressCarInfo").is(":checked") ? YES$1 : NO;
+                    settingObj.enableScreenSvg = $("#enableScreenSvg").is(":checked") ? YES$1 : NO;
+                    settingObj.enableVideoSvg = $("#enableVideoSvg").is(":checked") ? YES$1 : NO;
+                    settingObj.enableHandleSvg = $("#enableHandleSvg").is(":checked") ? YES$1 : NO;
+                    settingObj.enableSiteSvg = $("#enableSiteSvg").is(":checked") ? YES$1 : NO;
+                    settingObj.enableCopySvg = $("#enableCopySvg").is(":checked") ? YES$1 : NO;
                     $("#hotkey-panel [id]").map(((i, el) => el.id)).get().forEach(((containerId) => {
                         settingObj[containerId] = $(`#${containerId}`).val();
                     }));
-                    settingObj.enableImageHotKey = $("#enableImageHotKey").is(":checked") ? YES : NO;
+                    settingObj.enableImageHotKey = $("#enableImageHotKey").is(":checked") ? YES$1 : NO;
                     await storageManager.saveSetting(settingObj);
                     let reviewKeywordList = [];
                     $("#reviewKeywordContainer .keyword-label").toArray().forEach(((item) => {
@@ -6070,9 +6099,9 @@ ${value}\r
                         }, (async (lock) => {
                             if (lock) {
                                 if (window.isListPage) {
-                                    this.taskConfig.enableCheckBlacklist === YES ? await this.checkBlacklist() : clog.warn("自动检测屏蔽黑名单-禁用");
+                                    this.taskConfig.enableCheckBlacklist === YES$1 ? await this.checkBlacklist() : clog.warn("自动检测屏蔽黑名单-禁用");
                                     if (!isJavBus$1) {
-                                        if (this.taskConfig.enableCheckFavoriteActress === YES) {
+                                        if (this.taskConfig.enableCheckFavoriteActress === YES$1) {
                                             const lastCheckFavoriteActressTimeStr = localStorage.getItem(this.lastCheckFavoriteActressTimeKey),
                                                 checkFavoriteActress_IntervalTime = this.taskConfig.checkFavoriteActress_IntervalTime,
                                                 isUnCheck = lastCheckFavoriteActressTimeStr && this.isUnnecessaryCheck(lastCheckFavoriteActressTimeStr, checkFavoriteActress_IntervalTime),
@@ -6080,7 +6109,7 @@ ${value}\r
                                             isUnCheck && clog.debug(`检测同步演员, 上次检测时间: ${lastCheckFavoriteActressTimeStr} 检测间隔时间: ${checkFavoriteActress_IntervalTime}小时 未到时间`);
                                             !isUnCheck && isLogin && await this.checkFavoriteActress();
                                         } else clog.warn("自动同步已收藏的演员-禁用");
-                                        this.taskConfig.enableCheckNewVideo === YES ? await this.checkNewVideo() : clog.warn("自动检测已收藏演员的最新作品-禁用");
+                                        this.taskConfig.enableCheckNewVideo === YES$1 ? await this.checkNewVideo() : clog.warn("自动检测已收藏演员的最新作品-禁用");
                                     }
                                 }
                             } else clog.debug("争夺任务锁失败, 跳过执行");
@@ -6100,12 +6129,12 @@ ${value}\r
                     this.taskConfig = {
                         checkConcurrencyCount: settingObj.checkConcurrencyCount ? Number(settingObj.checkConcurrencyCount) : 2,
                         checkRequestSleep: settingObj.checkRequestSleep ? Number(settingObj.checkRequestSleep) : 100,
-                        enableCheckBlacklist: settingObj.enableCheckBlacklist || YES,
+                        enableCheckBlacklist: settingObj.enableCheckBlacklist || YES$1,
                         checkBlacklist_intervalTime: settingObj.checkBlacklist_intervalTime ? Number(settingObj.checkBlacklist_intervalTime) : 12,
                         checkBlacklist_ruleTime: settingObj.checkBlacklist_ruleTime ? Number(settingObj.checkBlacklist_ruleTime) : 8760,
-                        enableCheckFavoriteActress: settingObj.enableCheckFavoriteActress || YES,
+                        enableCheckFavoriteActress: settingObj.enableCheckFavoriteActress || YES$1,
                         checkFavoriteActress_IntervalTime: settingObj.checkFavoriteActress_IntervalTime ? Number(settingObj.checkFavoriteActress_IntervalTime) : 24,
-                        enableCheckNewVideo: settingObj.enableCheckNewVideo || YES,
+                        enableCheckNewVideo: settingObj.enableCheckNewVideo || YES$1,
                         checkNewVideo_intervalTime: settingObj.checkNewVideo_intervalTime ? Number(settingObj.checkNewVideo_intervalTime) : 12,
                         checkNewVideo_ruleTime: settingObj.checkNewVideo_ruleTime ? Number(settingObj.checkNewVideo_ruleTime) : 8760
                     };
@@ -7587,7 +7616,7 @@ ${value}\r
                             this.handleVideo().then();
                         }));
                     }));
-                    await storageManager.getSetting("enableLoadPreviewVideo", YES) !== YES || currentHref$1.includes("autoPlay=1") || this.initDmm().then();
+                    await storageManager.getSetting("enableLoadPreviewVideo", YES$1) !== YES$1 || currentHref$1.includes("autoPlay=1") || this.initDmm().then();
                     let href = window.location.href;
                     (href.includes("gallery-1") || href.includes("gallery-2")) && utils.loopDetector((() => $(".fancybox-content #preview-video").length > 0), (() => {
                         $(".fancybox-content #preview-video").length > 0 && this.handleVideo().then();
@@ -7637,7 +7666,7 @@ ${value}\r
                 }
 
                 async handleVideo() {
-                    if (await storageManager.getSetting("enableLoadPreviewVideo", YES) === NO) return;
+                    if (await storageManager.getSetting("enableLoadPreviewVideo", YES$1) === NO) return;
                     const $videoEl = $("#preview-video");
                     if (!$videoEl.length) return;
                     const $videoContainer = $videoEl.parent();
@@ -9596,13 +9625,13 @@ ${value}\r
                     }
                     if (!$subTags) return;
                     let $foldCategoryBtn = $("#foldCategoryBtn"),
-                        isFolded = localStorage.getItem("jhs_foldCategory") === YES, [newText, newIcon] = isFolded ? ["展开", "icon-angle-double-down"] : ["折叠", "icon-angle-double-up"];
+                        isFolded = localStorage.getItem("jhs_foldCategory") === YES$1, [newText, newIcon] = isFolded ? ["展开", "icon-angle-double-down"] : ["折叠", "icon-angle-double-up"];
                     $foldCategoryBtn.find("span").text(newText).end().find("i").attr("class", newIcon);
                     window.location.href.includes("noFold=1") || $subTags[isFolded ? "hide" : "show"]();
                     $foldCategoryBtn.on("click", (async (event) => {
                         event.preventDefault();
                         isFolded = !isFolded;
-                        localStorage.setItem("jhs_foldCategory", isFolded ? YES : NO);
+                        localStorage.setItem("jhs_foldCategory", isFolded ? YES$1 : NO);
                         const [newText2, newIcon2] = isFolded ? ["展开", "icon-angle-double-down"] : ["折叠", "icon-angle-double-up"];
                         $foldCategoryBtn.find("span").text(newText2).end().find("i").attr("class", newIcon2);
                         $subTags[isFolded ? "hide" : "show"]();
@@ -11301,8 +11330,8 @@ ${err.stack}` : "");
                 <span style="flex: 1; height: 1px; background: linear-gradient(to right, transparent, #999, transparent);"></span>
                 <span style="padding: 0 10px;">相关清单</span>
                 <a id="relatedFold" style="margin-left: 8px; color: #1890ff; text-decoration: none; display: flex; align-items: center;">
-                    <span class="toggle-text">${enableLoadRelated === YES ? "折叠" : "展开"}</span>
-                    <span class="toggle-icon" style="margin-left: 4px;">${enableLoadRelated === YES ? "▲" : "▼"}</span>
+                    <span class="toggle-text">${enableLoadRelated === YES$1 ? "折叠" : "展开"}</span>
+                    <span class="toggle-icon" style="margin-left: 4px;">${enableLoadRelated === YES$1 ? "▲" : "▼"}</span>
                 </a>
                 <span style="flex: 1; height: 1px; background: linear-gradient(to right, transparent, #999, transparent);"></span>
             </div>
@@ -11321,7 +11350,7 @@ ${err.stack}` : "");
                                     this.fetchAndDisplayRelateds(movieId);
                                     this.isInit = true;
                                 }
-                                storageManager.saveSettingItem("enableLoadRelated", YES);
+                                storageManager.saveSettingItem("enableLoadRelated", YES$1);
                             } else {
                                 $("#relatedContainer").hide();
                                 $("#relatedFooter").hide();
@@ -11330,7 +11359,7 @@ ${err.stack}` : "");
                         }));
                         $magnets.append('<div id="relatedContainer"></div>');
                         $magnets.append('<div id="relatedFooter"></div>');
-                        enableLoadRelated === YES && await this.fetchAndDisplayRelateds(movieId);
+                        enableLoadRelated === YES$1 && await this.fetchAndDisplayRelateds(movieId);
                     } else show.error("未传入movieId");
                 }
 
@@ -12674,7 +12703,13 @@ ${err.stack}` : "");
                         $tbody = $detail.find("tbody");
                     try {
                         const carNum2 = this.getPageInfo().carNum;
-                        matchList || (matchList = await this.searchFiles(carNum2));
+                        if (!matchList) {
+                            const {results, usedPhase2} = await this._searchFilesWithPhase(carNum2);
+                            matchList = results;
+                            if (usedPhase2 && matchList.length > 0) {
+                                await this.autoRenameFiles(carNum2, matchList);
+                            }
+                        }
                         await this.checkLoginStatus();
                         if (this.loginStatus === _WangPan115MatchPlugin2.LoginStatus.LOGGED_OUT) $tbody.append(`<tr><td colspan="4">
                      <a class='jhs-match-no-login-btn a-info'
@@ -13086,6 +13121,10 @@ ${err.stack}` : "");
                 }
 
                 async searchFiles(carNum2) {
+                    return (await this._searchFilesWithPhase(carNum2)).results;
+                }
+
+                async _searchFilesWithPhase(carNum2) {
                     const {regex} = codeParse(carNum2);
                     const searchKeyword = carNum2.toLowerCase().replace("fc2-", "");
                     const mapAndFilter = (rawData) => {
@@ -13102,11 +13141,52 @@ ${err.stack}` : "");
                     var _a2;
                     const preciseData = (null == (_a2 = (await searchFiles(searchKeyword, 0, 30, {type: 4})).data) ? void 0 : _a2) || [];
                     const preciseResults = mapAndFilter(preciseData);
-                    if (preciseResults.length > 0) return preciseResults;
+                    if (preciseResults.length > 0) return {results: preciseResults, usedPhase2: false};
                     const numberPart = extractNumberPart(carNum2);
-                    if (numberPart === searchKeyword) return preciseResults;
+                    if (numberPart === searchKeyword) return {results: preciseResults, usedPhase2: false};
                     const fuzzyData = (null == (_a2 = (await searchFiles(numberPart, 0, 30, {type: 4})).data) ? void 0 : _a2) || [];
-                    return mapAndFilter(fuzzyData);
+                    return {results: mapAndFilter(fuzzyData), usedPhase2: true};
+                }
+
+                buildRenameTarget(carNum2, originalName) {
+                    const {regex} = codeParse(carNum2);
+                    const match = regex.exec(originalName);
+                    if (!match) return null;
+                    const before = originalName.slice(0, match.index);
+                    const after = originalName.slice(match.index + match[0].length);
+                    return before + carNum2 + after;
+                }
+
+                async autoRenameFiles(carNum2, matchList) {
+                    try {
+                        const enableAutoRename = await storageManager.getSetting("enable115AutoRename", NO);
+                        if (enableAutoRename !== YES) return;
+                        const scope = await storageManager.getSetting("autoRenameScope", "vr_only");
+                        if (scope === "vr_only" && !carNum2.toUpperCase().includes("VR")) return;
+                        const renameObj = {};
+                        matchList.forEach((match) => {
+                            const newName = this.buildRenameTarget(carNum2, match.name);
+                            if (newName && newName !== match.name) {
+                                renameObj[match.folderId] = newName;
+                            }
+                        });
+                        if (Object.keys(renameObj).length === 0) return;
+                        const formData = {};
+                        Object.entries(renameObj).forEach(([fid, newName]) => {
+                            formData[`files_new_name[${fid}]`] = newName;
+                        });
+                        const result = await gmHttp.postForm("https://webapi.115.com/files/batch_rename", formData);
+                        if (result && result.state) {
+                            Object.entries(renameObj).forEach(([fid, newName]) => {
+                                const match = matchList.find((m) => m.folderId === fid);
+                                console.log(`[115重命名] ${match.name} → ${newName}`);
+                            });
+                        } else {
+                            console.warn("[115重命名] 重命名失败:", result && result.error || "未知错误");
+                        }
+                    } catch (e) {
+                        console.warn("[115重命名] 重命名失败，跳过:", e.message);
+                    }
                 }
 
                 showMatchError($box2, carNum2, error) {
@@ -13215,7 +13295,7 @@ ${err.stack}` : "");
 
                 async highlightActress() {
                     if (!window.isDetailPage) return;
-                    if (await storageManager.getSetting("enableFavoriteActresses", YES) !== YES) return;
+                    if (await storageManager.getSetting("enableFavoriteActresses", YES$1) !== YES$1) return;
                     const favoriteActressesInfoList = await storageManager.getFavoriteActressList();
                     if (!favoriteActressesInfoList || 0 === favoriteActressesInfoList.length) return;
                     const favoriteStarIdSet = /* @__PURE__ */ new Set();
@@ -13339,7 +13419,7 @@ ${err.stack}` : "");
                 }
 
                 async logImageHeightsByRow() {
-                    if (await storageManager.getSetting("enableVerticalModel", NO) === YES) return;
+                    if (await storageManager.getSetting("enableVerticalModel", NO) === YES$1) return;
                     const itemSelector = this.getSelector().itemSelector,
                         containerColumns = await storageManager.getSetting("containerColumns", 5),
                         itemList = await this.getVisibleImageItems(itemSelector, "img");
@@ -13377,13 +13457,13 @@ ${err.stack}` : "");
                     if (!window.isListPage) return;
                     await this.createMenuBtn();
                     this.bindEvent();
-                    await storageManager.getSetting("autoPage") === YES ? $("#sort-toggle-btn").hide() : this.sortItems().then();
+                    await storageManager.getSetting("autoPage") === YES$1 ? $("#sort-toggle-btn").hide() : this.sortItems().then();
                     this.initOneTimeSortBtn();
                 }
 
                 async createMenuBtn() {
-                    const showWaitCheckBtn = await storageManager.getSetting("showWaitCheckBtn", YES),
-                        showWaitDownBtn = await storageManager.getSetting("showWaitDownBtn", YES);
+                    const showWaitCheckBtn = await storageManager.getSetting("showWaitCheckBtn", YES$1),
+                        showWaitDownBtn = await storageManager.getSetting("showWaitDownBtn", YES$1);
                     if (isJavDb$1) {
                         const isStarPage = currentHref$1.includes("/actors/");
                         let $el = $(".main-tabs, .tabs"), addBlacklistBtnText = "加入黑名单",
@@ -13535,7 +13615,7 @@ ${err.stack}` : "");
                 async sortItems() {
                     if (currentHref$1.includes("handle") || currentHref$1.includes("advanced_search")) return;
                     const autoPage = await storageManager.getSetting("autoPage");
-                    if (isSearchPage || autoPage === YES) return;
+                    if (isSearchPage || autoPage === YES$1) return;
                     const method = localStorage.getItem("jhs_sortMethod");
                     if (!method) return;
                     $(".movie-list .item").each((function (index) {
@@ -13579,7 +13659,7 @@ ${err.stack}` : "");
 
                 async initOneTimeSortBtn() {
                     const autoPage = await storageManager.getSetting("autoPage");
-                    if (autoPage !== YES) {
+                    if (autoPage !== YES$1) {
                         $("#one-time-sort-btn").hide();
                         return;
                     }
@@ -13661,7 +13741,7 @@ ${err.stack}` : "");
                     let favoriteList, openCount = await storageManager.getSetting("waitCheckCount", 5),
                         randomOpenWaitDown = await storageManager.getSetting("randomOpenWaitDown", NO),
                         dataList = await storageManager.getCarList();
-                    favoriteList = randomOpenWaitDown === YES ? dataList.filter(((item) => item.status === Status_FAVORITE$1)).sort((() => Math.random() - 0.5)) : dataList.filter(((item) => item.status === Status_FAVORITE$1)).sort(((a, b) => b.createDate - a.createDate));
+                    favoriteList = randomOpenWaitDown === YES$1 ? dataList.filter(((item) => item.status === Status_FAVORITE$1)).sort((() => Math.random() - 0.5)) : dataList.filter(((item) => item.status === Status_FAVORITE$1)).sort(((a, b) => b.createDate - a.createDate));
                     for (let i = 0; i < openCount; i++) {
                         if (i >= favoriteList.length) return;
                         let data = favoriteList[i], carNum2 = data.carNum, url = data.url;
@@ -13759,7 +13839,7 @@ ${err.stack}` : "");
                 }
 
                 async translate(carNum2, showCarNum = true) {
-                    if (await storageManager.getSetting("translateTitle", YES) !== YES) return;
+                    if (await storageManager.getSetting("translateTitle", YES$1) !== YES$1) return;
                     isJavBus$1 && (showCarNum = false);
                     let $titleElement = $(".origin-title");
                     $titleElement.length || ($titleElement = $(".current-title"));
@@ -14120,15 +14200,15 @@ ${err.stack}` : "");
                 }
 
                 async showReview(movieId, $eleBox) {
-                    const enableLoadReview = await storageManager.getSetting("enableLoadReview", YES),
+                    const enableLoadReview = await storageManager.getSetting("enableLoadReview", YES$1),
                         $magnets = $eleBox || $("#magnets-content");
                     $magnets.append(`
             <div style="display: flex; align-items: center; margin: 16px 0; color: #666; font-size: 14px;">
                 <span style="flex: 1; height: 1px; background: linear-gradient(to right, transparent, #999, transparent);"></span>
                 <span style="padding: 0 10px;" data-tip="想要发表评论? 滑上去, 点击上面的按钮-看过">❓ 评论区</span>
                 <a id="reviewsFold" style="margin-left: 8px; color: #1890ff; text-decoration: none; display: flex; align-items: center;">
-                    <span class="toggle-text">${enableLoadReview === YES ? "折叠" : "展开"}</span>
-                    <span class="toggle-icon" style="margin-left: 4px;">${enableLoadReview === YES ? "▲" : "▼"}</span>
+                    <span class="toggle-text">${enableLoadReview === YES$1 ? "折叠" : "展开"}</span>
+                    <span class="toggle-icon" style="margin-left: 4px;">${enableLoadReview === YES$1 ? "▲" : "▼"}</span>
                 </a>
                 <span style="flex: 1; height: 1px; background: linear-gradient(to right, transparent, #999, transparent);"></span>
             </div>
@@ -14147,7 +14227,7 @@ ${err.stack}` : "");
                                 this.fetchAndDisplayReviews(movieId);
                                 this.isInit = true;
                             }
-                            storageManager.saveSettingItem("enableLoadReview", YES);
+                            storageManager.saveSettingItem("enableLoadReview", YES$1);
                         } else {
                             $("#reviewsContainer").hide();
                             $("#reviewsFooter").hide();
@@ -14156,7 +14236,7 @@ ${err.stack}` : "");
                     }));
                     $magnets.append('<div id="reviewsContainer"></div>');
                     $magnets.append('<div id="reviewsFooter"></div>');
-                    enableLoadReview === YES && await this.fetchAndDisplayReviews(movieId);
+                    enableLoadReview === YES$1 && await this.fetchAndDisplayReviews(movieId);
                 }
 
                 async fetchAndDisplayReviews(movieId) {
@@ -14241,7 +14321,7 @@ ${err.stack}` : "");
                 }
 
                 async rightClickFilter() {
-                    await storageManager.getSetting("enableTitleSelectFilter", YES) === YES && utils.rightClick(document.body, ".review-content", (async (event) => {
+                    await storageManager.getSetting("enableTitleSelectFilter", YES$1) === YES$1 && utils.rightClick(document.body, ".review-content", (async (event) => {
                         const selectedText = window.getSelection().toString();
                         if (selectedText) {
                             event.preventDefault();
@@ -14261,7 +14341,7 @@ ${err.stack}` : "");
 
                 async handle() {
                     if (!window.isDetailPage && !window.isFc2Page) return;
-                    if (await storageManager.getSetting("enableTitleSelectFilter", YES) !== YES) return;
+                    if (await storageManager.getSetting("enableTitleSelectFilter", YES$1) !== YES$1) return;
                     let targetSelector;
                     isJavDb$1 ? targetSelector = ".title strong, .current-title" : isJavBus$1 && (targetSelector = "h3");
                     utils.rightClick(document.body, targetSelector, ((event) => {
@@ -14534,11 +14614,11 @@ ${err.stack}` : "");
 
                 async enableSvgBtn() {
                     const settingObj = await storageManager.getSetting(), {
-                        enableScreenSvg = YES,
-                        enableVideoSvg = YES,
-                        enableHandleSvg = YES,
-                        enableSiteSvg = YES,
-                        enableCopySvg = YES
+                        enableScreenSvg = YES$1,
+                        enableVideoSvg = YES$1,
+                        enableHandleSvg = YES$1,
+                        enableSiteSvg = YES$1,
+                        enableCopySvg = YES$1
                     } = settingObj;
                     [{
                         selector: ".screenSvg",
@@ -14556,7 +14636,7 @@ ${err.stack}` : "");
                         selector: ".copySvg",
                         enabled: enableCopySvg
                     }].forEach((({selector, enabled}) => {
-                        $(selector).toggle(enabled === YES);
+                        $(selector).toggle(enabled === YES$1);
                     }));
                 }
 
@@ -14957,7 +15037,7 @@ ${err.stack}` : "");
 
                 async open123AvFc2Dialog(carNum2, href) {
                     let otherHtml = "";
-                    await storageManager.getSetting("enableLoadOtherSite", YES) === YES && (otherHtml = '<div class="movie-panel-info fc2-movie-panel-info" style="margin-top:20px"><strong>第三方站点: </strong></div>');
+                    await storageManager.getSetting("enableLoadOtherSite", YES$1) === YES$1 && (otherHtml = '<div class="movie-panel-info fc2-movie-panel-info" style="margin-top:20px"><strong>第三方站点: </strong></div>');
                     let pageHtml = `
             <div class="movie-detail-container">
                <!-- <div class="movie-poster-container">
@@ -15280,7 +15360,7 @@ ${err.stack}` : "");
                     }));
                     const highlightMagnetPlugin = this.getBean("HighlightMagnetPlugin"),
                         enableMagnetsFilter = await storageManager.getSetting("enableMagnetsFilter", NO);
-                    if (enableMagnetsFilter === YES) {
+                    if (enableMagnetsFilter === YES$1) {
                         const savedSettings = await storageManager.getSetting("magnetSortAndFilter", "{}");
                         let settings;
                         try {
@@ -15504,7 +15584,7 @@ ${err.stack}` : "");
                                     sortOrder: enabledSortOrder
                                 });
                                 $("#magnets-span").text("取消磁力过滤");
-                                await storageManager.saveSettingItem("enableMagnetsFilter", YES);
+                                await storageManager.saveSettingItem("enableMagnetsFilter", YES$1);
                             } else {
                                 highlightMagnetPlugin.showAll();
                                 $("#magnets-span").text("排序与过滤");
@@ -16601,9 +16681,9 @@ ${err.stack}` : "");
                         showFilterItem: (null == settingObj ? void 0 : settingObj.showFilterItem) ?? NO,
                         showFilterActorItem: (null == settingObj ? void 0 : settingObj.showFilterActorItem) ?? NO,
                         showFilterKeywordItem: (null == settingObj ? void 0 : settingObj.showFilterKeywordItem) ?? NO,
-                        showFavoriteItem: (null == settingObj ? void 0 : settingObj.showFavoriteItem) ?? YES,
-                        showHasDownItem: (null == settingObj ? void 0 : settingObj.showHasDownItem) ?? YES,
-                        showHasWatchItem: (null == settingObj ? void 0 : settingObj.showHasWatchItem) ?? YES,
+                        showFavoriteItem: (null == settingObj ? void 0 : settingObj.showFavoriteItem) ?? YES$1,
+                        showHasDownItem: (null == settingObj ? void 0 : settingObj.showHasDownItem) ?? YES$1,
+                        showHasWatchItem: (null == settingObj ? void 0 : settingObj.showHasWatchItem) ?? YES$1,
                         showAllItem: (null == settingObj ? void 0 : settingObj.showAllItem) ?? NO,
                         tagPosition: (null == settingObj ? void 0 : settingObj.tagPosition) || "rightTop",
                         movieShowType: (null == settingObj ? void 0 : settingObj.movieShowType) || "hide"
@@ -16640,10 +16720,10 @@ ${err.stack}` : "");
                                 $box2.removeAttr("data-hide");
                                 $box2.show();
                             }
-                            const isCurrentlyHidden = $box2.attr("data-hide") === YES;
-                            settings.showAllItem === YES && (shouldHide = false);
+                            const isCurrentlyHidden = $box2.attr("data-hide") === YES$1;
+                            settings.showAllItem === YES$1 && (shouldHide = false);
                             if (shouldHide !== isCurrentlyHidden) {
-                                shouldHide ? $box2.attr("data-hide", YES) : $box2.removeAttr("data-hide");
+                                shouldHide ? $box2.attr("data-hide", YES$1) : $box2.removeAttr("data-hide");
                                 if ("hide" === settings.movieShowType) shouldHide ? $box2.hide() : $box2.show();
                                 else {
                                     if ("visibility" !== settings.movieShowType) throw new Error("movieShowType值有误:" + settings.movieShowType);
@@ -16762,11 +16842,11 @@ ${err.stack}` : "");
                             carNum: carNum2,
                             aHref
                         } = this.getBoxCarInfo($box2);
-                        let dialogOpenDetail = await storageManager.getSetting("dialogOpenDetail", YES);
+                        let dialogOpenDetail = await storageManager.getSetting("dialogOpenDetail", YES$1);
                         if (carNum2.includes("FC2-")) {
                             let movieId = this.parseMovieId(aHref);
                             this.getBean("Fc2Plugin").openFc2Dialog(movieId, carNum2, aHref);
-                        } else if (dialogOpenDetail === YES) {
+                        } else if (dialogOpenDetail === YES$1) {
                             utils.openPage(aHref, carNum2, true, event);
                             this.$currentImage = null;
                         } else window.open(aHref);
@@ -16818,7 +16898,7 @@ ${err.stack}` : "");
 
                 async parseActressName(url) {
                     let actorName = null;
-                    if (await storageManager.getSetting("enableSaveActressCarInfo", NO) === YES) {
+                    if (await storageManager.getSetting("enableSaveActressCarInfo", NO) === YES$1) {
                         clog.debug("鉴定补录演员信息-已启用, 开始解析详情页");
                         clog.debug("开始解析演员详情页", url);
                         const html = await gmHttp.get(url), $dom = utils.htmlTo$dom(html);
@@ -16861,7 +16941,7 @@ ${err.stack}` : "");
                     }, registerToggleHotkey = (hotkeyName, settingKey) => {
                         const hotkeyString = this[hotkeyName];
                         hotkeyString && HotkeyManager.registerHotkey(hotkeyString, (async (event) => {
-                            const newVal = await storageManager.getSetting(settingKey) === YES ? NO : YES;
+                            const newVal = await storageManager.getSetting(settingKey) === YES$1 ? NO : YES$1;
                             await storageManager.saveSettingItem(settingKey, newVal);
                             window.refresh();
                         }));
@@ -16947,14 +17027,14 @@ ${err.stack}` : "");
                         }));
                     }
                     storageManager.getSetting("hoverBigImg", NO).then(((hoverBigImg) => {
-                        hoverBigImg === YES && (window.imageHoverPreviewObj ? window.imageHoverPreviewObj.bindEvents() : window.imageHoverPreviewObj = new ImageHoverPreview({
+                        hoverBigImg === YES$1 && (window.imageHoverPreviewObj ? window.imageHoverPreviewObj.bindEvents() : window.imageHoverPreviewObj = new ImageHoverPreview({
                             selector: this.getSelector().coverImgSelector
                         }));
                     }));
                 }
 
                 async translate($box2) {
-                    if (await storageManager.getSetting("translateTitle", YES) !== YES) return;
+                    if (await storageManager.getSetting("translateTitle", YES$1) !== YES$1) return;
                     let content, carNum2, $title = $box2.find(".video-title");
                     if (isJavDb$1) {
                         content = $title.contents().filter(((i, node) => 3 === node.nodeType && "" !== node.textContent.trim())).text().trim();
