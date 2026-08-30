@@ -631,6 +631,198 @@
     background: rgba(59, 130, 246, 0.9);
     box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
   }
+
+  .magnet-4k-highlight {
+    background-color: #fff5f5 !important;
+  }
+  .magnet-4k-highlight .name {
+    color: #f40 !important;
+  }
+
+  .msf-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999997;
+  }
+  .msf-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    z-index: 999998;
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+  }
+  .msf-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 10px 10px 0 0;
+  }
+  .msf-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .msf-close {
+    font-size: 22px;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0 6px;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .msf-close:hover {
+    color: #ef4444;
+  }
+  .msf-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .msf-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .msf-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+  }
+  .msf-sort-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .msf-sort-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: default;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .msf-sort-item:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+  }
+  .msf-sort-item.msf-dragging {
+    opacity: 0.5;
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+  .msf-sort-item.msf-drag-over {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+  .msf-drag-handle {
+    color: #cbd5e1;
+    font-size: 16px;
+    cursor: grab;
+    line-height: 1;
+    letter-spacing: -2px;
+    transition: color 0.2s;
+  }
+  .msf-drag-handle:active {
+    cursor: grabbing;
+  }
+  .msf-sort-item:hover .msf-drag-handle {
+    color: #94a3b8;
+  }
+  .msf-sort-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    flex: 1;
+  }
+  .msf-sort-checkbox {
+    margin: 0;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+  }
+  .msf-sort-hint {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-left: 4px;
+  }
+  .msf-filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .msf-filter-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .msf-filter-label:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+  }
+  .msf-filter-checkbox {
+    margin: 0;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+  }
+  .msf-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 18px;
+    border-top: 1px solid #e5e7eb;
+  }
+  .msf-btn {
+    padding: 8px 22px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .msf-btn-cancel {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  .msf-btn-cancel:hover {
+    background: #e5e7eb;
+  }
+  .msf-btn-confirm {
+    background: #3b82f6;
+    color: #fff;
+  }
+  .msf-btn-confirm:hover {
+    background: #2563eb;
+  }
 </style>
 `;
     const subtitleModalCss = `
@@ -8075,26 +8267,112 @@ ${value}\r
     getName() {
       return "HighlightMagnetPlugin";
     }
-    doFilterMagnet() {
-      this.handleDb();
-      this.handleBus();
+
+      parseDateFromAttr(dateStr) {
+          if (!dateStr || dateStr.length !== 8) {
+              const d2 = new Date(dateStr);
+              return isNaN(d2.getTime()) ? 0 : d2.getTime();
+          }
+          const y = parseInt(dateStr.substring(0, 4), 10);
+          const m = parseInt(dateStr.substring(4, 6), 10) - 1;
+          const d = parseInt(dateStr.substring(6, 8), 10);
+          const date = new Date(y, m, d);
+          return isNaN(date.getTime()) ? 0 : date.getTime();
     }
-    handleDb() {
+
+      getRowInfo(row) {
+          const $row = $(row);
+          const nameText = $row.find(".name").text().toLowerCase();
+          const tags = [];
+          $row.find(".tags .tag").each((_, tag) => tags.push($(tag).text().toLowerCase()));
+          const sizeMB = parseInt($row.attr("data-size"), 10) || 0;
+          const files = parseInt($row.attr("data-files"), 10) || 0;
+          const dateStr = $row.attr("data-date") || "";
+          return {
+              row,
+              $row,
+              nameText,
+              date: this.parseDateFromAttr(dateStr),
+              dateStr,
+              size: sizeMB * 1024 * 1024,
+              files,
+              tags,
+              is4K: nameText.includes("4k") || nameText.includes("[4k]") || tags.includes("4k"),
+              isHD: nameText.includes("高清") || tags.includes("高清"),
+              isSubtitle: nameText.includes("字幕") || nameText.includes("-c") || nameText.includes(".chs") || nameText.includes(".cht") || nameText.includes(".chi") || tags.includes("字幕"),
+              isUncensored: nameText.includes("无码") || nameText.includes("無碼") || nameText.includes("-u") || nameText.includes("-uc") || tags.includes("无码") || tags.includes("無碼")
+          };
+      }
+
+      async applySortAndFilter(settings) {
       if (!isJavDb$1) return;
-      let magnetNameList = $("#magnets-content .name");
-      if (0 === magnetNameList.length) return;
-      const HIGH_QUALITY_KEYWORDS = ["4k", "-c", "-u", "-uc"];
-      let hasHighQuality = false;
-      magnetNameList.each(((_, el) => {
-        const $el = $(el), text = $el.text().toLowerCase(), isHighQuality = HIGH_QUALITY_KEYWORDS.some(((keyword) => text.includes(keyword)));
-        $el.parent().parent().parent().addClass("magnet-row");
-        text.includes("4k") && $el.css("color", "#f40");
-        if (isHighQuality) {
-          hasHighQuality = true;
-          $el.parent().parent().parent().addClass("high-quality");
-        }
-      }));
-      hasHighQuality ? $("#magnets-content .magnet-row").not(".high-quality").hide() : $("#enable-magnets-filter").addClass("do-hide");
+          const $container = $("#magnets-content");
+          const $rows = $container.find(".item[data-rank]");
+          if (0 === $rows.length) return;
+          const rowInfos = $rows.toArray().map((row) => this.getRowInfo(row));
+          const {filterHD, filter4K, filterSubtitle, filterUncensored, sortOrder} = settings;
+          const anyFilterEnabled = filterHD || filter4K || filterSubtitle || filterUncensored;
+          let visibleInfos = rowInfos;
+          if (anyFilterEnabled) {
+              visibleInfos = rowInfos.filter((info) => {
+                  if (filterHD && info.isHD) return true;
+                  if (filter4K && info.is4K) return true;
+                  if (filterSubtitle && info.isSubtitle) return true;
+                  if (filterUncensored && info.isUncensored) return true;
+                  return false;
+              });
+          }
+          if (sortOrder && sortOrder.length > 0) {
+              visibleInfos.sort((a, b) => {
+                  for (const key of sortOrder) {
+                      let cmp = 0;
+                      switch (key) {
+                          case "date":
+                              cmp = b.date - a.date;
+                              break;
+                          case "size":
+                              cmp = b.size - a.size;
+                              break;
+                          case "files":
+                              cmp = a.files - b.files;
+                              break;
+                      }
+                      if (0 !== cmp) return cmp;
+                  }
+                  return 0;
+              });
+          }
+          const container = document.getElementById("magnets-content");
+          if (!container) return;
+          const hiddenInfos = rowInfos.filter((info) => !visibleInfos.includes(info));
+          const reviewsContainer = document.getElementById("reviewsContainer");
+          const insertRef = reviewsContainer && reviewsContainer.parentNode === container ? reviewsContainer.previousElementSibling || reviewsContainer : null;
+          const fragment = document.createDocumentFragment();
+          visibleInfos.forEach((info) => fragment.appendChild(info.row));
+          hiddenInfos.forEach((info) => fragment.appendChild(info.row));
+          if (insertRef) {
+              container.insertBefore(fragment, insertRef);
+          } else {
+              container.appendChild(fragment);
+          }
+          visibleInfos.forEach((info) => {
+              if (info.is4K) {
+                  info.$row.addClass("magnet-4k-highlight");
+              }
+          });
+          hiddenInfos.forEach((info) => $(info.row).hide());
+      }
+
+      showAll() {
+          if (isJavDb$1) {
+              $("#magnets-content .item[data-rank]").toArray().forEach(((el) => {
+                  $(el).show();
+                  $(el).removeClass("magnet-4k-highlight");
+              }));
+          }
+          if (isJavBus$1) {
+              $("#magnet-table tr").toArray().forEach(((el) => $(el).show()));
+          }
     }
     handleBus() {
       isJavBus$1 && window.isDetailPage && utils.loopDetector((() => $("#magnet-table td a").length > 0), (() => {
@@ -8113,12 +8391,6 @@ ${value}\r
           $row.hasClass("high-quality") || $row.hide();
         })) : $("#enable-magnets-filter").addClass("do-hide");
       }));
-    }
-    showAll() {
-      if (isJavDb$1) {
-        $("#magnets-content .item").toArray().forEach(((el) => $(el).show()));
-      }
-      isJavBus$1 && $("#magnet-table tr").toArray().forEach(((el) => $(el).show()));
     }
   }
   class FoldCategoryPlugin extends BasePlugin {
@@ -12896,7 +13168,7 @@ ${err.stack}` : "");
     }
     async createMenuBtn() {
         const pageInfo = this.getPageInfo(), carNum2 = pageInfo.carNum,
-            buttonsHtml = '\n            <div style="margin: 10px auto; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap;gap: 20px;">\n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="filterBtn" class="menu-btn" style="width: 120px; background-color:#de3333; color: white; text-align: center; padding: 8px 0;">\n                        <span>🚫 屏蔽</span>\n                    </a>\n                    <a id="favoriteBtn" class="menu-btn" style="width: 120px; background-color:#25b1dc; color: white; text-align: center; padding: 8px 0;">\n                        <span>⭐ 收藏</span>\n                    </a>\n                    <a id="hasDownBtn" class="menu-btn" style="width: 120px; background-color:#7bc73b; color: white; text-align: center; padding: 8px 0;">\n                        <span>📥️ 已下载</span>\n                    </a>\n                    <a id="hasWatchBtn" class="menu-btn" style="width: 120px; background-color:#d7a80c; color: white; text-align: center; padding: 8px 0;">\n                        <span>🔍 已观看</span>\n                    </a>\n                </div>\n        \n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="enable-magnets-filter" class="menu-btn" style="width: 140px; background-color: #c2bd4c; color: white; text-align: center; padding: 8px 0;">\n                        <span id="magnets-span">关闭磁力过滤</span>\n                    </a>\n                    <a id="magnetSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to right, rgb(245,140,1), rgb(84,161,29)); color: white; text-align: center; padding: 8px 0;">\n                        <span>磁力搜索</span>\n                    </a>\n                    <a id="subtitleSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕搜索</span>\n                    </a>\n                    <!--\n                    <a id="xunLeiSubtitleBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (迅雷)</span>\n                    </a>\n                    <a id="search-subtitle-btn" class="menu-btn" style="width: 160px; background: linear-gradient(to bottom, #8d5656, rgb(196,159,91)); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (SubTitleCat)</span>\n                    </a>\n                    -->\n                </div>\n            </div>\n        ';
+            buttonsHtml = '\n            <div style="margin: 10px auto; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap;gap: 20px;">\n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="filterBtn" class="menu-btn" style="width: 120px; background-color:#de3333; color: white; text-align: center; padding: 8px 0;">\n                        <span>🚫 屏蔽</span>\n                    </a>\n                    <a id="favoriteBtn" class="menu-btn" style="width: 120px; background-color:#25b1dc; color: white; text-align: center; padding: 8px 0;">\n                        <span>⭐ 收藏</span>\n                    </a>\n                    <a id="hasDownBtn" class="menu-btn" style="width: 120px; background-color:#7bc73b; color: white; text-align: center; padding: 8px 0;">\n                        <span>📥️ 已下载</span>\n                    </a>\n                    <a id="hasWatchBtn" class="menu-btn" style="width: 120px; background-color:#d7a80c; color: white; text-align: center; padding: 8px 0;">\n                        <span>🔍 已观看</span>\n                    </a>\n                </div>\n        \n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="enable-magnets-filter" class="menu-btn" style="width: 140px; background-color: #c2bd4c; color: white; text-align: center; padding: 8px 0;">\n                        <span id="magnets-span">排序与过滤</span>\n                    </a>\n                    <a id="magnetSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to right, rgb(245,140,1), rgb(84,161,29)); color: white; text-align: center; padding: 8px 0;">\n                        <span>磁力搜索</span>\n                    </a>\n                    <a id="subtitleSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕搜索</span>\n                    </a>\n                    <!--\n                    <a id="xunLeiSubtitleBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (迅雷)</span>\n                    </a>\n                    <a id="search-subtitle-btn" class="menu-btn" style="width: 160px; background: linear-gradient(to bottom, #8d5656, rgb(196,159,91)); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (SubTitleCat)</span>\n                    </a>\n                    -->\n                </div>\n            </div>\n        ';
       isJavDb$1 && $(".tabs").after(buttonsHtml);
       isJavBus$1 && $("#mag-submit-show").before(buttonsHtml);
       $("#favoriteBtn").on("click", (() => this.favoriteOne()));
@@ -12916,19 +13188,38 @@ ${err.stack}` : "");
           }
         });
       }));
-      const highlightMagnetPlugin = this.getBean("HighlightMagnetPlugin"), enableMagnetsFilter = await storageManager.getSetting("enableMagnetsFilter", YES);
-      $("#magnets-span").text(enableMagnetsFilter === YES ? "关闭磁力过滤" : "开启磁力过滤");
-      enableMagnetsFilter === YES && highlightMagnetPlugin.doFilterMagnet();
+        const highlightMagnetPlugin = this.getBean("HighlightMagnetPlugin"),
+            enableMagnetsFilter = await storageManager.getSetting("enableMagnetsFilter", NO);
+        if (enableMagnetsFilter === YES) {
+            const savedSettings = await storageManager.getSetting("magnetSortAndFilter", "{}");
+            let settings;
+            try {
+                settings = JSON.parse(savedSettings);
+            } catch (e) {
+                settings = {};
+            }
+            const sortEnabled = settings.sortEnabled || {};
+            const fullSortOrder = settings.sortOrder && settings.sortOrder.length === 3 ? settings.sortOrder : ["date", "size", "files"];
+            const effectiveSortOrder = fullSortOrder.filter((key) => sortEnabled[key]);
+            highlightMagnetPlugin.applySortAndFilter({
+                filterHD: settings.filterHD || false,
+                filter4K: settings.filter4K || false,
+                filterSubtitle: settings.filterSubtitle || false,
+                filterUncensored: settings.filterUncensored || false,
+                sortOrder: effectiveSortOrder
+            });
+            $("#magnets-span").text("取消磁力过滤");
+        } else {
+            $("#magnets-span").text("排序与过滤");
+        }
       $("#enable-magnets-filter").on("click", ((event) => {
-        let $span = $("#magnets-span");
-        if ("关闭磁力过滤" === $span.text()) {
+          const $span = $("#magnets-span");
+          if ("取消磁力过滤" === $span.text()) {
           highlightMagnetPlugin.showAll();
-          $span.text("开启磁力过滤");
+              $span.text("排序与过滤");
           storageManager.saveSettingItem("enableMagnetsFilter", NO);
         } else {
-          highlightMagnetPlugin.doFilterMagnet();
-          $span.text("关闭磁力过滤");
-          storageManager.saveSettingItem("enableMagnetsFilter", YES);
+              this.openMagnetSortFilterPanel(highlightMagnetPlugin);
         }
       }));
         $("#subtitleSearchBtn").on("click", (() => {
@@ -12937,6 +13228,186 @@ ${err.stack}` : "");
         window.JavPackSubtitle.preload115Matches(carNum2);
       this.showStatus(carNum2).then();
     }
+
+      async openMagnetSortFilterPanel(highlightMagnetPlugin) {
+          const existingPanel = document.getElementById("magnet-sort-filter-panel");
+          if (existingPanel) {
+              existingPanel.remove();
+              return;
+          }
+          const savedSettings = await storageManager.getSetting("magnetSortAndFilter", "{}");
+          let settings;
+          try {
+              settings = JSON.parse(savedSettings);
+          } catch (e) {
+              settings = {};
+          }
+          const sortEnabled = settings.sortEnabled || {date: false, size: false, files: false};
+          const sortOrder = settings.sortOrder && settings.sortOrder.length === 3 ? settings.sortOrder : ["date", "size", "files"];
+          const filterHD = settings.filterHD || false;
+          const filter4K = settings.filter4K || false;
+          const filterSubtitle = settings.filterSubtitle || false;
+          const filterUncensored = settings.filterUncensored || false;
+          const SORT_LABELS = {date: "发布日期", size: "文件大小", files: "文件数量"};
+          const SORT_HINTS = {date: "从新到旧", size: "从大到小", files: "从少到多"};
+          const FILTER_ITEMS = [
+              {key: "HD", label: "高清", checked: filterHD},
+              {key: "4K", label: "4K", checked: filter4K},
+              {key: "Subtitle", label: "字幕", checked: filterSubtitle},
+              {key: "Uncensored", label: "无码", checked: filterUncensored}
+          ];
+          const currentSortOrder = [...sortOrder];
+          const currentSortEnabled = {...sortEnabled};
+          const currentFilters = {
+              HD: filterHD,
+              "4K": filter4K,
+              Subtitle: filterSubtitle,
+              Uncensored: filterUncensored
+          };
+          const buildSortItemsHTML = () => {
+              return currentSortOrder.map((key) => {
+                  const checked = currentSortEnabled[key] ? "checked" : "";
+                  return `<div class="msf-sort-item" draggable="true" data-sort-key="${key}">
+                    <span class="msf-drag-handle">⋮⋮</span>
+                    <label class="msf-sort-label">
+                        <input type="checkbox" class="msf-sort-checkbox" data-sort-key="${key}" ${checked}>
+                        ${SORT_LABELS[key]} <span class="msf-sort-hint">${SORT_HINTS[key]}</span>
+                    </label>
+                </div>`;
+              }).join("");
+          };
+          const buildFilterItemsHTML = () => {
+              return FILTER_ITEMS.map((item) => {
+                  const checked = currentFilters[item.key] ? "checked" : "";
+                  return `<label class="msf-filter-label">
+                    <input type="checkbox" class="msf-filter-checkbox" data-filter-key="${item.key}" ${checked}>
+                    ${item.label}
+                </label>`;
+              }).join("");
+          };
+          const panelHTML = `
+            <div class="msf-overlay" id="msf-overlay"></div>
+            <div class="msf-panel" id="magnet-sort-filter-panel">
+                <div class="msf-header">
+                    <span class="msf-title">磁力排序与过滤</span>
+                    <span class="msf-close" id="msf-close-btn">&times;</span>
+                </div>
+                <div class="msf-body">
+                    <div class="msf-section">
+                        <div class="msf-section-title">排序优先级（拖动调整顺序，勾选启用）</div>
+                        <div class="msf-sort-list" id="msf-sort-list">
+                            ${buildSortItemsHTML()}
+                        </div>
+                    </div>
+                    <div class="msf-section">
+                        <div class="msf-section-title">过滤条件（可多选，并集关系）</div>
+                        <div class="msf-filter-list">
+                            ${buildFilterItemsHTML()}
+                        </div>
+                    </div>
+                </div>
+                <div class="msf-footer">
+                    <button class="msf-btn msf-btn-cancel" id="msf-cancel-btn">取消</button>
+                    <button class="msf-btn msf-btn-confirm" id="msf-confirm-btn">确认</button>
+                </div>
+            </div>
+        `;
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = panelHTML;
+          document.body.appendChild(wrapper);
+          const panel = document.getElementById("magnet-sort-filter-panel");
+          const overlay = document.getElementById("msf-overlay");
+          const closePanel = () => {
+              panel.remove();
+              overlay.remove();
+          };
+          overlay.addEventListener("click", closePanel);
+          document.getElementById("msf-close-btn").addEventListener("click", closePanel);
+          document.getElementById("msf-cancel-btn").addEventListener("click", closePanel);
+          const rebuildSortList = () => {
+              const sortList = document.getElementById("msf-sort-list");
+              sortList.innerHTML = buildSortItemsHTML();
+              bindSortEvents();
+          };
+          const bindSortEvents = () => {
+              const sortItems = document.querySelectorAll("#msf-sort-list .msf-sort-item");
+              sortItems.forEach((item) => {
+                  item.addEventListener("dragstart", (e) => {
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", item.dataset.sortKey);
+                      item.classList.add("msf-dragging");
+                  });
+                  item.addEventListener("dragend", () => {
+                      item.classList.remove("msf-dragging");
+                      document.querySelectorAll("#msf-sort-list .msf-sort-item").forEach((el) => el.classList.remove("msf-drag-over"));
+                  });
+                  item.addEventListener("dragover", (e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      item.classList.add("msf-drag-over");
+                  });
+                  item.addEventListener("dragleave", () => {
+                      item.classList.remove("msf-drag-over");
+                  });
+                  item.addEventListener("drop", (e) => {
+                      e.preventDefault();
+                      item.classList.remove("msf-drag-over");
+                      const fromKey = e.dataTransfer.getData("text/plain");
+                      const toKey = item.dataset.sortKey;
+                      if (fromKey === toKey) return;
+                      const fromIdx = currentSortOrder.indexOf(fromKey);
+                      const toIdx = currentSortOrder.indexOf(toKey);
+                      currentSortOrder.splice(fromIdx, 1);
+                      currentSortOrder.splice(toIdx, 0, fromKey);
+                      rebuildSortList();
+                  });
+                  const checkbox = item.querySelector(".msf-sort-checkbox");
+                  checkbox.addEventListener("change", () => {
+                      currentSortEnabled[item.dataset.sortKey] = checkbox.checked;
+                  });
+              });
+          };
+          bindSortEvents();
+          document.querySelectorAll(".msf-filter-checkbox").forEach((cb) => {
+              cb.addEventListener("change", () => {
+                  currentFilters[cb.dataset.filterKey] = cb.checked;
+              });
+          });
+          document.getElementById("msf-confirm-btn").addEventListener("click", async () => {
+              try {
+                  const enabledSortOrder = currentSortOrder.filter((key) => currentSortEnabled[key]);
+                  const newSettings = {
+                      sortOrder: currentSortOrder,
+                      sortEnabled: currentSortEnabled,
+                      filterHD: currentFilters.HD,
+                      filter4K: currentFilters["4K"],
+                      filterSubtitle: currentFilters.Subtitle,
+                      filterUncensored: currentFilters.Uncensored
+                  };
+                  await storageManager.saveSettingItem("magnetSortAndFilter", JSON.stringify(newSettings));
+                  const hasAnyFilter = currentFilters.HD || currentFilters["4K"] || currentFilters.Subtitle || currentFilters.Uncensored;
+                  const hasAnySort = enabledSortOrder.length > 0;
+                  if (hasAnyFilter || hasAnySort) {
+                      await highlightMagnetPlugin.applySortAndFilter({
+                          filterHD: currentFilters.HD,
+                          filter4K: currentFilters["4K"],
+                          filterSubtitle: currentFilters.Subtitle,
+                          filterUncensored: currentFilters.Uncensored,
+                          sortOrder: enabledSortOrder
+                      });
+                      $("#magnets-span").text("取消磁力过滤");
+                      await storageManager.saveSettingItem("enableMagnetsFilter", YES);
+                  } else {
+                      highlightMagnetPlugin.showAll();
+                      $("#magnets-span").text("排序与过滤");
+                      await storageManager.saveSettingItem("enableMagnetsFilter", NO);
+                  }
+              } catch (e) {
+                  console.error("[磁力排序] 应用失败:", e);
+              }
+              closePanel();
+          });
+      }
     async showStatus(carNum2) {
       const $filterBtn = $("#filterBtn span"), $favoriteBtn = $("#favoriteBtn span"), $hasDownBtn = $("#hasDownBtn span"), $hasWatchBtn = $("#hasWatchBtn span"), hotKeyDisplay = (hotKey) => hotKey ? `(${hotKey})` : "";
       $filterBtn.text(`🚫 屏蔽 ${hotKeyDisplay(this.filterHotKey)}`);
