@@ -10987,10 +10987,13 @@ ${err.stack}` : "");
       async batchDeleteMarked(selectedItems, onProgress) {
           let deletedCount = 0;
           let failedCount = 0;
-          const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          const randomDelay = () => new Promise((resolve) => setTimeout(resolve, 1e3 + Math.random() * 2e3));
           for (let i = 0; i < selectedItems.length; i++) {
               const item = selectedItems[i];
               try {
+                  if (i > 0) {
+                      await randomDelay();
+                  }
                   const matchList = await this.searchFiles(item.carNum);
                   if (matchList.length === 0) {
                       failedCount++;
@@ -11006,24 +11009,49 @@ ${err.stack}` : "");
                   }
                   let itemDeleted = 0;
                   const uniqueDirIds = [...new Set(safeMatchList.map((m) => m.dirId))];
-                  for (const dirId of uniqueDirIds) {
-                      try {
-                          const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
-                              "fid[0]": dirId,
-                              ignore_warn: "1"
-                          });
-                          if (result && result.state) {
-                              itemDeleted++;
-                              deletedCount++;
+                  for (let d = 0; d < uniqueDirIds.length; d++) {
+                      if (d > 0) {
+                          await randomDelay();
+                      }
+                      const dirId = uniqueDirIds[d];
+                      let retryCount = 0;
+                      const maxRetries = 3;
+                      while (retryCount <= maxRetries) {
+                          try {
+                              const result = await gmHttp.postForm("https://webapi.115.com/rb/delete", {
+                                  "fid[0]": dirId,
+                                  ignore_warn: "1"
+                              });
+                              if (result && result.state) {
+                                  itemDeleted++;
+                                  deletedCount++;
+                                  break;
+                              } else {
+                                  const errMsg = result && result.error || "未知错误";
+                                  if (retryCount < maxRetries && this.isRateLimited(result)) {
+                                      retryCount++;
+                                      const backoff = (retryCount + 1) * 2e3 + Math.random() * 1e3;
+                                      onProgress && onProgress(i + 1, selectedItems.length, item, `风控触发，${backoff / 1e3}秒后重试(${retryCount}/${maxRetries})`);
+                                      await new Promise((resolve) => setTimeout(resolve, backoff));
+                                      continue;
+                                  }
+                                  console.error(`删除目录失败: ${dirId}`, errMsg);
+                                  break;
+                              }
+                          } catch (e) {
+                              if (retryCount < maxRetries && this.isRateLimited(e)) {
+                                  retryCount++;
+                                  const backoff = (retryCount + 1) * 2e3 + Math.random() * 1e3;
+                                  onProgress && onProgress(i + 1, selectedItems.length, item, `风控触发，${backoff / 1e3}秒后重试(${retryCount}/${maxRetries})`);
+                                  await new Promise((resolve) => setTimeout(resolve, backoff));
+                                  continue;
+                              }
+                              console.error(`删除目录失败: ${dirId}`, e);
+                              break;
                           }
-                      } catch (e) {
-                          console.error(`删除目录失败: ${dirId}`, e);
                       }
                   }
                   onProgress && onProgress(i + 1, selectedItems.length, item, itemDeleted > 0 ? `已删除${itemDeleted}个` : "删除失败");
-                  if (i < selectedItems.length - 1) {
-                      await delay(800);
-                  }
               } catch (error) {
                   failedCount++;
                   onProgress && onProgress(i + 1, selectedItems.length, item, error.message || "出错");
@@ -11032,6 +11060,20 @@ ${err.stack}` : "");
           }
           return {deletedCount, failedCount};
     }
+
+      isRateLimited(response) {
+          if (!response) return false;
+          if (response.state === false) {
+              const msg = (response.error || response.msg || "").toLowerCase();
+              if (msg.includes("频繁") || msg.includes("操作太频繁") || msg.includes("稍后再试") || msg.includes("rate") || msg.includes("limit") || msg.includes("too many")) {
+                  return true;
+              }
+          }
+          if (response.status === 403 || response.status === 429) {
+              return true;
+          }
+          return false;
+      }
     showDeleteDialog(carNum2, matchList, afterDelete) {
       const upperCarNum = carNum2.toUpperCase();
       const safeMatchList = matchList.filter((m) => m.name.toUpperCase().includes(upperCarNum));
