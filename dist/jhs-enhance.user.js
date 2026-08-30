@@ -1100,7 +1100,7 @@
   );
   insertStyle(mainCss);
   insertStyle(subtitleModalCss);
-  window.$ = window.jQuery = $$1;
+    window.jQuery = $$1;
   if (typeof $$1.trim !== "function") {
       $$1.trim = function (text) {
       return text == null ? "" : (text + "").trim();
@@ -17059,4 +17059,4 @@ ${err.stack}` : "");
     pluginManager.processPlugins().then();
   })();
 
-})($, localforage, Toastify, md5, Viewer, QRCode);
+})(jQuery, localforage, Toastify, md5, Viewer, QRCode);

@@ -92,7 +92,7 @@ export default defineConfig({
       build: {
         fileName: 'jhs-enhance.user.js',
         externalGlobals: {
-          'jquery': '$',
+          'jquery': 'jQuery',
           'localforage': 'localforage',
           'toastify-js': 'Toastify',
           'blueimp-md5': 'md5',

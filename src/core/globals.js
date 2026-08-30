@@ -6,7 +6,7 @@ import Viewer from 'viewerjs';
 import QRCode from 'qrcodejs';
 import { currentHref, isJavDb, isJavBus, isSearchPage, Status_RUNNING, Status_SUCCESS, Status_FAIL, Status_LOADING, Status_FILTER, Status_FAVORITE, Status_HAS_DOWN, Status_HAS_WATCH, NO, YES } from './constants.js';
 
-window.$ = window.jQuery = $;
+window.jQuery = $;
 if (typeof $.trim !== 'function') {
     $.trim = function (text) {
         return text == null ? '' : (text + '').trim();
