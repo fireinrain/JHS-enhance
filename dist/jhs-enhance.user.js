@@ -1100,7 +1100,7 @@
   );
   insertStyle(mainCss);
   insertStyle(subtitleModalCss);
-    window.jQuery = $$1;
+    window.$ = window.jQuery = $$1;
   if (typeof $$1.trim !== "function") {
       $$1.trim = function (text) {
       return text == null ? "" : (text + "").trim();
@@ -16944,26 +16944,28 @@ ${err.stack}` : "");
       var el;
     }));
   })();
-  const originalLayerClose = layer.close;
-  layer.close = function(index) {
-    const result = originalLayerClose.call(this, index);
-    !(function(waitTime = 10) {
-      setTimeout((() => {
-        const openLayerCount = document.querySelectorAll(".layui-layer-shade").length;
-        document.documentElement.style.overflow = openLayerCount > 0 ? "hidden" : "";
-      }), waitTime);
-    })();
-    return result;
-  };
-  const originalLayerOpen = layer.open;
-  layer.open = function(options) {
-    const originalSuccess = (options = options || {}).success;
-    options.success = function(layero, index) {
-      "function" == typeof originalSuccess && originalSuccess.call(this, layero, index);
-      utils.setupEscClose(index);
-    };
-    return originalLayerOpen.call(this, options);
-  };
+    if (typeof layer !== "undefined") {
+        const originalLayerClose = layer.close;
+        layer.close = function (index) {
+            const result = originalLayerClose.call(this, index);
+            !(function (waitTime = 10) {
+                setTimeout((() => {
+                    const openLayerCount = document.querySelectorAll(".layui-layer-shade").length;
+                    document.documentElement.style.overflow = openLayerCount > 0 ? "hidden" : "";
+                }), waitTime);
+            })();
+            return result;
+        };
+        const originalLayerOpen = layer.open;
+        layer.open = function (options) {
+            const originalSuccess = (options = options || {}).success;
+            options.success = function (layero, index) {
+                "function" == typeof originalSuccess && originalSuccess.call(this, layero, index);
+                utils.setupEscClose(index);
+            };
+            return originalLayerOpen.call(this, options);
+        };
+    }
   utils.importResource("https://cdn.jsdelivr.net/npm/layui-layer@1.0.9/layer.min.css");
   utils.importResource("https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css");
   utils.importResource("https://cdn.jsdelivr.net/npm/viewerjs@1.11.1/dist/viewer.min.css");
