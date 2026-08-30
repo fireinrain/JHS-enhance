@@ -2692,6 +2692,195 @@ ${value}\r
       return false;
     }
   }
+
+    const selectDefaultQuality$1 = (dmmVideoQualityList, intendedDefault) => {
+        if (!dmmVideoQualityList || 0 === dmmVideoQualityList.length) return null;
+        const availableSet = new Set(dmmVideoQualityList);
+        if (availableSet.has(intendedDefault)) return intendedDefault;
+        const priorityOrder = qualityOptions.map(((option) => option.quality)).reverse();
+        for (const quality of priorityOrder) if (availableSet.has(quality)) return quality;
+        return dmmVideoQualityList[0];
+    }, CACHE_KEY = "jhs_dmm_video";
+
+    class DmmVideoFetcher {
+        constructor(carNum2, showErrorMessages = true) {
+            this.carNum = carNum2;
+            this.showErrorMessages = showErrorMessages;
+        }
+
+        _checkCache() {
+            const cachedData = localStorage.getItem(CACHE_KEY) ? JSON.parse(localStorage.getItem(CACHE_KEY)) : {};
+            if (cachedData[this.carNum]) {
+                clog.debug("缓存中存在预览视频信息", cachedData[this.carNum]);
+                return cachedData[this.carNum];
+            }
+            return null;
+        }
+
+        _updateCache(videoMap) {
+            const cachedData = localStorage.getItem(CACHE_KEY) ? JSON.parse(localStorage.getItem(CACHE_KEY)) : {};
+            cachedData[this.carNum] = videoMap;
+            clog.debug("成功解析出预览视频并已缓存:", videoMap);
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cachedData));
+        }
+
+        async _searchContentIds() {
+            const carNum2 = this.carNum, carNumNoHyphen = carNum2.replace(/-/g, ""), keywordAttempts = [{
+                keyword: carNum2.replace("-", "00"),
+                name: "00-替换关键词"
+            }, {
+                keyword: carNum2,
+                name: "原始番号关键词"
+            }, {
+                keyword: carNumNoHyphen,
+                name: "无连字符关键词"
+            }], carNumLower = carNum2.toLowerCase();
+            for (const attempt of keywordAttempts) {
+                const {keyword, name: name2} = attempt, currentTempCarNumLower = keyword.toLowerCase(),
+                    apiUrl2 = `https://api.dmm.com/affiliate/v3/ItemList?${new URLSearchParams({
+                        api_id: "UrwskPfkqQ0DuVry2gYL",
+                        affiliate_id: "10278-996",
+                        output: "json",
+                        site: "FANZA",
+                        sort: "match",
+                        keyword
+                    }).toString()}`;
+                let response;
+                try {
+                    response = await gmHttp.get(apiUrl2);
+                } catch (e) {
+                    clog.error(`API 请求失败，跳过 ${name2}:`, e);
+                    continue;
+                }
+                if (!response || !response.result || !response.result.result_count) {
+                    clog.debug(`使用 ${name2} (${keyword}) 进行 API 搜索 返回无结果，尝试下一个关键词。`);
+                    continue;
+                }
+                const newItems = [];
+                for (const item of response.result.items) {
+                    if (newItems.length >= 2) break;
+                    const contentId = item.content_id || "", makerProduct = item.maker_product || "";
+                    if (contentId.includes(currentTempCarNumLower.replace("-", "")) || carNumLower === makerProduct.toLowerCase() || contentId.includes(carNumNoHyphen.toLowerCase())) {
+                        newItems.push({
+                            serviceCode: item.service_code,
+                            floorCode: item.floor_code,
+                            contentId,
+                            pageUrl: item.URL
+                        });
+                        clog.debug(`[${name2}] cid|makerProduct 匹配成功:`, contentId, makerProduct);
+                    }
+                }
+                if (newItems.length > 0) {
+                    clog.debug(`--- 成功通过 ${name2} 找到 Content IDs ---`);
+                    const $btn2 = $("#fanzaBtn");
+                    let url = `https://www.dmm.co.jp/search/=/searchstr=${keyword}`, type = "single";
+                    if (newItems.length > 1) {
+                        $btn2.attr("href", url);
+                        $btn2.append('<span class="site-tag" style="top:-15px">多结果</span>');
+                        $btn2.css("backgroundColor", "#7bc73b");
+                        type = "multiple";
+                    } else {
+                        url = newItems[0].pageUrl;
+                        $btn2.attr("href", url);
+                        $btn2.css("backgroundColor", "#7bc73b");
+                    }
+                    const dmmCacheKey = "jhs_other_site_dmm",
+                        dmmCacheData = localStorage.getItem(dmmCacheKey) ? JSON.parse(localStorage.getItem(dmmCacheKey)) : {};
+                    dmmCacheData[this.carNum] = {
+                        type,
+                        url
+                    };
+                    localStorage.setItem(dmmCacheKey, JSON.stringify(dmmCacheData));
+                    return newItems;
+                }
+                clog.debug(`[${name2}] API 返回结果数 ${response.result.result_count}，但无精确匹配的 Content ID。`);
+            }
+            clog.warn("所有关键词尝试均未找到匹配的Content ID, 解析Dmm视频失败");
+            const $btn = $("#fanzaBtn");
+            $btn.attr("href", `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`);
+            $btn.attr("title", "未查询到, 点击前往搜索页");
+            $btn.css("backgroundColor", "#de3333");
+            return null;
+        }
+
+        async _extractTrailerLinks({contentId, serviceCode, floorCode}) {
+            const trailerPageUrl = `https://www.dmm.co.jp/service/digitalapi/-/html5_player/=/cid=${contentId}/mtype=AhRVShI_/service=${serviceCode}/floor=${floorCode}/mode=/`,
+                htmlContent = await gmHttp.get(trailerPageUrl, null, {
+                    "accept-language": "ja-JP,ja;q=0.9",
+                    Cookie: "age_check_done=1"
+                });
+            if ("string" != typeof htmlContent) {
+                clog.error(htmlContent);
+                throw new Error("解析播放页内容失败, 非文本内容");
+            }
+            if (htmlContent.includes("このサービスはお住まいの地域からは")) throw new Error("节点不可用，请将DMM域名分流到日本ip");
+            const match = htmlContent.match(/const\s+args\s+=\s+(.*);/);
+            if (!match) throw new Error("未在脚本中找到 const args = ... 变量");
+            let bitrates;
+            try {
+                ({bitrates} = JSON.parse(match[1]));
+            } catch (e) {
+                throw new Error(`解析播放器脚本 JSON 失败: ${e.message}`);
+            }
+            const finalQualityMap = {}, qualityKeys = qualityOptions.map(((o) => o.quality)).join("|"),
+                qualityNameRegex = new RegExp(`(${qualityKeys})\\.mp4$`);
+            if (!Array.isArray(bitrates)) {
+                clog.error("解析画质链接失败: bitrates 字段不是一个数组或不存在");
+                throw new Error("解析画质链接失败: bitrates 字段不是一个数组或不存在");
+            }
+            clog.debug("原始数据返回:", bitrates);
+            for (const item of bitrates) {
+                const url = null == item ? void 0 : item.src;
+                if (!url || "string" != typeof url || !url.endsWith(".mp4")) continue;
+                const qualityMatch = url.match(qualityNameRegex);
+                let qualityKey = "";
+                qualityMatch && qualityMatch[1] && (qualityKey = qualityMatch[1]);
+                qualityKey && !finalQualityMap[qualityKey] && (finalQualityMap[qualityKey] = url);
+            }
+            if (0 === Object.keys(finalQualityMap).length) throw new Error("未找到匹配要求的预览画质视频");
+            return finalQualityMap;
+        }
+
+        async fetchVideo() {
+            const cachedResult = this._checkCache();
+            if (cachedResult) return cachedResult;
+            let contentItems;
+            try {
+                const testCarNum = this.carNum.toLowerCase();
+                if (testCarNum.startsWith("heyzo") || /^(n\d+|\d+(-\d+)*)$/.test(testCarNum) || /^n\d+$/.test(testCarNum)) throw new Error("无码番号类型, 取消dmm解析");
+                if (this.carNum.includes("VR-")) throw new Error("VR类型, 取消dmm解析");
+                contentItems = await this._searchContentIds();
+            } catch (e) {
+                clog.error("DMM API 搜索失败:", e);
+                const $btn = $("#fanzaBtn");
+                $btn.attr("href", `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`);
+                $btn.attr("title", "未查询到, 点击前往搜索页");
+                $btn.css("backgroundColor", "#de3333");
+                return null;
+            }
+            if (!contentItems || 0 === contentItems.length) return null;
+            try {
+                const finalVideoMap = await Promise.any(contentItems.map(((item) => this._extractTrailerLinks(item))));
+                this._updateCache(finalVideoMap);
+                return finalVideoMap;
+            } catch (error) {
+                const errors = error.errors || [error];
+                if (errors.some(((err) => err.message.includes("节点不可用")))) this.showErrorMessages && show.error("节点不可用，请将DMM域名分流到日本ip");
+                else {
+                    const displayError = errors[0].message || errors[0];
+                    clog.error(`解析失败: ${displayError}`, errors);
+                    this.showErrorMessages && show.error(`解析失败: ${displayError}`);
+                }
+                const $btn = $("#fanzaBtn");
+                $btn.attr("href", `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`);
+                $btn.attr("title", "未查询到, 点击前往搜索页");
+                $btn.css("backgroundColor", "#de3333");
+                return null;
+            }
+        }
+    }
+
+    const getDmmVideo$1 = async (carNum2, showErrorMessages = true) => new DmmVideoFetcher(carNum2, showErrorMessages).fetchVideo();
   class AutoPagePlugin extends BasePlugin {
     constructor() {
       super(...arguments);
@@ -6748,16 +6937,16 @@ ${value}\r
         localStorage.setItem("jhs_videoMuted", videoEl.muted ? "yes" : "no");
       }));
         let carNum2 = this.getPageInfo().carNum;
-        const CACHE_KEY = "jhs_dmm_video";
+        const CACHE_KEY2 = "jhs_dmm_video";
         let dmmErrorRetryCount = 0;
         const attachVideoErrorHandler = () => {
             videoEl.addEventListener("error", async function onVideoError(e) {
                 if (dmmErrorRetryCount >= 2) return;
                 dmmErrorRetryCount++;
                 clog.warn(`预览视频加载失败(第${dmmErrorRetryCount}次)，清除缓存后重试...`);
-                const cachedData = localStorage.getItem(CACHE_KEY) ? JSON.parse(localStorage.getItem(CACHE_KEY)) : {};
+                const cachedData = localStorage.getItem(CACHE_KEY2) ? JSON.parse(localStorage.getItem(CACHE_KEY2)) : {};
                 delete cachedData[carNum2];
-                localStorage.setItem(CACHE_KEY, JSON.stringify(cachedData));
+                localStorage.setItem(CACHE_KEY2, JSON.stringify(cachedData));
                 const freshMap = await getDmmVideo(carNum2);
                 if (!freshMap) {
                     show.error("预览视频获取失败，请稍后重试");
@@ -8299,16 +8488,29 @@ ${value}\r
     }
 
       parseDateFromAttr(dateStr) {
-          if (!dateStr || dateStr.length !== 8) {
-              const d2 = new Date(dateStr);
-              return isNaN(d2.getTime()) ? 0 : d2.getTime();
+          if (!dateStr) return 0;
+          if (dateStr.length === 8) {
+              const y = parseInt(dateStr.substring(0, 4), 10);
+              const m = parseInt(dateStr.substring(4, 6), 10) - 1;
+              const d2 = parseInt(dateStr.substring(6, 8), 10);
+              const date = new Date(y, m, d2);
+              return isNaN(date.getTime()) ? 0 : date.getTime();
           }
-          const y = parseInt(dateStr.substring(0, 4), 10);
-          const m = parseInt(dateStr.substring(4, 6), 10) - 1;
-          const d = parseInt(dateStr.substring(6, 8), 10);
-          const date = new Date(y, m, d);
-          return isNaN(date.getTime()) ? 0 : date.getTime();
-    }
+          const d = new Date(dateStr);
+          return isNaN(d.getTime()) ? 0 : d.getTime();
+      }
+
+      parseSizeToBytes(sizeText) {
+          if (!sizeText) return 0;
+          const s = sizeText.trim().toUpperCase();
+          const num = parseFloat(s);
+          if (isNaN(num)) return 0;
+          if (s.includes("TB")) return num * 1024 * 1024 * 1024 * 1024;
+          if (s.includes("GB")) return num * 1024 * 1024 * 1024;
+          if (s.includes("MB")) return num * 1024 * 1024;
+          if (s.includes("KB")) return num * 1024;
+          return num;
+      }
 
       getRowInfo(row) {
           const $row = $(row);
@@ -8334,7 +8536,33 @@ ${value}\r
           };
       }
 
+      getRowInfoForBus(row) {
+          const $row = $(row);
+          const $nameCell = $row.find("td:first-child");
+          const nameText = ($nameCell.find("a:first-child").text() || "").toLowerCase().trim();
+          const sizeText = ($row.find("td:nth-child(2)").text() || "").trim();
+          const dateText = ($row.find("td:nth-child(3)").text() || "").trim();
+          const hasHDButton = $nameCell.find("a.btn-primary").text().includes("高清");
+          return {
+              row,
+              $row,
+              nameText,
+              date: this.parseDateFromAttr(dateText),
+              dateStr: dateText,
+              size: this.parseSizeToBytes(sizeText),
+              files: 0,
+              tags: [],
+              is4K: nameText.includes("4k") || nameText.includes("[4k]"),
+              isHD: hasHDButton || nameText.includes("高清"),
+              isSubtitle: nameText.includes("字幕") || nameText.includes("-c") || nameText.includes(".chs") || nameText.includes(".cht") || nameText.includes(".chi"),
+              isUncensored: nameText.includes("无码") || nameText.includes("無碼") || nameText.includes("-u") || nameText.includes("-uc")
+          };
+      }
+
       async applySortAndFilter(settings) {
+          if (isJavBus$1) {
+              return this.applySortAndFilterForBus(settings);
+          }
       if (!isJavDb$1) return;
           const $container = $("#magnets-content");
           const $rows = $container.find(".item[data-rank]");
@@ -8393,6 +8621,61 @@ ${value}\r
           hiddenInfos.forEach((info) => $(info.row).hide());
       }
 
+      applySortAndFilterForBus(settings) {
+          const $table = $("#magnet-table");
+          if (!$table.length) return;
+          const allRows = $table.find("tr").toArray();
+          const headerRow = allRows.find((r) => $(r).find("td").length === 0 || $(r).css("font-weight") === "bold" || $(r).css("fontWeight") === "bold" || $(r).css("font-weight") === "700");
+          const dataRows = headerRow ? allRows.filter((r) => r !== headerRow) : allRows.slice(1);
+          if (0 === dataRows.length) return;
+          const rowInfos = dataRows.map((row) => this.getRowInfoForBus(row));
+          const {filterHD, filter4K, filterSubtitle, filterUncensored, sortOrder} = settings;
+          const anyFilterEnabled = filterHD || filter4K || filterSubtitle || filterUncensored;
+          let visibleInfos = rowInfos;
+          if (anyFilterEnabled) {
+              visibleInfos = rowInfos.filter((info) => {
+                  if (filterHD && info.isHD) return true;
+                  if (filter4K && info.is4K) return true;
+                  if (filterSubtitle && info.isSubtitle) return true;
+                  if (filterUncensored && info.isUncensored) return true;
+                  return false;
+              });
+          }
+          if (sortOrder && sortOrder.length > 0) {
+              visibleInfos.sort((a, b) => {
+                  for (const key of sortOrder) {
+                      let cmp = 0;
+                      switch (key) {
+                          case "date":
+                              cmp = b.date - a.date;
+                              break;
+                          case "size":
+                              cmp = b.size - a.size;
+                              break;
+                      }
+                      if (0 !== cmp) return cmp;
+                  }
+                  return 0;
+              });
+          }
+          const hiddenInfos = rowInfos.filter((info) => !visibleInfos.includes(info));
+          const fragment = document.createDocumentFragment();
+          visibleInfos.forEach((info) => fragment.appendChild(info.row));
+          hiddenInfos.forEach((info) => fragment.appendChild(info.row));
+          const insertAnchor = headerRow || $table.find("tr").first()[0];
+          if (insertAnchor && insertAnchor.nextSibling) {
+              $(insertAnchor).after(fragment);
+          } else {
+              $table.append(fragment);
+          }
+          visibleInfos.forEach((info) => {
+              if (info.is4K) {
+                  info.$row.addClass("magnet-4k-highlight");
+              }
+          });
+          hiddenInfos.forEach((info) => $(info.row).hide());
+      }
+
       showAll() {
           if (isJavDb$1) {
               $("#magnets-content .item[data-rank]").toArray().forEach(((el) => {
@@ -8401,7 +8684,10 @@ ${value}\r
               }));
           }
           if (isJavBus$1) {
-              $("#magnet-table tr").toArray().forEach(((el) => $(el).show()));
+              $("#magnet-table tr").toArray().forEach(((el) => {
+                  $(el).show();
+                  $(el).removeClass("magnet-4k-highlight");
+              }));
           }
     }
     handleBus() {
@@ -12737,14 +13023,14 @@ ${err.stack}` : "");
       }
       $img.addClass("loading");
       $img.after('<div class="loading-spinner"></div>');
-      const poster = $img.attr("src"), dmmVideoMap = await getDmmVideo(carNum2);
+        const poster = $img.attr("src"), dmmVideoMap = await getDmmVideo$1(carNum2);
       if (!dmmVideoMap) {
         show.error("未解析到视频");
         this.showImg($svgElement, $img, carNum2);
         return;
       }
       let defaultVideoQuality = await storageManager.getSetting("videoQuality");
-      defaultVideoQuality = selectDefaultQuality(Object.keys(dmmVideoMap), defaultVideoQuality);
+        defaultVideoQuality = selectDefaultQuality$1(Object.keys(dmmVideoMap), defaultVideoQuality);
       let videoUrl = dmmVideoMap[defaultVideoQuality], videoHtml = `
             <div style="display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; height: 100%; width: 100%; z-index: 10; overflow: hidden">
                 <video 
@@ -13271,14 +13557,19 @@ ${err.stack}` : "");
                 settings = {};
             }
             const sortEnabled = settings.sortEnabled || {};
-            const fullSortOrder = settings.sortOrder && settings.sortOrder.length === 3 ? settings.sortOrder : ["date", "size", "files"];
+            const defaultFullSortOrder = isJavBus$1 ? ["date", "size"] : ["date", "size", "files"];
+            const fullSortOrder = settings.sortOrder && settings.sortOrder.length === defaultFullSortOrder.length ? settings.sortOrder : defaultFullSortOrder;
             const effectiveSortOrder = fullSortOrder.filter((key) => sortEnabled[key]);
-            highlightMagnetPlugin.applySortAndFilter({
+            const applySettings = {
                 filterHD: settings.filterHD || false,
                 filter4K: settings.filter4K || false,
                 filterSubtitle: settings.filterSubtitle || false,
                 filterUncensored: settings.filterUncensored || false,
                 sortOrder: effectiveSortOrder
+            };
+            const rowReadyCondition = isJavBus$1 ? (() => $("#magnet-table tr").length > 1) : (() => $("#magnets-content .item[data-rank]").length > 0);
+            utils.loopDetector(rowReadyCondition, () => {
+                highlightMagnetPlugin.applySortAndFilter(applySettings);
             });
             $("#magnets-span").text("取消磁力过滤");
         } else {
@@ -13314,14 +13605,27 @@ ${err.stack}` : "");
           } catch (e) {
               settings = {};
           }
-          const sortEnabled = settings.sortEnabled || {date: false, size: false, files: false};
-          const sortOrder = settings.sortOrder && settings.sortOrder.length === 3 ? settings.sortOrder : ["date", "size", "files"];
+          const sortEnabled = settings.sortEnabled || (isJavBus$1 ? {date: false, size: false} : {
+              date: false,
+              size: false,
+              files: false
+          });
+          const defaultSortOrder = isJavBus$1 ? ["date", "size"] : ["date", "size", "files"];
+          const sortOrder = settings.sortOrder && settings.sortOrder.length === defaultSortOrder.length ? settings.sortOrder : defaultSortOrder;
           const filterHD = settings.filterHD || false;
           const filter4K = settings.filter4K || false;
           const filterSubtitle = settings.filterSubtitle || false;
           const filterUncensored = settings.filterUncensored || false;
-          const SORT_LABELS = {date: "发布日期", size: "文件大小", files: "文件数量"};
-          const SORT_HINTS = {date: "从新到旧", size: "从大到小", files: "从少到多"};
+          const SORT_LABELS = isJavBus$1 ? {date: "发布日期", size: "文件大小"} : {
+              date: "发布日期",
+              size: "文件大小",
+              files: "文件数量"
+          };
+          const SORT_HINTS = isJavBus$1 ? {date: "从新到旧", size: "从大到小"} : {
+              date: "从新到旧",
+              size: "从大到小",
+              files: "从少到多"
+          };
           const FILTER_ITEMS = [
               {key: "HD", label: "高清", checked: filterHD},
               {key: "4K", label: "4K", checked: filter4K},

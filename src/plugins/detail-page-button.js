@@ -54,14 +54,21 @@ class DetailPageButtonPlugin extends BasePlugin {
                 settings = {};
             }
             const sortEnabled = settings.sortEnabled || {};
-            const fullSortOrder = (settings.sortOrder && settings.sortOrder.length === 3) ? settings.sortOrder : ["date", "size", "files"];
+            const defaultFullSortOrder = isJavBus ? ["date", "size"] : ["date", "size", "files"];
+            const fullSortOrder = (settings.sortOrder && settings.sortOrder.length === defaultFullSortOrder.length) ? settings.sortOrder : defaultFullSortOrder;
             const effectiveSortOrder = fullSortOrder.filter(key => sortEnabled[key]);
-            highlightMagnetPlugin.applySortAndFilter({
+            const applySettings = {
                 filterHD: settings.filterHD || !1,
                 filter4K: settings.filter4K || !1,
                 filterSubtitle: settings.filterSubtitle || !1,
                 filterUncensored: settings.filterUncensored || !1,
                 sortOrder: effectiveSortOrder,
+            };
+            const rowReadyCondition = isJavBus
+                ? (() => $("#magnet-table tr").length > 1)
+                : (() => $("#magnets-content .item[data-rank]").length > 0);
+            utils.loopDetector(rowReadyCondition, () => {
+                highlightMagnetPlugin.applySortAndFilter(applySettings);
             });
             $("#magnets-span").text("取消磁力过滤");
         } else {
@@ -99,14 +106,23 @@ class DetailPageButtonPlugin extends BasePlugin {
         } catch (e) {
             settings = {};
         }
-        const sortEnabled = settings.sortEnabled || {date: !1, size: !1, files: !1};
-        const sortOrder = (settings.sortOrder && settings.sortOrder.length === 3) ? settings.sortOrder : ["date", "size", "files"];
+        const sortEnabled = settings.sortEnabled || (isJavBus ? {date: !1, size: !1} : {date: !1, size: !1, files: !1});
+        const defaultSortOrder = isJavBus ? ["date", "size"] : ["date", "size", "files"];
+        const sortOrder = (settings.sortOrder && settings.sortOrder.length === defaultSortOrder.length) ? settings.sortOrder : defaultSortOrder;
         const filterHD = settings.filterHD || !1;
         const filter4K = settings.filter4K || !1;
         const filterSubtitle = settings.filterSubtitle || !1;
         const filterUncensored = settings.filterUncensored || !1;
-        const SORT_LABELS = {date: "发布日期", size: "文件大小", files: "文件数量"};
-        const SORT_HINTS = {date: "从新到旧", size: "从大到小", files: "从少到多"};
+        const SORT_LABELS = isJavBus ? {date: "发布日期", size: "文件大小"} : {
+            date: "发布日期",
+            size: "文件大小",
+            files: "文件数量"
+        };
+        const SORT_HINTS = isJavBus ? {date: "从新到旧", size: "从大到小"} : {
+            date: "从新到旧",
+            size: "从大到小",
+            files: "从少到多"
+        };
         const FILTER_ITEMS = [
             {key: "HD", label: "高清", checked: filterHD},
             {key: "4K", label: "4K", checked: filter4K},

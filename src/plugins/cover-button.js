@@ -1,6 +1,7 @@
 import { BasePlugin } from '../core/base-plugin.js';
 import { __publicField, isJavBus, isJavDb, Status_FILTER, Status_FAVORITE, Status_HAS_DOWN, Status_HAS_WATCH, YES } from '../core/constants.js';
 import { GM_openInTab } from 'vite-plugin-monkey/dist/client';
+import {getDmmVideo, selectDefaultQuality} from '../api/dmm.js';
 
 class CoverButtonPlugin extends BasePlugin {
     getName() {
