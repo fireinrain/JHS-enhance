@@ -3932,6 +3932,7 @@ ${value}\r
                             <div id="markDeleteList" style="max-height: 450px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px;">
                                 <div style="text-align: center; padding: 40px; color: #999;">加载中...</div>
                             </div>
+                            <p style="color: #e74c3c; font-size: 12px; margin-top: 10px; text-align: left;">⚠ 作品删除目前暂无法删除115下载记录，如果需要重新下载，请去115云下载记录里删除或清空记录</p>
                         </div>
                          
                          <!-- 快捷键 -->
@@ -4093,13 +4094,13 @@ ${value}\r
                             </div>
                         </div>                        
                         <div id="tip-author-panel" class="content-panel" style="display: ${"tip-author-panel" === defaultActivePanel ? "block" : "none"};">
-                            <p style="color: #666; font-size: 0.9em;">如果JAV-JHS给您带来了便捷和价值，请考虑给予一点支持，您的鼓励是我持续创作的最大动力！感谢您的慷慨支持！</p>
+                            <p style="color: #666; font-size: 0.9em;">如果JHS-enhance给您带来了便捷和价值，请考虑给予一点支持，您的鼓励是我持续创作的最大动力！感谢您的慷慨支持！</p>
                             <div>
                                 <div style="display: flex; justify-content: space-around; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap;">
                                     <div style="text-align: center; margin: 10px; flex: 1 1 30%; min-width: 150px;">
-                                        <img src="https://imgur.com/AvF0r3r.png" alt="TRC20-USDT二维码" style="width: 350px; height: 350px; border: 1px solid #ddd; padding: 5px; display: block; margin: 0 auto 5px;">
-                                        <p>TRC20-USDT</p>
-                                        <input type="text" readonly value="TYphgzpJ2hoDTa3J7kzj5xaHWbcPAyhbd5" onclick="this.select();document.execCommand('copy');alert('地址已复制！');" 
+                                        <img src="https://i.imgur.com/KM5I6dD.jpeg" alt="SOL二维码" style="width: 350px; height: 350px; border: 1px solid #ddd; padding: 5px; display: block; margin: 0 auto 5px;">
+                                        <p>SOL</p>
+                                        <input type="text" readonly value="5xvRp1jhWkCasT1H7Nh8G5eAuvdCFD5s2Xux2w3rJ8RG" onclick="this.select();document.execCommand('copy');alert('地址已复制！');" 
                                             style="width: 90%; padding: 5px; margin-top: 5px; border: 1px solid #a99087; background-color: #fff; text-align: center; font-size: 0.8em; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                         <p style="font-size: 0.75em; color: #5a504c; margin-top: 4px;">点击地址可复制</p>
                                     </div>
