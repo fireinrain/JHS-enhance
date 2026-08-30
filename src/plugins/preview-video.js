@@ -1,5 +1,6 @@
 import { BasePlugin } from '../core/base-plugin.js';
 import { __publicField, currentHref, NO, YES, qualityOptions } from '../core/constants.js';
+import {getDmmVideo, selectDefaultQuality} from '../api/dmm.js';
 
 class PreviewVideoPlugin extends BasePlugin {
     getName() {
@@ -49,7 +50,7 @@ class PreviewVideoPlugin extends BasePlugin {
             } else {
                 clog.debug("JavDB没有视频播放元素, 开始创建...");
                 const videoCoverSrc = $(".column-video-cover img").attr("src");
-                $(".preview-images").prepend(`\n                    <a class="preview-video-container" data-fancybox="gallery" href="#preview-video">\n                        <span>預告片</span>\n                        <img src="${videoCoverSrc}" class="video-cover" style="width: 150px; height: auto;" alt="">\n                    </a>\n                `);
+                $(".preview-images").prepend(`\n                    <a class="preview-video-container" data-fancybox="gallery" href="#preview-video">\n                        <span>预告片</span>\n                        <img src="${videoCoverSrc}" class="video-cover" style="width: 150px; height: auto;" alt="">\n                    </a>\n                `);
                 $(".preview-video-container").on("click", (event => {
                     utils.loopDetector((() => $(".fancybox-content #preview-video").length > 0), (async () => {
                         await this.handleVideo();
@@ -60,18 +61,22 @@ class PreviewVideoPlugin extends BasePlugin {
             clog.error("预加载dmm失败:", error);
         }
     }
+
     async handleVideo() {
         if (await storageManager.getSetting("enableLoadPreviewVideo", YES) === NO) return;
         const $videoEl = $("#preview-video");
         if (!$videoEl.length) return;
         const $videoContainer = $videoEl.parent();
         $videoContainer.css("position", "relative");
-        const videoEl = $videoEl[0], jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
-        jhs_videoMuted && (videoEl.muted = "yes" === jhs_videoMuted);
+        const videoEl = $videoEl[0];
+        let carNum2 = this.getPageInfo().carNum;
+
+        const jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
+        if (jhs_videoMuted) videoEl.muted = "yes" === jhs_videoMuted;
         videoEl.addEventListener("volumechange", (function() {
             localStorage.setItem("jhs_videoMuted", videoEl.muted ? "yes" : "no");
         }));
-        let carNum2 = this.getPageInfo().carNum;
+
         const CACHE_KEY = "jhs_dmm_video";
         let dmmErrorRetryCount = 0;
         const attachVideoErrorHandler = () => {
@@ -90,13 +95,18 @@ class PreviewVideoPlugin extends BasePlugin {
                 const storedQuality = await storageManager.getSetting("videoQuality");
                 const quality = selectDefaultQuality(Object.keys(freshMap), storedQuality);
                 const freshUrl = freshMap[quality];
+                const savedTime = videoEl.currentTime;
                 $videoEl.attr("src", freshUrl);
                 videoEl.load();
+                if (savedTime > 0 && Number.isFinite(savedTime)) {
+                    videoEl.currentTime = savedTime;
+                }
                 videoEl.play();
             }, {once: false});
         };
         attachVideoErrorHandler();
         videoEl.play();
+
         const dmmVideoMap = await getDmmVideo(carNum2);
         let $bottomToolbar = $("<div></div>").attr("id", "video-bottom-toolbar").css({
             display: "flex",
@@ -146,7 +156,9 @@ class PreviewVideoPlugin extends BasePlugin {
                 const currentTime = videoEl.currentTime;
                 $videoEl.attr("src", videoSrc);
                 videoEl.load();
-                videoEl.currentTime = currentTime;
+                if (currentTime > 0 && Number.isFinite(currentTime)) {
+                    videoEl.currentTime = currentTime;
+                }
                 await videoEl.play();
                 $bottomToolbar.find(".video-control-btn").removeClass("active").css({
                     "background-color": "#fff",

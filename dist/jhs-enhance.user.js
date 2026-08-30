@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name         JAV-JHS
-// @namespace    JAV-JHS
+// @name         JHS-enhance
+// @namespace    JHS-enhance
 // @version      3.3.7
 // @author       xie bro,fireinrain
 // @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
@@ -2693,7 +2693,156 @@ ${value}\r
     }
   }
 
-    const selectDefaultQuality$1 = (dmmVideoQualityList, intendedDefault) => {
+    const DMM_GRAPHQL_URL = "https://api.video.dmm.co.jp/graphql";
+    const dmmGraphQLKeyword = (code) => {
+        const match = String(code || "").trim().toUpperCase().match(/^([A-Z0-9]{2,10})-(\d{1,6})$/);
+        if (!match) return "";
+        return `${match[1].toLowerCase()}${match[2].padStart(5, "0")}`;
+    };
+    const dmmGraphQLRequest = (query) => {
+        return new Promise((resolve, reject) => {
+            _GM_xmlhttpRequest({
+                method: "POST",
+                url: DMM_GRAPHQL_URL,
+                data: JSON.stringify({query}),
+                timeout: 12e3,
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    Referer: "https://video.dmm.co.jp/",
+                    "Fanza-Device": "BROWSER",
+                    "Cache-Control": "no-cache"
+                },
+                onload: (response) => {
+                    if (response.status < 200 || response.status >= 400) {
+                        reject(new Error(`DMM GraphQL HTTP ${response.status || 0}`));
+                        return;
+                    }
+                    try {
+                        const json = JSON.parse(response.responseText || "{}");
+                        if (Array.isArray(json.errors) && json.errors.length) {
+                            reject(new Error(json.errors[0].message || "DMM GraphQL error"));
+                            return;
+                        }
+                        resolve(json.data || {});
+                    } catch (e) {
+                        reject(new Error(`DMM GraphQL JSON parse error: ${e.message}`));
+                    }
+                },
+                onerror: () => reject(new Error("DMM GraphQL network error")),
+                ontimeout: () => reject(new Error("DMM GraphQL timeout"))
+            });
+        });
+    };
+    const searchDmmContentIdsByGraphQL = async (code) => {
+        const keyword = dmmGraphQLKeyword(code);
+        if (!keyword) return [];
+        const carNumNoHyphen = String(code || "").replace(/-/g, "").toLowerCase();
+        const results = [];
+        const searchKeywords = [.../* @__PURE__ */ new Set([keyword, `${keyword}#`])];
+        for (const searchKeyword of searchKeywords) {
+            const query = `{ legacySearchPPV(limit: 10, offset: 0, sort: SALES_RANK_SCORE, floor: AV, queryWord: ${JSON.stringify(searchKeyword)}) { result { contents { contentId serviceCode floorCode } } } }`;
+            const data = await dmmGraphQLRequest(query);
+            const contents = Array.isArray(data && data.legacySearchPPV && data.legacySearchPPV.result && data.legacySearchPPV.result.contents) ? data.legacySearchPPV.result.contents : [];
+            for (const item of contents) {
+                const contentId = String(item.contentId || "");
+                if (contentId.replace(/[^a-z0-9]/gi, "").toLowerCase().includes(carNumNoHyphen)) {
+                    results.push({
+                        serviceCode: item.serviceCode || "digital",
+                        floorCode: item.floorCode || "AV",
+                        contentId
+                    });
+                }
+            }
+            if (results.length > 0) break;
+        }
+        return results;
+    };
+    const getDmmGraphQLVideoUrls = async (code) => {
+        const contentItems = await searchDmmContentIdsByGraphQL(code);
+        if (!contentItems.length) return null;
+        const results = await Promise.allSettled(
+            contentItems.map((item) => extractTrailerLinks(item))
+        );
+        for (const result of results) {
+            if (result.status === "fulfilled" && result.value) {
+                return result.value;
+            }
+        }
+        return null;
+    };
+    const extractTrailerLinks = (item) => {
+        const {contentId, serviceCode, floorCode} = item;
+        return new Promise((resolve, reject) => {
+            const trailerPageUrl = `https://www.dmm.co.jp/service/digitalapi/-/html5_player/=/cid=${contentId}/mtype=AhRVShI_/service=${serviceCode}/floor=${floorCode}/mode=/`;
+            _GM_xmlhttpRequest({
+                method: "GET",
+                url: trailerPageUrl,
+                timeout: 15e3,
+                headers: {
+                    "accept-language": "ja-JP,ja;q=0.9",
+                    Cookie: "age_check_done=1"
+                },
+                onload: (response) => {
+                    const htmlContent = response.responseText || "";
+                    if (htmlContent.includes("このサービスはお住まいの地域からは")) {
+                        reject(new Error("节点不可用，请将DMM域名分流到日本ip"));
+                        return;
+                    }
+                    const match = htmlContent.match(/const\s+args\s+=\s+(.*);/);
+                    if (!match) {
+                        reject(new Error("未在脚本中找到 const args = ... 变量"));
+                        return;
+                    }
+                    let bitrates;
+                    try {
+                        bitrates = JSON.parse(match[1]).bitrates;
+                    } catch (e) {
+                        reject(new Error(`解析播放器脚本 JSON 失败: ${e.message}`));
+                        return;
+                    }
+                    if (!Array.isArray(bitrates)) {
+                        reject(new Error("解析画质链接失败: bitrates 字段不是一个数组或不存在"));
+                        return;
+                    }
+                    const qualityKeys = [
+                        "4ks",
+                        "4k",
+                        "hhbs",
+                        "hhb",
+                        "hmb",
+                        "mhb",
+                        "mmb",
+                        "dmb_w",
+                        "dmb_s",
+                        "dm_s",
+                        "sm_s",
+                        "mhb_w"
+                    ];
+                    const qualityNameRegex = new RegExp(`(${qualityKeys.join("|")})\\.mp4$`);
+                    const finalQualityMap = {};
+                    for (const bitrate of bitrates) {
+                        const url = bitrate && bitrate.src;
+                        if (!url || typeof url !== "string" || !url.endsWith(".mp4")) continue;
+                        const qualityMatch = url.match(qualityNameRegex);
+                        let qualityKey = "";
+                        if (qualityMatch && qualityMatch[1]) qualityKey = qualityMatch[1];
+                        if (qualityKey && !finalQualityMap[qualityKey]) {
+                            finalQualityMap[qualityKey] = url;
+                        }
+                    }
+                    if (Object.keys(finalQualityMap).length === 0) {
+                        reject(new Error("未找到匹配要求的预览画质视频"));
+                        return;
+                    }
+                    resolve(finalQualityMap);
+                },
+                onerror: () => reject(new Error("DMM 播放页请求网络错误")),
+                ontimeout: () => reject(new Error("DMM 播放页请求超时"))
+            });
+        });
+    };
+    const selectDefaultQuality = (dmmVideoQualityList, intendedDefault) => {
         if (!dmmVideoQualityList || 0 === dmmVideoQualityList.length) return null;
         const availableSet = new Set(dmmVideoQualityList);
         if (availableSet.has(intendedDefault)) return intendedDefault;
@@ -2841,6 +2990,24 @@ ${value}\r
             return finalQualityMap;
         }
 
+        async _searchViaGraphQL() {
+            clog.debug("尝试通过 GraphQL API 搜索视频...");
+            const videoMap = await getDmmGraphQLVideoUrls(this.carNum);
+            if (videoMap && Object.keys(videoMap).length > 0) {
+                this._updateCache(videoMap);
+                clog.debug("GraphQL 成功解析出预览视频:", videoMap);
+                const dmmCacheKey = "jhs_other_site_dmm";
+                const dmmCacheData = localStorage.getItem(dmmCacheKey) ? JSON.parse(localStorage.getItem(dmmCacheKey)) : {};
+                dmmCacheData[this.carNum] = {
+                    type: "graphql",
+                    url: `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`
+                };
+                localStorage.setItem(dmmCacheKey, JSON.stringify(dmmCacheData));
+                return videoMap;
+            }
+            return null;
+        }
+
         async fetchVideo() {
             const cachedResult = this._checkCache();
             if (cachedResult) return cachedResult;
@@ -2852,23 +3019,30 @@ ${value}\r
                 contentItems = await this._searchContentIds();
             } catch (e) {
                 clog.error("DMM API 搜索失败:", e);
+            }
+            if (!contentItems || 0 === contentItems.length) {
+                clog.warn("Affiliate API 未找到视频，尝试 GraphQL API...");
+                const graphQLResult = await this._searchViaGraphQL();
+                if (graphQLResult) return graphQLResult;
                 const $btn = $("#fanzaBtn");
                 $btn.attr("href", `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`);
                 $btn.attr("title", "未查询到, 点击前往搜索页");
                 $btn.css("backgroundColor", "#de3333");
                 return null;
             }
-            if (!contentItems || 0 === contentItems.length) return null;
             try {
                 const finalVideoMap = await Promise.any(contentItems.map(((item) => this._extractTrailerLinks(item))));
                 this._updateCache(finalVideoMap);
                 return finalVideoMap;
             } catch (error) {
                 const errors = error.errors || [error];
+                clog.error(`Affiliate 解析失败: ${errors[0] && errors[0].message || errors[0]}`, errors);
+                clog.warn("尝试 GraphQL API 作为 fallback...");
+                const graphQLResult = await this._searchViaGraphQL();
+                if (graphQLResult) return graphQLResult;
                 if (errors.some(((err) => err.message.includes("节点不可用")))) this.showErrorMessages && show.error("节点不可用，请将DMM域名分流到日本ip");
                 else {
                     const displayError = errors[0].message || errors[0];
-                    clog.error(`解析失败: ${displayError}`, errors);
                     this.showErrorMessages && show.error(`解析失败: ${displayError}`);
                 }
                 const $btn = $("#fanzaBtn");
@@ -2880,7 +3054,7 @@ ${value}\r
         }
     }
 
-    const getDmmVideo$1 = async (carNum2, showErrorMessages = true) => new DmmVideoFetcher(carNum2, showErrorMessages).fetchVideo();
+    const getDmmVideo = async (carNum2, showErrorMessages = true) => new DmmVideoFetcher(carNum2, showErrorMessages).fetchVideo();
   class AutoPagePlugin extends BasePlugin {
     constructor() {
       super(...arguments);
@@ -6911,7 +7085,7 @@ ${value}\r
           const videoCoverSrc = $(".column-video-cover img").attr("src");
           $(".preview-images").prepend(`
                     <a class="preview-video-container" data-fancybox="gallery" href="#preview-video">
-                        <span>預告片</span>
+                        <span>预告片</span>
                         <img src="${videoCoverSrc}" class="video-cover" style="width: 150px; height: auto;" alt="">
                     </a>
                 `);
@@ -6931,12 +7105,13 @@ ${value}\r
       if (!$videoEl.length) return;
       const $videoContainer = $videoEl.parent();
       $videoContainer.css("position", "relative");
-      const videoEl = $videoEl[0], jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
-      jhs_videoMuted && (videoEl.muted = "yes" === jhs_videoMuted);
+        const videoEl = $videoEl[0];
+        let carNum2 = this.getPageInfo().carNum;
+        const jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
+        if (jhs_videoMuted) videoEl.muted = "yes" === jhs_videoMuted;
       videoEl.addEventListener("volumechange", (function() {
         localStorage.setItem("jhs_videoMuted", videoEl.muted ? "yes" : "no");
       }));
-        let carNum2 = this.getPageInfo().carNum;
         const CACHE_KEY2 = "jhs_dmm_video";
         let dmmErrorRetryCount = 0;
         const attachVideoErrorHandler = () => {
@@ -6955,8 +7130,12 @@ ${value}\r
                 const storedQuality = await storageManager.getSetting("videoQuality");
                 const quality = selectDefaultQuality(Object.keys(freshMap), storedQuality);
                 const freshUrl = freshMap[quality];
+                const savedTime = videoEl.currentTime;
                 $videoEl.attr("src", freshUrl);
                 videoEl.load();
+                if (savedTime > 0 && Number.isFinite(savedTime)) {
+                    videoEl.currentTime = savedTime;
+                }
                 videoEl.play();
             }, {once: false});
         };
@@ -7019,7 +7198,9 @@ ${value}\r
           const currentTime = videoEl.currentTime;
           $videoEl.attr("src", videoSrc);
           videoEl.load();
-          videoEl.currentTime = currentTime;
+            if (currentTime > 0 && Number.isFinite(currentTime)) {
+                videoEl.currentTime = currentTime;
+            }
           await videoEl.play();
           $bottomToolbar.find(".video-control-btn").removeClass("active").css({
             "background-color": "#fff",
@@ -9478,7 +9659,10 @@ ${err.stack}` : "");
     }
     closeVideoModal() {
       const $previewVideo = $("#preview-video");
-      $previewVideo.length > 0 && $previewVideo[0].pause();
+        if ($previewVideo.length > 0) {
+            const videoEl = $previewVideo[0];
+            videoEl.pause();
+        }
       $("#bus-preview-modal").removeClass("is-open");
     }
     async handle() {
@@ -9517,7 +9701,8 @@ ${err.stack}` : "");
       let $previewVideo = $("#preview-video");
       if ($previewVideo.length > 0) {
         $modal.addClass("is-open");
-        $previewVideo[0].play().catch(((e) => console.warn("尝试播放失败 (可能被浏览器阻止):", e)));
+          const videoEl = $previewVideo[0];
+          videoEl.play().catch(((e) => console.warn("尝试播放失败 (可能被浏览器阻止):", e)));
         return;
       }
       let carNum2 = this.getPageInfo().carNum;
@@ -9544,9 +9729,10 @@ ${err.stack}` : "");
             <div class="video-control-box">
                 </div>
         `);
-      const $videoEl = $("#preview-video"), $previewSource = $videoEl.find("source"), $qualityControlsBox = $container.find(".video-control-box");
-      if (!$videoEl.length || !$previewSource.length) return;
-      const videoEl = $videoEl[0], jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
+        const $videoEl = $("#preview-video"), $qualityControlsBox = $container.find(".video-control-box");
+        if (!$videoEl.length) return;
+        const videoEl = $videoEl[0];
+        const jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
       videoEl.muted = !jhs_videoMuted || "yes" === jhs_videoMuted;
       videoEl.addEventListener("volumechange", (function() {
         localStorage.setItem("jhs_videoMuted", videoEl.muted ? "yes" : "no");
@@ -9572,10 +9758,12 @@ ${err.stack}` : "");
           const $button = $(e.currentTarget);
           if ($button.hasClass("active")) return;
           let videoSrc = $button.attr("data-video-src");
-          $previewSource.attr("src", videoSrc);
           const currentTime = videoEl.currentTime;
+            videoEl.src = videoSrc;
           videoEl.load();
-          videoEl.currentTime = currentTime;
+            if (currentTime > 0 && Number.isFinite(currentTime)) {
+                videoEl.currentTime = currentTime;
+            }
           await videoEl.play();
           $buttons.removeClass("active");
           $button.addClass("active");
@@ -9585,6 +9773,627 @@ ${err.stack}` : "");
       }));
     }
   }
+
+    const HLS_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js";
+    let hlsLoadPromise = null;
+    const getHlsClass = () => {
+        const HlsClass = window.Hls || globalThis.Hls || (typeof Hls !== "undefined" ? Hls : null);
+        return HlsClass && HlsClass.isSupported && HlsClass.isSupported() ? HlsClass : null;
+    };
+    const binaryTextToArrayBuffer = (value) => {
+        const text = String(value || "");
+        const bytes = new Uint8Array(text.length);
+        for (let index = 0; index < text.length; index += 1) {
+            bytes[index] = text.charCodeAt(index) & 255;
+        }
+        return bytes.buffer;
+    };
+    const loadHlsLibrary = () => {
+        const readyHls = getHlsClass();
+        if (readyHls) return Promise.resolve(readyHls);
+        if (hlsLoadPromise) return hlsLoadPromise;
+        const loadByGm = () => new Promise((resolve) => {
+            _GM_xmlhttpRequest({
+                method: "GET",
+                url: HLS_SCRIPT_URL,
+                timeout: 15e3,
+                onload: (r) => {
+                    if (r.status >= 200 && r.status < 300 && r.responseText) {
+                        try {
+                            Function(`${r.responseText}
+//# sourceURL=${HLS_SCRIPT_URL}`).call(globalThis);
+                        } catch (err) {
+                            clog.error("HLS: hls.js 执行失败", err);
+                        }
+                    }
+                    resolve(getHlsClass());
+                },
+                onerror: () => resolve(getHlsClass()),
+                ontimeout: () => resolve(getHlsClass())
+            });
+        });
+        hlsLoadPromise = new Promise((resolve) => {
+            const existing = document.querySelector('script[data-jhs-hls="1"]');
+            if (existing) {
+                existing.addEventListener("load", () => resolve(getHlsClass()), {once: true});
+                existing.addEventListener("error", () => loadByGm().then(resolve), {once: true});
+                setTimeout(() => {
+                    if (!getHlsClass()) loadByGm().then(resolve);
+                }, 4e3);
+                return;
+            }
+            const hlsScript = document.createElement("script");
+            hlsScript.src = HLS_SCRIPT_URL;
+            hlsScript.async = true;
+            hlsScript.dataset.jhsHls = "1";
+            hlsScript.onload = () => resolve(getHlsClass());
+            hlsScript.onerror = () => loadByGm().then(resolve);
+            document.head.appendChild(hlsScript);
+        }).then((HlsClass) => {
+            if (!HlsClass) hlsLoadPromise = null;
+            return HlsClass;
+        });
+        return hlsLoadPromise;
+    };
+    const createHlsLoader = () => {
+        class GMHlsLoader {
+            constructor(config) {
+                this.config = config;
+                this.context = null;
+                this.callbacks = null;
+                this.loader = null;
+                this.stats = this.createStats();
+            }
+
+            createStats() {
+                return {
+                    aborted: false,
+                    loaded: 0,
+                    retry: 0,
+                    total: 0,
+                    chunkCount: 0,
+                    bwEstimate: 0,
+                    trequest: 0,
+                    tfirst: 0,
+                    tload: 0,
+                    loading: {start: 0, first: 0, end: 0},
+                    parsing: {start: 0, end: 0},
+                    buffering: {start: 0, first: 0, end: 0}
+                };
+            }
+
+            destroy() {
+                this.abort();
+            }
+
+            abort() {
+                if (this.stats) this.stats.aborted = true;
+                if (this.loader) {
+                    try {
+                        this.loader.abort();
+                    } catch (e) {
+                    }
+                }
+                this.loader = null;
+            }
+
+            load(context, config, callbacks) {
+                this.context = context;
+                this.callbacks = callbacks;
+                const requestUrl = context.url;
+                const wantsArrayBuffer = context.responseType === "arraybuffer" || /\.(?:ts|m4s|mp4|key)(?:[?#]|$)/i.test(requestUrl);
+                const startedAt = performance.now();
+                const stats = this.stats = this.createStats();
+                stats.trequest = startedAt;
+                stats.tfirst = startedAt;
+                stats.tload = startedAt;
+                stats.loading.start = startedAt;
+                this.loader = _GM_xmlhttpRequest({
+                    method: "GET",
+                    url: requestUrl,
+                    responseType: "text",
+                    overrideMimeType: wantsArrayBuffer ? "text/plain; charset=x-user-defined" : void 0,
+                    timeout: config && config.timeout ? config.timeout : 2e4,
+                    headers: {
+                        Accept: wantsArrayBuffer ? "*/*" : "application/vnd.apple.mpegurl, application/x-mpegURL, */*"
+                    },
+                    onprogress: (event) => {
+                        stats.loaded = Number(event && event.loaded ? event.loaded : stats.loaded || 0);
+                        stats.total = Number(event && event.total ? event.total : stats.total || stats.loaded || 0);
+                        if (!stats.loading.first && stats.loaded > 0) {
+                            stats.loading.first = performance.now();
+                        }
+                    },
+                    onload: (r) => {
+                        const status = Number(r.status || 0);
+                        const response = {
+                            code: status,
+                            text: r.statusText || "",
+                            url: r.finalUrl || requestUrl
+                        };
+                        stats.tfirst = stats.tfirst || performance.now();
+                        stats.tload = performance.now();
+                        stats.loading.first = stats.loading.first || stats.tload;
+                        stats.loading.end = stats.tload;
+                        if (status < 200 || status >= 300) {
+                            callbacks.onError && callbacks.onError(response, context, null, stats);
+                            return;
+                        }
+                        const responseText = r.responseText || r.response || "";
+                        const data = wantsArrayBuffer ? binaryTextToArrayBuffer(responseText) : responseText;
+                        stats.loaded = data && data.byteLength ? data.byteLength : data && data.length ? data.length : stats.loaded || 0;
+                        stats.total = stats.total || stats.loaded;
+                        stats.bwEstimate = stats.loading.end > stats.loading.first ? Math.round(stats.total * 8e3 / (stats.loading.end - stats.loading.first)) : 0;
+                        callbacks.onSuccess && callbacks.onSuccess({data, url: response.url}, stats, context, response);
+                    },
+                    onerror: () => {
+                        callbacks.onError && callbacks.onError({
+                            code: 0,
+                            text: "network error",
+                            url: requestUrl
+                        }, context, null, stats);
+                    },
+                    ontimeout: () => {
+                        stats.tload = performance.now();
+                        stats.loading.end = stats.tload;
+                        callbacks.onTimeout && callbacks.onTimeout(stats, context, null);
+                    }
+                });
+            }
+        }
+
+        return GMHlsLoader;
+    };
+    const isM3U8Url = (url) => /\.m3u8(?:[?#].*)?$/i.test(String(url || ""));
+    const attachHlsToVideo = (videoEl, src) => {
+        return new Promise((resolve, reject) => {
+            if (!videoEl || !src) {
+                reject(new Error("video element or source missing"));
+                return;
+            }
+            const HlsClass = getHlsClass();
+            if (!HlsClass) {
+                videoEl.src = src;
+                videoEl.load && videoEl.load();
+                resolve(false);
+                return;
+            }
+            const hls = new HlsClass({
+                enableWorker: false,
+                lowLatencyMode: true,
+                loader: createHlsLoader(),
+                autoStartLoad: true,
+                startPosition: 0,
+                capLevelToPlayerSize: true,
+                testBandwidth: false,
+                preferManagedMediaSource: false,
+                maxBufferLength: 6,
+                maxMaxBufferLength: 12,
+                backBufferLength: 30,
+                maxBufferHole: 0.5,
+                nudgeOffset: 0.1,
+                manifestLoadingMaxRetry: 2,
+                levelLoadingMaxRetry: 2,
+                fragLoadingMaxRetry: 2,
+                manifestLoadingTimeOut: 12e3,
+                levelLoadingTimeOut: 12e3,
+                fragLoadingTimeOut: 12e3,
+                abrEwmaFastLive: 3,
+                abrEwmaSlowLive: 9
+            });
+            hls.on(HlsClass.Events.MANIFEST_PARSED, () => {
+                hls.startLoad(0);
+                videoEl.play().catch(() => {
+                });
+                resolve(true);
+            });
+            hls.on(HlsClass.Events.ERROR, (_, data) => {
+                if (!data || !data.fatal) return;
+                clog.error("HLS: 播放失败", data);
+                if (data.type === HlsClass.ErrorTypes.MEDIA_ERROR) {
+                    if (videoEl.readyState >= 2) {
+                        try {
+                            hls.recoverMediaError && hls.recoverMediaError();
+                        } catch (e) {
+                        }
+                        return;
+                    }
+                }
+                reject(new Error(data.details || "HLS fatal error"));
+            });
+            hls.loadSource(src);
+            hls.attachMedia(videoEl);
+            videoEl._hls = hls;
+        });
+    };
+    const destroyHls = (videoEl) => {
+        if (videoEl && videoEl._hls) {
+            try {
+                videoEl._hls.destroy();
+            } catch (e) {
+            }
+            videoEl._hls = null;
+        }
+    };
+    const JAVXY_TOKEN = [118, 119, 112, 71, 97, 110, 28, 84, 124, 65, 76, 102, 65, 16, 77, 109, 64, 82, 85, 83, 67, 92, 125, 108, 83, 65, 124, 107, 84, 104, 71, 84, 17, 124, 118, 125, 104, 8, 125, 96, 112, 103, 29, 18, 82, 83, 87, 84].map((v) => String.fromCharCode(v ^ 37)).join("");
+    const JAVXY_ENDPOINTS = [
+        {host: String.fromCharCode(106, 97, 118, 120, 121, 46, 99, 99, 46, 99, 100), label: "Javxy"},
+        {
+            host: String.fromCharCode(119, 111, 114, 107, 101, 114, 46, 106, 97, 118, 120, 121, 46, 99, 99, 46, 99, 100),
+            label: "Javxy Worker"
+        }
+    ];
+    const JAVXY_SOURCE_LABELS = {
+        "Tokyo-Hot": "Javxy | Tokyo-Hot",
+        FC2: "Javxy | FC2",
+        Direct: "Javxy | Direct",
+        DMM: "Javxy | dmm",
+        MGStage: "Javxy | MGStage",
+        DUGA: "Javxy | DUGA",
+        MYWIFE: "Javxy | MyWife",
+        JavTrailers: "Javxy | JavTrailers",
+        JavDB: "Javxy | Javdb",
+        AVWikiDB: "Javxy | AVWikiDB",
+        JAVDatabase: "Javxy | JAVDatabase",
+        HEYZO: "Javxy | Heyzo",
+        HeyDouga: "Javxy | HeyDouga",
+        PACO: "Javxy | Paco",
+        "10MU": "Javxy | 10mu",
+        Caribbean: "Javxy | 加勒比",
+        "1Pondo": "Javxy | 一本道"
+    };
+    const JAVXY_QUALITY_OPTIONS = [
+        {quality: "4k", text: "4K"},
+        {quality: "hhb", text: "1080p"},
+        {quality: "1080p", text: "1080p"},
+        {quality: "hmb", text: "720p"},
+        {quality: "720p", text: "720p"},
+        {quality: "mhb", text: "576p"},
+        {quality: "540p", text: "540p"},
+        {quality: "mmb", text: "432p"},
+        {quality: "480p", text: "480p"},
+        {quality: "396p", text: "396p"},
+        {quality: "360p", text: "360p"},
+        {quality: "240p", text: "240p"}
+    ];
+    const selectHighestQuality = (qualityMap) => {
+        const rank = new Map(JAVXY_QUALITY_OPTIONS.map((item, index) => [item.quality, index]));
+        return Object.keys(qualityMap || {}).filter((key) => qualityMap[key]).sort((a, b) => (rank.get(a) ?? -1) - (rank.get(b) ?? -1))[0] || null;
+    };
+    const sortQualityKeys = (qualityMap) => {
+        const rank = new Map(JAVXY_QUALITY_OPTIONS.map((item, index) => [item.quality, index]));
+        return Object.keys(qualityMap || {}).filter((key) => qualityMap[key]).sort((a, b) => (rank.get(a) ?? -1) - (rank.get(b) ?? -1));
+    };
+    const normalizeJavxySource = (value) => {
+        const raw = String(value || "").trim().toLowerCase();
+        if (raw.includes("fc2")) return "FC2";
+        if (raw.includes("mgstage")) return "MGStage";
+        if (raw.includes("heydouga")) return "Direct";
+        if (raw.includes("mywife")) return "MYWIFE";
+        if (raw.includes("duga")) return "DUGA";
+        if (raw.includes("javtrailers")) return "JavTrailers";
+        if (raw.includes("javdb")) return "JavDB";
+        if (raw.includes("avwikidb")) return "AVWikiDB";
+        if (raw.includes("javdatabase")) return "JAVDatabase";
+        if (raw.includes("dmm")) return "DMM";
+        if (raw === "direct" || raw.includes("heyzo") || raw.includes("heydouga") || raw.includes("paco") || raw.includes("10musume") || raw.includes("10mu") || raw.includes("1pondo") || raw.includes("caribbean") || raw.includes("tokyo-hot") || raw.includes("tokyohot")) return "Direct";
+        return String(value || "").trim();
+    };
+    const javxyQualityMapToDmmFormat = (javxyQualityMap) => {
+        const result = {};
+        const qualityKeys = qualityOptions.map((o) => o.quality);
+        for (const [key, url] of Object.entries(javxyQualityMap || {})) {
+            if (!url) continue;
+            const lowerKey = key.toLowerCase();
+            if (qualityKeys.includes(key)) {
+                result[key] = url;
+            } else if (qualityKeys.includes(lowerKey)) {
+                result[lowerKey] = url;
+            }
+        }
+        return result;
+    };
+    const fromJavxyCcCd = async (id, rawCode = "", options = {}) => {
+        const query = String(id || rawCode || "").trim();
+        if (!query) {
+            clog.debug("Javxy 跳过：查询词为空");
+            return null;
+        }
+        for (const endpoint of JAVXY_ENDPOINTS) {
+            const params = new URLSearchParams({client: "laosiji-new"});
+            if (Array.isArray(options.skip) && options.skip.length) params.set("skip", options.skip.join(","));
+            if (Array.isArray(options.prefer) && options.prefer.length) params.set("prefer", options.prefer.join(","));
+            if (Array.isArray(options.source) && options.source.length) params.set("source", options.source.join(","));
+            if (options.playbackFallback) params.set("purpose", "playback-fallback");
+            const apiUrl2 = `https://${endpoint.host}/trailers/${encodeURIComponent(query)}?${params}`;
+            clog.debug("Javxy 请求 API", {query, apiUrl: apiUrl2, endpoint: endpoint.label});
+            let r;
+            try {
+                r = await gmHttp.get(apiUrl2, null, {
+                    "Accept": "application/json,text/plain,*/*",
+                    "X-Javxy-Token": JAVXY_TOKEN
+                }, {timeout: 8e3});
+            } catch (e) {
+                clog.debug("Javxy API 网络失败，尝试下一个节点", {endpoint: endpoint.label, error: e.message});
+                continue;
+            }
+            if (!r) {
+                clog.debug("Javxy API 无响应，尝试下一个节点", {endpoint: endpoint.label});
+                continue;
+            }
+            const trailerUrl = String((r == null ? void 0 : r.trailer) || "").trim();
+            if (!trailerUrl) {
+                clog.debug("Javxy 无 trailer 字段", {endpoint: endpoint.label, keys: Object.keys(r || {})});
+                return null;
+            }
+            const qualityMap = (r == null ? void 0 : r.qualities) && typeof r.qualities === "object" ? r.qualities : {};
+            const quality = (r == null ? void 0 : r.quality) && qualityMap[r.quality] ? r.quality : selectHighestQuality(qualityMap);
+            const sourceBase = JAVXY_SOURCE_LABELS[r == null ? void 0 : r.source] || `Javxy | ${(r == null ? void 0 : r.source) || "dmm"}`;
+            const directUrl = qualityMap[quality] || trailerUrl;
+            clog.debug("Javxy 返回结果", {
+                endpoint: endpoint.label,
+                source: r == null ? void 0 : r.source,
+                quality,
+                qualities: Object.keys(qualityMap),
+                url: directUrl
+            });
+            const dmmQualityMap = javxyQualityMapToDmmFormat(qualityMap);
+            return {
+                url: directUrl,
+                source: sourceBase,
+                type: String((r == null ? void 0 : r.type) || "").trim() || "video",
+                qualities: qualityMap,
+                quality,
+                directUrl,
+                code: id,
+                rawCode,
+                javxySource: String((r == null ? void 0 : r.source) || "").trim(),
+                requiresJP: Boolean(r == null ? void 0 : r.requiresJP),
+                urls: Array.isArray(r == null ? void 0 : r.urls) && r.urls.length ? r.urls : sortQualityKeys(qualityMap).map((key) => qualityMap[key]),
+                dmmQualityMap
+            };
+        }
+        return null;
+    };
+    const fallbackJavxyResult = async (code, rawCode = "", failedSources = [], options = {}) => {
+        const skip = [...new Set((failedSources || []).map((source2) => normalizeJavxySource(source2)).filter(Boolean))];
+        const source = [...new Set((options.source || []).map((s) => String(s || "").trim()).filter(Boolean))];
+        if (!skip.length && !source.length) return null;
+        clog.debug("Javxy 播放失败回落查询", {code, skip, source});
+        return fromJavxyCcCd(code, rawCode, {skip, source, playbackFallback: true});
+    };
+    const getJavxyVideoUrls = async (code, failedSources = []) => {
+        const result = await fallbackJavxyResult(code, code, failedSources, {
+            source: ["JavTrailers", "JavDB"]
+        });
+        if ((result == null ? void 0 : result.dmmQualityMap) && Object.keys(result.dmmQualityMap).length > 0) {
+            return result.dmmQualityMap;
+        }
+        if (result == null ? void 0 : result.url) {
+            const qualityMap = {};
+            qualityMap["720p"] = result.url;
+            return qualityMap;
+        }
+        return null;
+    };
+
+    class JavxyPreviewVideoPlugin extends BasePlugin {
+        getName() {
+            return "JavxyPreviewVideoPlugin";
+        }
+
+        _attachVideoSrc(videoEl, src) {
+            if (!videoEl || !src) return;
+            destroyHls(videoEl);
+            if (isM3U8Url(src)) {
+                const HlsClass = getHlsClass();
+                if (HlsClass) {
+                    attachHlsToVideo(videoEl, src).catch((err) => {
+                        clog.error("视频预览 HLS 加载失败:", err);
+                        videoEl.src = src;
+                        videoEl.load && videoEl.load();
+                    });
+                } else {
+                    loadHlsLibrary().then((HlsClass2) => {
+                        if (videoEl && videoEl.isConnected && HlsClass2) {
+                            attachHlsToVideo(videoEl, src).catch((err) => {
+                                clog.error("视频预览 HLS 延迟加载失败:", err);
+                                videoEl.src = src;
+                                videoEl.load && videoEl.load();
+                            });
+                        } else if (videoEl && videoEl.isConnected) {
+                            videoEl.src = src;
+                            videoEl.load && videoEl.load();
+                        }
+                    });
+                }
+            } else {
+                videoEl.src = src;
+                videoEl.load && videoEl.load();
+            }
+        }
+
+        _selectDefaultQuality(qualityList, intendedDefault) {
+            if (!qualityList || qualityList.length === 0) return null;
+            const availableSet = new Set(qualityList);
+            if (availableSet.has(intendedDefault)) return intendedDefault;
+            const priorityOrder = qualityOptions.map((o) => o.quality).reverse();
+            for (const q of priorityOrder) if (availableSet.has(q)) return q;
+            return qualityList[0];
+        }
+
+        async initCss() {
+            return `
+            .jhs-javxy-video-modal {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.95); z-index: 12345700;
+                display: flex; justify-content: center; align-items: center;
+                opacity: 0; visibility: hidden; transition: opacity 0.2s;
+            }
+            .jhs-javxy-video-modal.is-open { opacity: 1; visibility: visible; }
+            .jhs-javxy-video-modal-inner {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 12px; max-width: 90vw; max-height: 90vh;
+            }
+            .jhs-javxy-video-wrapper {
+                width: 80vw; max-height: 80vh; aspect-ratio: 16/9;
+                background: #000; position: relative;
+            }
+            .jhs-javxy-video-wrapper video {
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            }
+            .jhs-javxy-quality-bar {
+                display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+            }
+            .jhs-javxy-quality-btn {
+                min-width: 60px; padding: 5px 10px; font-size: 13px;
+                background: rgba(255,255,255,0.2); color: #fff;
+                border: 1px solid rgba(255,255,255,0.5); border-radius: 4px;
+                cursor: pointer; transition: background 0.2s;
+            }
+            .jhs-javxy-quality-btn:hover { background: rgba(255,255,255,0.4); }
+            .jhs-javxy-quality-btn.active {
+                background: #1890ff; border-color: #096dd9; font-weight: bold;
+            }
+            .jhs-javxy-loading {
+                color: #fff; font-size: 16px; text-align: center;
+            }
+        `;
+        }
+
+        async handle() {
+            if (!window.isDetailPage) return;
+            const carNum2 = this.getPageInfo().carNum;
+            if (!carNum2) return;
+            this._addJavxyButton(carNum2);
+        }
+
+        _addJavxyButton(carNum2) {
+            let $target = null;
+            if (isJavDb$1) {
+                $target = $('a[title="複製番號"]');
+            } else if (isJavBus$1) {
+                const headerSpans = document.querySelectorAll("span.header");
+                for (const span of headerSpans) {
+                    if (span.textContent.trim() === "識別碼:") {
+                        const nextSpan = span.nextElementSibling;
+                        if (nextSpan && nextSpan.tagName === "SPAN") {
+                            const copyBtn = nextSpan.nextElementSibling;
+                            if (copyBtn && copyBtn.tagName === "BUTTON" && copyBtn.textContent.trim() === "复制") {
+                                $target = $(copyBtn);
+                            } else {
+                                $target = $(nextSpan);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+            if (!$target || !$target.length) return;
+            const $btn = $(`<a class="site-btn" style="min-width: auto; padding: 2px 10px; margin-left: 8px; margin-bottom: 0; background-color: #1890ff; vertical-align: middle; cursor: pointer;"><span>视频预览</span></a>`);
+            $btn.on("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                $btn.css("pointer-events", "none").find("span").text("...");
+                try {
+                    await this._openJavxyPlayer(carNum2);
+                } finally {
+                    $btn.css("pointer-events", "").find("span").text("视频预览");
+                }
+            });
+            $target.after($btn);
+        }
+
+        async _openJavxyPlayer(carNum2) {
+            if ($("#jhs-javxy-video-modal").length === 0) {
+                $("body").append(`
+                <div id="jhs-javxy-video-modal" class="jhs-javxy-video-modal">
+                    <div class="jhs-javxy-video-modal-inner">
+                        <div class="jhs-javxy-video-wrapper">
+                            <video id="jhs-javxy-video" controls playsinline></video>
+                        </div>
+                        <div class="jhs-javxy-quality-bar"></div>
+                    </div>
+                </div>
+            `);
+                const $modal2 = $("#jhs-javxy-video-modal");
+                $modal2.on("click", (e) => {
+                    if (e.target.id === "jhs-javxy-video-modal") {
+                        $modal2.removeClass("is-open");
+                        const videoEl2 = document.getElementById("jhs-javxy-video");
+                        if (videoEl2) {
+                            destroyHls(videoEl2);
+                            videoEl2.pause();
+                        }
+                    }
+                });
+                $(document).on("keydown", (e) => {
+                    if (e.key === "Escape" && $modal2.hasClass("is-open")) {
+                        $modal2.removeClass("is-open");
+                        const videoEl2 = document.getElementById("jhs-javxy-video");
+                        if (videoEl2) {
+                            destroyHls(videoEl2);
+                            videoEl2.pause();
+                        }
+                    }
+                });
+            }
+            const $modal = $("#jhs-javxy-video-modal");
+            const $wrapper = $modal.find(".jhs-javxy-video-wrapper");
+            const $qualityBar = $modal.find(".jhs-javxy-quality-bar");
+            $wrapper.html('<div class="jhs-javxy-loading">视频预览加载中...</div>');
+            $qualityBar.empty();
+            $modal.addClass("is-open");
+            let videoMap = null;
+            try {
+                videoMap = await getJavxyVideoUrls(carNum2);
+            } catch (err) {
+                $wrapper.html(`<div class="jhs-javxy-loading">视频预览请求失败: ${err.message}</div>`);
+                return;
+            }
+            if (!videoMap || Object.keys(videoMap).length === 0) {
+                $wrapper.html('<div class="jhs-javxy-loading">未找到可用的视频源</div>');
+                return;
+            }
+            const qualityList = Object.keys(videoMap);
+            const defaultQuality = this._selectDefaultQuality(qualityList, "720p");
+            const defaultUrl = videoMap[defaultQuality];
+            $wrapper.html(`<video id="jhs-javxy-video" controls playsinline>
+            <source src="${defaultUrl}" />
+        </video>`);
+            const videoEl = document.getElementById("jhs-javxy-video");
+            if (!videoEl) return;
+            if (isM3U8Url(defaultUrl)) {
+                this._attachVideoSrc(videoEl, defaultUrl);
+            }
+            let buttonsHtml = "";
+            qualityOptions.forEach((option) => {
+                const url = videoMap[option.quality];
+                if (url) {
+                    buttonsHtml += `<button class="jhs-javxy-quality-btn${option.quality === defaultQuality ? " active" : ""}"
+                    data-quality="${option.quality}" data-video-src="${url}">${option.text}</button>`;
+                }
+            });
+            $qualityBar.html(buttonsHtml);
+            $qualityBar.off("click").on("click", ".jhs-javxy-quality-btn", (e) => {
+                const $btn = $(e.currentTarget);
+                if ($btn.hasClass("active")) return;
+                const src = $btn.attr("data-video-src");
+                const currentTime = videoEl.currentTime;
+                destroyHls(videoEl);
+                this._attachVideoSrc(videoEl, src);
+                videoEl.load();
+                if (currentTime > 0 && Number.isFinite(currentTime)) {
+                    videoEl.currentTime = currentTime;
+                }
+                videoEl.play().catch(() => {
+                });
+                $qualityBar.find(".jhs-javxy-quality-btn").removeClass("active");
+                $btn.addClass("active");
+            });
+            videoEl.play().catch((e) => console.warn("视频预览播放失败:", e));
+        }
+    }
   class ImageRecognitionPlugin extends BasePlugin {
     constructor() {
       super(...arguments);
@@ -13023,14 +13832,14 @@ ${err.stack}` : "");
       }
       $img.addClass("loading");
       $img.after('<div class="loading-spinner"></div>');
-        const poster = $img.attr("src"), dmmVideoMap = await getDmmVideo$1(carNum2);
+        const poster = $img.attr("src"), dmmVideoMap = await getDmmVideo(carNum2);
       if (!dmmVideoMap) {
         show.error("未解析到视频");
         this.showImg($svgElement, $img, carNum2);
         return;
       }
       let defaultVideoQuality = await storageManager.getSetting("videoQuality");
-        defaultVideoQuality = selectDefaultQuality$1(Object.keys(dmmVideoMap), defaultVideoQuality);
+        defaultVideoQuality = selectDefaultQuality(Object.keys(dmmVideoMap), defaultVideoQuality);
       let videoUrl = dmmVideoMap[defaultVideoQuality], videoHtml = `
             <div style="display: flex; justify-content: center; align-items: center; position: absolute; top:0; left:0; height: 100%; width: 100%; z-index: 10; overflow: hidden">
                 <video 
@@ -13846,88 +14655,88 @@ ${err.stack}` : "");
     }
 
       /*
-      searchXunLeiSubtitle(carNum2) {
-          let loadObj = loading();
-          gmHttp.get(`https://api-shoulei-ssl.xunlei.com/oracle/subtitle?gcid=&cid=&name=${carNum2}`).then((res => {
-              let dataList = res.data;
-              dataList && 0 !== dataList.length ? layer.open({
-                  type: 1,
-                  title: "迅雷字幕",
-                  content: '\n                    <div style="height: 100%;overflow:hidden;"> \n                        <div id="xunlei-table-container" style="height: 100%;padding-bottom: 20px"></div>\n                    </div>\n                ',
-                  scrollbar: !1,
-                  area: utils.getResponsiveArea([ "60%", "70%" ]),
-                  anim: -1,
-                  success: (layero, index) => {
-                      new Tabulator("#xunlei-table-container", {
-                          layout: "fitColumns",
-                          placeholder: "暂无数据",
-                          virtualDom: !0,
-                          data: dataList,
-                          responsiveLayout: "collapse",
-                          responsiveLayoutCollapse: !0,
-                          columnDefaults: {
-                              headerHozAlign: "center",
-                              hozAlign: "center"
-                          },
-                          columns: [ {
-                              title: "文件名",
-                              field: "name",
-                              headerSort: !1,
-                              responsive: 0
-                          }, {
-                              title: "类型",
-                              field: "ext",
-                              headerSort: !1,
-                              responsive: 0
-                          }, {
-                              title: "操作",
-                              responsive: 0,
-                              headerSort: !1,
-                              formatter: (cell, formatterParams, onRendered) => {
-                                  const item = cell.getData();
-                                  onRendered((() => {
-                                      const previewButton = cell.getElement().querySelector(".a-primary"), downButton = cell.getElement().querySelector(".a-success");
-                                      previewButton && previewButton.addEventListener("click", (async e => {
-                                          let url = item.url, name2 = carNum2 + "." + item.ext;
-                                          this.previewSubtitle(url, name2);
-                                      }));
-                                      downButton && downButton.addEventListener("click", (async e => {
-                                          let url = item.url, name2 = carNum2 + "." + item.ext, content = await gmHttp.get(url);
-                                          utils.download(content, name2);
-                                      }));
-                                  }));
-                                  return '\n                                        <a class="a-primary">预览</a>\n                                        <a class="a-success">下载</a>\n                                    ';
-                              }
-                          } ],
-                          locale: "zh-cn",
-                          langs: {
-                              "zh-cn": {
-                                  pagination: {
-                                      first: "首页",
-                                      first_title: "首页",
-                                      last: "尾页",
-                                      last_title: "尾页",
-                                      prev: "上一页",
-                                      prev_title: "上一页",
-                                      next: "下一页",
-                                      next_title: "下一页",
-                                      all: "所有",
-                                      page_size: "每页行数"
-                                  }
-                              }
-                          }
-                      });
-                      utils.setupEscClose(index);
-                  }
-              }) : show.error("迅雷中找不到相关字幕!");
-          })).catch((e => {
-              console.error(e);
-              show.error(e);
-          })).finally((() => {
-              loadObj.close();
-          }));
-      }
-      */
+    searchXunLeiSubtitle(carNum2) {
+        let loadObj = loading();
+        gmHttp.get(`https://api-shoulei-ssl.xunlei.com/oracle/subtitle?gcid=&cid=&name=${carNum2}`).then((res => {
+            let dataList = res.data;
+            dataList && 0 !== dataList.length ? layer.open({
+                type: 1,
+                title: "迅雷字幕",
+                content: '\n                    <div style="height: 100%;overflow:hidden;"> \n                        <div id="xunlei-table-container" style="height: 100%;padding-bottom: 20px"></div>\n                    </div>\n                ',
+                scrollbar: !1,
+                area: utils.getResponsiveArea([ "60%", "70%" ]),
+                anim: -1,
+                success: (layero, index) => {
+                    new Tabulator("#xunlei-table-container", {
+                        layout: "fitColumns",
+                        placeholder: "暂无数据",
+                        virtualDom: !0,
+                        data: dataList,
+                        responsiveLayout: "collapse",
+                        responsiveLayoutCollapse: !0,
+                        columnDefaults: {
+                            headerHozAlign: "center",
+                            hozAlign: "center"
+                        },
+                        columns: [ {
+                            title: "文件名",
+                            field: "name",
+                            headerSort: !1,
+                            responsive: 0
+                        }, {
+                            title: "类型",
+                            field: "ext",
+                            headerSort: !1,
+                            responsive: 0
+                        }, {
+                            title: "操作",
+                            responsive: 0,
+                            headerSort: !1,
+                            formatter: (cell, formatterParams, onRendered) => {
+                                const item = cell.getData();
+                                onRendered((() => {
+                                    const previewButton = cell.getElement().querySelector(".a-primary"), downButton = cell.getElement().querySelector(".a-success");
+                                    previewButton && previewButton.addEventListener("click", (async e => {
+                                        let url = item.url, name2 = carNum2 + "." + item.ext;
+                                        this.previewSubtitle(url, name2);
+                                    }));
+                                    downButton && downButton.addEventListener("click", (async e => {
+                                        let url = item.url, name2 = carNum2 + "." + item.ext, content = await gmHttp.get(url);
+                                        utils.download(content, name2);
+                                    }));
+                                }));
+                                return '\n                                        <a class="a-primary">预览</a>\n                                        <a class="a-success">下载</a>\n                                    ';
+                            }
+                        } ],
+                        locale: "zh-cn",
+                        langs: {
+                            "zh-cn": {
+                                pagination: {
+                                    first: "首页",
+                                    first_title: "首页",
+                                    last: "尾页",
+                                    last_title: "尾页",
+                                    prev: "上一页",
+                                    prev_title: "上一页",
+                                    next: "下一页",
+                                    next_title: "下一页",
+                                    all: "所有",
+                                    page_size: "每页行数"
+                                }
+                            }
+                        }
+                    });
+                    utils.setupEscClose(index);
+                }
+            }) : show.error("迅雷中找不到相关字幕!");
+        })).catch((e => {
+            console.error(e);
+            show.error(e);
+        })).finally((() => {
+            loadObj.close();
+        }));
+    }
+    */
     async filterOne(event, noAlert) {
       event && event.preventDefault();
       let pageInfo = this.getPageInfo();
@@ -16294,6 +17103,7 @@ ${err.stack}` : "");
       pluginManager2.register(DetailPageButtonPlugin);
       pluginManager2.register(HighlightMagnetPlugin);
       pluginManager2.register(PreviewVideoPlugin);
+        pluginManager2.register(JavxyPreviewVideoPlugin);
       pluginManager2.register(FilterTitleKeywordPlugin);
       pluginManager2.register(ActressInfoPlugin);
       pluginManager2.register(OtherSitePlugin);
@@ -16324,6 +17134,7 @@ ${err.stack}` : "");
       pluginManager2.register(FilterTitleKeywordPlugin);
       pluginManager2.register(HighlightMagnetPlugin);
       pluginManager2.register(BusPreviewVideoPlugin);
+        pluginManager2.register(JavxyPreviewVideoPlugin);
       pluginManager2.register(MagnetHubPlugin);
       pluginManager2.register(ScreenShotPlugin);
       pluginManager2.register(OtherSitePlugin);

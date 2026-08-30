@@ -23,20 +23,6 @@
 
 ---
 
-## 自动部署
-
-本项目使用 GitHub Actions 在推送代码时自动构建并发布到 [GitHub Releases](https://github.com/fireinrain/JHS-enhance/releases)。
-
-```
-git push → GitHub Actions 自动构建 → 发布 GitHub Release
-                                          ↓
-    https://github.com/fireinrain/JHS-enhance/releases/latest/download/jhs-enhance.user.js
-                                          ↓
-                      用户点击安装链接 → Tampermonkey 弹出安装提示
-```
-
----
-
 ## 功能概览
 
 ### 列表页增强

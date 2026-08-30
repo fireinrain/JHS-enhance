@@ -1,10 +1,12 @@
 import { BasePlugin } from '../core/base-plugin.js';
 import { __publicField, qualityOptions } from '../core/constants.js';
+import {getDmmVideo, selectDefaultQuality} from '../api/dmm.js';
 
 class BusPreviewVideoPlugin extends BasePlugin {
     getName() {
         return "BusPreviewVideoPlugin";
     }
+
     async initCss() {
         return "\n            /* 弹窗/Modal 样式 */\n            .bus-preview-modal {\n                position: fixed;\n                top: 0;\n                left: 0;\n                width: 100%;\n                height: 100%;\n                background-color: rgba(0, 0, 0, 0.95); \n                /* 关键修改：更新 z-index */\n                z-index: 12345699; \n                display: flex;\n                justify-content: center;\n                align-items: center;\n                opacity: 0; \n                visibility: hidden; \n                transition: opacity 0.2s ease;\n            }\n            .bus-preview-modal.is-open {\n                opacity: 1;\n                visibility: visible;\n            }\n            /* 垂直排列视频和按钮，并居中 */\n            .bus-preview-modal-content {\n                position: relative;\n                max-width: 95%; \n                max-height: 95%;\n                display: flex; \n                flex-direction: column; \n                align-items: center; \n                gap: 15px; \n            }\n            \n            /* 移除 .bus-preview-close-btn 的样式 */\n\n            /* 视频播放器容器 */\n            .video-player-wrapper {\n                /* 关键修改：更新 width 和 max-height */\n                width: 80vw; \n                max-height: 85vh; \n                aspect-ratio: 16 / 9; \n                position: relative; \n                background-color: black; \n                max-width: 100%; \n            }\n            /* 视频元素 */\n            .video-player-wrapper #preview-video {\n                position: absolute; \n                top: 0;\n                left: 0;\n                width: 100%;\n                height: 100%;\n                display: block;\n            }\n\n            /* 画质控制盒 (底部按钮) */\n            .video-control-box {\n                display: flex;\n                flex-direction: row; \n                justify-content: center; \n                flex-wrap: wrap; \n                gap: 10px;\n                padding: 10px 0; \n            }\n\n            /* 按钮样式 (保留) */\n            .video-control-btn {\n                min-width:80px;\n                padding: 6px 12px;\n                background: rgba(255,255,255,0.2);\n                color: white;\n                border: 1px solid rgba(255,255,255,0.5);\n                border-radius: 4px;\n                cursor: pointer;\n                text-align: center;\n                font-size: 14px;\n                transition: background-color 0.2s, border-color 0.2s;\n            }\n            .video-control-btn:hover {\n                background: rgba(255,255,255,0.4);\n            }\n            .video-control-btn.active {\n                background-color: #1890ff; \n                color: white;\n                font-weight: bold;\n                border: 1px solid #096dd9;\n            }\n        ";
     }
@@ -22,7 +24,10 @@ class BusPreviewVideoPlugin extends BasePlugin {
     }
     closeVideoModal() {
         const $previewVideo = $("#preview-video");
-        $previewVideo.length > 0 && $previewVideo[0].pause();
+        if ($previewVideo.length > 0) {
+            const videoEl = $previewVideo[0];
+            videoEl.pause();
+        }
         $("#bus-preview-modal").removeClass("is-open");
     }
     async handle() {
@@ -51,7 +56,8 @@ class BusPreviewVideoPlugin extends BasePlugin {
         let $previewVideo = $("#preview-video");
         if ($previewVideo.length > 0) {
             $modal.addClass("is-open");
-            $previewVideo[0].play().catch((e => console.warn("尝试播放失败 (可能被浏览器阻止):", e)));
+            const videoEl = $previewVideo[0];
+            videoEl.play().catch((e => console.warn("尝试播放失败 (可能被浏览器阻止):", e)));
             return;
         }
         let carNum2 = this.getPageInfo().carNum;
@@ -70,13 +76,15 @@ class BusPreviewVideoPlugin extends BasePlugin {
         defaultVideoQuality = selectDefaultQuality(Object.keys(dmmVideoMap), defaultVideoQuality);
         let defaultVideoUrl = dmmVideoMap[defaultVideoQuality];
         $container.html(`\n            <div class="video-player-wrapper">\n                <video id="preview-video" controls playsinline>\n                    <source src="${defaultVideoUrl}" />\n                </video>\n            </div>\n            <div class="video-control-box">\n                </div>\n        `);
-        const $videoEl = $("#preview-video"), $previewSource = $videoEl.find("source"), $qualityControlsBox = $container.find(".video-control-box");
-        if (!$videoEl.length || !$previewSource.length) return;
-        const videoEl = $videoEl[0], jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
+        const $videoEl = $("#preview-video"), $qualityControlsBox = $container.find(".video-control-box");
+        if (!$videoEl.length) return;
+        const videoEl = $videoEl[0];
+        const jhs_videoMuted = localStorage.getItem("jhs_videoMuted");
         videoEl.muted = !jhs_videoMuted || "yes" === jhs_videoMuted;
         videoEl.addEventListener("volumechange", (function() {
             localStorage.setItem("jhs_videoMuted", videoEl.muted ? "yes" : "no");
         }));
+
         let buttonsHtml = "";
         qualityOptions.forEach((option => {
             let dmmVideoUrl = dmmVideoMap[option.quality];
@@ -92,10 +100,12 @@ class BusPreviewVideoPlugin extends BasePlugin {
                 const $button = $(e.currentTarget);
                 if ($button.hasClass("active")) return;
                 let videoSrc = $button.attr("data-video-src");
-                $previewSource.attr("src", videoSrc);
                 const currentTime = videoEl.currentTime;
+                videoEl.src = videoSrc;
                 videoEl.load();
-                videoEl.currentTime = currentTime;
+                if (currentTime > 0 && Number.isFinite(currentTime)) {
+                    videoEl.currentTime = currentTime;
+                }
                 await videoEl.play();
                 $buttons.removeClass("active");
                 $button.addClass("active");

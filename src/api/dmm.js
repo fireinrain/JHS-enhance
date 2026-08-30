@@ -1,4 +1,6 @@
 import { qualityOptions } from '../core/constants.js';
+import {getDmmGraphQLVideoUrls} from './dmm-graphql.js';
+
 const selectDefaultQuality = (dmmVideoQualityList, intendedDefault) => {
     if (!dmmVideoQualityList || 0 === dmmVideoQualityList.length) return null;
     const availableSet = new Set(dmmVideoQualityList);
@@ -138,6 +140,25 @@ class DmmVideoFetcher {
         if (0 === Object.keys(finalQualityMap).length) throw new Error("未找到匹配要求的预览画质视频");
         return finalQualityMap;
     }
+
+    async _searchViaGraphQL() {
+        clog.debug("尝试通过 GraphQL API 搜索视频...");
+        const videoMap = await getDmmGraphQLVideoUrls(this.carNum);
+        if (videoMap && Object.keys(videoMap).length > 0) {
+            this._updateCache(videoMap);
+            clog.debug("GraphQL 成功解析出预览视频:", videoMap);
+            const dmmCacheKey = "jhs_other_site_dmm";
+            const dmmCacheData = localStorage.getItem(dmmCacheKey) ? JSON.parse(localStorage.getItem(dmmCacheKey)) : {};
+            dmmCacheData[this.carNum] = {
+                type: "graphql",
+                url: `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`,
+            };
+            localStorage.setItem(dmmCacheKey, JSON.stringify(dmmCacheData));
+            return videoMap;
+        }
+        return null;
+    }
+
     async fetchVideo() {
         const cachedResult = this._checkCache();
         if (cachedResult) return cachedResult;
@@ -149,22 +170,29 @@ class DmmVideoFetcher {
             contentItems = await this._searchContentIds();
         } catch (e) {
             clog.error("DMM API 搜索失败:", e);
+        }
+        if (!contentItems || 0 === contentItems.length) {
+            clog.warn("Affiliate API 未找到视频，尝试 GraphQL API...");
+            const graphQLResult = await this._searchViaGraphQL();
+            if (graphQLResult) return graphQLResult;
             const $btn = $("#fanzaBtn");
             $btn.attr("href", `https://www.dmm.co.jp/search/=/searchstr=${this.carNum}`);
             $btn.attr("title", "未查询到, 点击前往搜索页");
             $btn.css("backgroundColor", "#de3333");
             return null;
         }
-        if (!contentItems || 0 === contentItems.length) return null;
         try {
             const finalVideoMap = await Promise.any(contentItems.map((item => this._extractTrailerLinks(item))));
             this._updateCache(finalVideoMap);
             return finalVideoMap;
         } catch (error) {
             const errors = error.errors || [ error ];
+            clog.error(`Affiliate 解析失败: ${errors[0] && errors[0].message || errors[0]}`, errors);
+            clog.warn("尝试 GraphQL API 作为 fallback...");
+            const graphQLResult = await this._searchViaGraphQL();
+            if (graphQLResult) return graphQLResult;
             if (errors.some((err => err.message.includes("节点不可用")))) this.showErrorMessages && show.error("节点不可用，请将DMM域名分流到日本ip"); else {
                 const displayError = errors[0].message || errors[0];
-                clog.error(`解析失败: ${displayError}`, errors);
                 this.showErrorMessages && show.error(`解析失败: ${displayError}`);
             }
             const $btn = $("#fanzaBtn");
