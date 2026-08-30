@@ -2,7 +2,7 @@
 
 > Jav-鉴黄师 油猴脚本 — 工程化重构版本
 
-基于 `vite-plugin-monkey` 脚手架，将原 10,000+ 行单体脚本拆分为 49 个可维护的 ES Module 模块，支持本地开发热更新、一键构建。
+基于 `vite-plugin-monkey` 脚手架，将原 10,000+ 行单体脚本拆分为 56 个可维护的 ES Module 模块，支持本地开发热更新、一键构建。
 
 ---
 
@@ -39,6 +39,7 @@
 - **磁力排序与过滤（JavDB）**：按发布日期/文件大小/文件数量拖拽排序，勾选启用；高清/4K/字幕/无码多条件并集过滤，4K 磁力行高亮显示
 - 磁力链接高亮匹配已收藏/已下载状态
 - DMM 多画质预览视频
+- **多源视频预览**：Javxy 聚合 API 独立按钮（番号/识别码右侧），多源 fallback（JavTrailers / JavDB 等），HLS 支持、播放进度记忆、画质切换
 - **标题翻译**：Google 翻译，支持开关多次切换不失效
 - **字幕搜索**：合并迅雷 + SubTitleCat 为单一入口，支持 115 网盘直传、详情页预匹配目录、多目录选择上传、长目录名截断展示、字幕预览绿色字体
 - **多源预览图**：javfree / projectjav / javstore 三源切换，来源按钮绿色高亮，sessionStorage 缓存，错误提示弹窗内显示
@@ -94,12 +95,15 @@ JHS-enhance/
 │   │   ├── storage.js           # IndexedDB 存储管理器（localforage 封装，含缓存）
 │   │   ├── utils.js             # 工具函数集（DOM 操作、弹窗确认、快捷键、重试、日期格式化）
 │   │   └── gmHttp.js            # GM_xmlhttpRequest 封装（GET/POST/Form/File、超时重试、分块下载）
-│   ├── api/                     # API 层（2 个模块）
+│   ├── api/                     # API 层（4 个模块）
 │   │   ├── javdb.js             # JavDB API 封装（签名算法、搜索、评论、磁力列表）
-│   │   └── dmm.js               # DMM 预览视频获取（多画质、默认画质选择）
+│   │   ├── dmm.js               # DMM 预览视频获取（多画质、默认画质选择）
+│   │   ├── dmm-graphql.js       # DMM GraphQL API（备选视频源回退）
+│   │   └── javxy.js             # Javxy 聚合视频 API（多源解析、签名生成）
 │   ├── lib/                     # 第三方补丁库
-│   │   └── gm-xhr-parallel.js   # Tampermonkey MV3 并行请求修复（redirect: manual）
-│   └── plugins/                 # 插件层（41 个功能插件）
+│   │   ├── gm-xhr-parallel.js   # Tampermonkey MV3 并行请求修复（redirect: manual）
+│   │   └── hls-runtime.js       # HLS 视频播放运行时（hls.js 封装、进度记忆、画质切换）
+│   └── plugins/                 # 插件层（42 个功能插件）
 │       ├── list-page.js         # 列表页过滤与状态标签渲染
 │       ├── list-page-button.js  # 列表页功能按钮（待鉴定/已收藏/新作品/黑名单管理）
 │       ├── detail-page.js       # 详情页数据加载与基础增强
@@ -138,6 +142,7 @@ JHS-enhance/
 │       ├── magnet-hub.js        # MagnetHub 磁力搜索
 │       ├── other-site.js        # 第三方站点跳转链接
 │       ├── jav-trailers.js      # JavTrailers 站点处理
+│       ├── javxy-preview-video.js# Javxy 多源视频预览（独立按钮、聚合 API、HLS 支持）
 │       ├── subtitle-cat.js      # SubTitleCat 字幕搜索（已整合，保留原文件）
 │       ├── filter-title-keyword.js # 标题关键词过滤
 │       └── want-watched.js      # 想看/已看视频列表
@@ -291,6 +296,13 @@ window.show.ok('操作成功');                     // Toast 通知
 ---
 
 ## 版本历史
+
+- **v3.3.8**
+  - 新增：Javxy 多源视频预览独立按钮（番号/识别码右侧），基于 Javxy 聚合 API，支持 JavTrailers / JavDB 等多源回退
+  - 新增：HLS 视频播放运行时（hls.js 封装），支持 .m3u8 格式、播放进度记忆、画质切换
+  - 新增：DMM GraphQL API 模块，作为备选视频源回退方案
+  - 优化：`bus-preview-video.js` 和 `preview-video.js` 清理移植代码，保持原有播放逻辑不变
+  - 优化：`dmm.js` 回退至仅 DMM Affiliate API + GraphQL API 双通道，移除 Javxy 耦合
 
 - **v3.3.7**
   - 新增：JavDB 磁力排序与过滤（拖拽排序、多条件并集过滤、4K 高亮）
