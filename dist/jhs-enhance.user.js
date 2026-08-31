@@ -11137,44 +11137,50 @@ ${err.stack}` : "");
         constructor() {
           super(...arguments);
           __publicField2(this, "currentEngine", null);
-          __publicField2(this, "searchEngines", [{
-            name: "U9A9",
-            id: "u9a9",
-            url: "https://u9a9.com/?type=2&search={keyword}",
-            targetPage: "https://u9a9.com/?type=2&search={keyword}",
+            __publicField2(this, "searchEngines", [
+                {
+                    name: "Sukebei",
+                    id: "Sukebei",
+                    url: "https://sukebei.nyaa.si/?f=0&c=0_0&q={keyword}",
+                    targetPage: "https://sukebei.nyaa.si/?f=0&c=0_0&q={keyword}",
+                    parseHtml: this.parseSukebei
+                },
+                {
+                    name: "U9A9",
+                    id: "u9a9",
+                    url: "https://u9a9.com/?type=2&search={keyword}",
+                    targetPage: "https://u9a9.com/?type=2&search={keyword}",
               parseHtml: this.parseU9A9
-          }, {
-            name: "U3C3",
-            id: "u3c3",
-              url: "https://u3c3.com/?search2={search2}&search={keyword}",
-              targetPage: "https://u3c3.com/?search2={search2}&search={keyword}",
-              parseHtml: this.parseU3C3,
-              dynamicSearch2: true
-          }, {
-            name: "Sukebei",
-            id: "Sukebei",
-            url: "https://sukebei.nyaa.si/?f=0&c=0_0&q={keyword}",
-            targetPage: "https://sukebei.nyaa.si/?f=0&c=0_0&q={keyword}",
-            parseHtml: this.parseSukebei
-          }, {
-              name: "ØMagnet",
-              id: "omag",
-              url: "https://xn--mag-zna.net/search?q={keyword}",
-              targetPage: "https://xn--mag-zna.net/search?q={keyword}",
-              parseHtml: this.parseOmag
-          }, {
+                },
+                {
+                    name: "U3C3",
+                    id: "u3c3",
+                    url: "https://u3c3.com/?search={keyword}",
+                    targetPage: "https://u3c3.com/?search={keyword}",
+                    parseHtml: this.parseU3C3
+                },
+                {
               name: "BTSearch",
               id: "btsearch",
               url: "https://btsearch.love/api/search?keyword={keyword}&limit=10&offset=0&sort=size&sort_type=desc",
               targetPage: "https://btsearch.love/search?keyword={keyword}",
               parseJson: this.parseBTSearch
-          }, {
+                },
+                {
               name: "SoKitty",
               id: "sokitty",
               url: "https://w1.sokitty.me/search?key={keyword}",
               targetPage: "https://w1.sokitty.me/search?key={keyword}",
               parseHtml: this.parseSokitty
-          }]);
+                },
+                {
+                    name: "ØMagnet",
+                    id: "omag",
+                    url: "https://xn--mag-zna.net/search?q={keyword}",
+                    targetPage: "https://xn--mag-zna.net/search?q={keyword}",
+                    parseHtml: this.parseOmag
+                }
+            ]);
         }
         getName() {
           return "MagnetHubPlugin";
@@ -11224,7 +11230,7 @@ ${err.stack}` : "");
                     border-bottom: 1px solid #eee;
                 }
                 .magnet-sort-select {
-                    height: 26px;
+                    height: 28px;
                     padding: 2px 20px 2px 6px;
                     border: 1px solid #ccc;
                     border-radius: 4px;
@@ -11255,9 +11261,10 @@ ${err.stack}` : "");
                     font-size: 12px;
                     text-align: left;
                 }
-                .magnet-table th.col-size { width: 72px; text-align: center; }
+                .magnet-table th.col-name { max-width: 0; }
+                .magnet-table th.col-size { width: 70px; text-align: center; }
                 .magnet-table th.col-date { width: 90px; text-align: center; }
-                .magnet-table th.col-actions { width: 130px; text-align: center; }
+                .magnet-table th.col-actions { width: 180px; text-align: center; }
                 .magnet-table td {
                     padding: 8px 6px;
                     border-bottom: 1px solid #eee;
@@ -11286,6 +11293,7 @@ ${err.stack}` : "");
                     color: #243b67;
                     font-weight: 650;
                     text-decoration: none;
+                    line-height: 1;
                 }
                 .magnet-name-cell > a:hover {
                     color: #1d4ed8;
@@ -11299,12 +11307,12 @@ ${err.stack}` : "");
                     border-radius: 3px;
                     font-size: 11px;
                     font-weight: 800;
-                    line-height: 1.4;
+                    line-height: 1;
                     color: #fff;
                 }
-                .magnet-badge.subtitle { background: #16a34a; }
-                .magnet-badge.four-k { background: #2563eb; }
-                .magnet-badge.cracked { background: #be123c; }
+                .magnet-badge.mg-subtitle { background: #16a34a; }
+                .magnet-badge.mg-four-k { background: #2563eb; }
+                .magnet-badge.mg-cracked { background: #be123c; }
                 .magnet-loading {
                     text-align: center;
                     padding: 20px;
@@ -11328,7 +11336,7 @@ ${err.stack}` : "");
                     background-color: #f0f0f0;
                     color: #555;
                     border: 1px solid #ddd;
-                    padding: 3px 8px;
+                    padding: 5px 10px;
                     border-radius: 3px;
                     cursor: pointer;
                     font-size: 12px;
@@ -11374,7 +11382,7 @@ ${err.stack}` : "");
                 .whatslink-overlay {
                     position: fixed;
                     inset: 0;
-                    z-index: 10000040;
+                    z-index: 2147483700;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -11532,31 +11540,29 @@ ${err.stack}` : "");
             const key = "jhs_magnetHub_selectedEngine";
             const savedEngineId = localStorage.getItem(key);
           let defaultEngineIndex = 0;
-          const $tabBox = $('<div style="display: flex;"></div>');
+            const $tabBox = $('<div style="display: flex; align-items: center;"></div>');
           this.searchEngines.forEach(((engine, index) => {
             const $tab = $(`<div class="magnet-tab" data-engine="${engine.id}">${engine.name}</div>`);
             if (savedEngineId && engine.id === savedEngineId) {
               $tab.addClass("active");
               this.currentEngine = engine;
               defaultEngineIndex = index;
-            } else if (0 === index && !savedEngineId) {
+            } else if (!savedEngineId && engine.id === "Sukebei") {
               $tab.addClass("active");
               this.currentEngine = engine;
             }
             $tabBox.append($tab);
           }));
-          $tabs.append($tabBox);
-          $tabs.append(`<a style="margin-right: 20px;margin-top:3px" id="targetBox" href="${this.currentEngine.targetPage.replace("{keyword}", encodeURIComponent(keyword))}" target="_blank">原网页</a>`);
-          $container.append($tabs);
-            const $controls = $('<div class="magnet-controls"></div>');
             const sortMode = localStorage.getItem("jhs_magnetSort") || "size";
-            const $sortSelect = $(`<select class="magnet-sort-select" disabled>
+            const $sortSelect = $(`<select class="magnet-sort-select" disabled style="margin-left:auto;margin-right:4px;">
             <option value="size" ${sortMode === "size" ? "selected" : ""}>按大小</option>
             <option value="newest" ${sortMode === "newest" ? "selected" : ""}>按最新</option>
             <option value="oldest" ${sortMode === "oldest" ? "selected" : ""}>按最旧</option>
         </select>`);
-            $controls.append($sortSelect);
-            $container.append($controls);
+            $tabBox.append($sortSelect);
+            $tabs.append($tabBox);
+            $tabs.append(`<a style="margin-right: 20px;margin-top:3px" id="targetBox" href="${this.currentEngine.targetPage.replace("{keyword}", encodeURIComponent(keyword))}" target="_blank">原网页</a>`);
+            $container.append($tabs);
           const $resultsContainer = $('<div class="magnet-results"></div>');
           $container.append($resultsContainer);
           $container.on("click", ".magnet-tab", ((e) => {
@@ -11615,17 +11621,13 @@ ${err.stack}` : "");
           sessionStorage.getItem(cacheKey);
               this.resolveUrl(engine, keyword).then(((url) => {
                   const requestOpts = {method: "GET", url};
-                  if (engine.dynamicSearch2) {
-                      const cookie = sessionStorage.getItem("jhs_u3c3_cookie");
-                      if (cookie) requestOpts.cookie = cookie;
-                  }
                   if (engine.parseHtml) {
                       _GM_xmlhttpRequest(Object.assign(requestOpts, {
                           method: "GET",
                           url,
-                          onload: (response) => {
+                          onload: async (response) => {
                               try {
-                                  const results = engine.parseHtml.call(this, response.responseText, keyword);
+                                  const results = await engine.parseHtml.call(this, response.responseText, keyword);
                                   results.length > 0 && sessionStorage.setItem(cacheKey, JSON.stringify(results));
                                   $container.data("_magnetData", results);
                                   $sortSelect.prop("disabled", results.length === 0);
@@ -11651,7 +11653,7 @@ ${err.stack}` : "");
               results = this.sortMagnetData(results, sortMode);
               const $table = $(`<table class="magnet-table">
                 <thead><tr>
-                    <th>名称</th>
+                    <th class="col-name">名称</th>
                     <th class="col-size">大小</th>
                     <th class="col-date">日期</th>
                     <th class="col-actions">操作</th>
@@ -11662,9 +11664,9 @@ ${err.stack}` : "");
             results.forEach(((result) => {
                 const quality = classifyQuality(result.title);
                 let badges = "";
-                if (quality.is4K) badges += '<span class="magnet-badge four-k">4K</span>';
-                if (quality.isChinese) badges += '<span class="magnet-badge subtitle">中字</span>';
-                if (quality.isCracked) badges += '<span class="magnet-badge cracked">破解</span>';
+                if (quality.is4K) badges += '<span class="magnet-badge mg-four-k">4K</span>';
+                if (quality.isChinese) badges += '<span class="magnet-badge mg-subtitle">中字</span>';
+                if (quality.isCracked) badges += '<span class="magnet-badge mg-cracked">破解</span>';
                 const displayDate = formatMagnetDate(result.date);
                 const dnCode = extractCode(result.title);
                 const $row = $(`<tr>
@@ -11679,7 +11681,7 @@ ${err.stack}` : "");
                     <td class="col-actions">
                         <button class="magnet-hub-btn copy-btn" data-magnet="${result.magnet}" data-dncode="${dnCode || ""}">复制</button>
                         <button class="magnet-hub-btn check-btn" data-magnet="${result.magnet}">验车</button>
-                        <button class="magnet-hub-btn down-btn down-115" data-magnet="${result.magnet}">115</button>
+                        <button class="magnet-hub-btn down-btn down-115" data-magnet="${result.magnet}">115离线</button>
                     </td>
                 </tr>`);
                 $tbody.append($row);
@@ -11709,157 +11711,181 @@ ${err.stack}` : "");
           }
 
           async resolveUrl(engine, keyword) {
-              let url = engine.url.replace("{keyword}", encodeURIComponent(keyword));
-              if (engine.dynamicSearch2) {
-                  let search2 = sessionStorage.getItem("jhs_u3c3_search2");
-                  if (!search2) {
-                      search2 = await this.fetchSearch2();
-                      if (search2) sessionStorage.setItem("jhs_u3c3_search2", search2);
-                  }
-                  url = url.replace("{search2}", search2 || "c2pvbmy2");
-              }
-              return url;
-          }
-
-          async fetchSearch2() {
-              const result = await new Promise(((resolve) => {
-                  _GM_xmlhttpRequest({
-                      method: "GET",
-                      url: "https://u3c3.com/",
-                      onload: (r) => resolve({html: r.responseText, headers: r.responseHeaders || ""}),
-                      onerror: () => resolve(null)
-                  });
-              }));
-              if (!result) return null;
-              const cookie = parseSetCookie(result.headers);
-              if (cookie) sessionStorage.setItem("jhs_u3c3_cookie", cookie);
-              const match = result.html.match(/var\s+nmefafej\s*=\s*"([^"]+)"/g);
-              if (!match) return null;
-              for (const m of match) {
-                  const val = m.match(/"([^"]+)"/)[1];
-                  if (val.length === 8) {
-                      console.log("[U3C3] search2:", val);
-                      return val;
-                  }
-              }
-              return null;
+              return engine.url.replace("{keyword}", encodeURIComponent(keyword));
           }
 
           async checkWhatslink(magnet) {
               var _a;
+              (_a = document.querySelector(".whatslink-overlay")) == null ? void 0 : _a.remove();
               const overlay = document.createElement("div");
               overlay.className = "whatslink-overlay";
-              overlay.innerHTML = '<div class="whatslink-loading">正在加载验车数据…</div>';
-              overlay.addEventListener("click", (e) => {
-                  if (e.target === overlay) overlay.remove();
-              });
+              overlay.innerHTML = '<div class="whatslink-modal no-shots"><div class="whatslink-loading">正在验车...</div></div>';
               document.body.appendChild(overlay);
               try {
                   const url = `https://whatslink.info/api/v1/link?url=${encodeURIComponent(magnet)}`;
-                  const r = await gmFetch(url);
-                  if (!r.loadstuts) throw new Error("查询失败");
-                  const data = JSON.parse(r.responseText);
-                  this.showWhatslinkModal(overlay, data, magnet);
+                  const r = await gmFetch(url, {timeout: 2e4});
+                  if (!r.loadstuts) throw new Error("WhatsLink 请求失败");
+                  const data = JSON.parse(r.responseText || "{}");
+                  overlay.remove();
+                  this.showWhatslinkModal(data, magnet);
               } catch (e) {
-                  overlay.innerHTML = `<div class="whatslink-gallery-scene">
-                <div class="whatslink-gallery-visual">
-                    <div class="whatslink-gallery-empty">
-                        <div class="whatslink-gallery-empty-icon">⚠</div>
-                        <div class="whatslink-gallery-empty-title">验车失败</div>
-                        <div class="whatslink-gallery-empty-text">${e.message || "无法获取文件信息"}</div>
-                    </div>
-                </div>
-            </div>`;
-                  (_a = overlay.querySelector(".whatslink-overlay")) == null ? void 0 : _a.classList.add("no-shots");
+                  overlay.remove();
+                  this.showWhatslinkModal({
+                      error: e.message || "查询失败",
+                      name: "查询失败",
+                      type: "-",
+                      file_type: "-",
+                      size: 0,
+                      count: "-",
+                      screenshots: []
+                  }, magnet);
               }
           }
 
-          showWhatslinkModal(overlay, data, magnet) {
-              const screenshots = Array.isArray(data.screenshots) ? data.screenshots : [];
-              const hasShots = screenshots.length > 0;
-              const sizeStr = data.size ? formatBytes(data.size) : "-";
-              const fileCount = data.count || "-";
-              overlay.innerHTML = "";
-              const modal = document.createElement("div");
-              modal.className = "whatslink-modal" + (hasShots ? "" : " no-shots");
-              const scene = document.createElement("div");
-              scene.className = "whatslink-gallery-scene";
-              const visual = document.createElement("div");
-              visual.className = "whatslink-gallery-visual";
-              const closeBtn = document.createElement("button");
-              closeBtn.className = "whatslink-gallery-close";
-              closeBtn.innerHTML = "×";
-              closeBtn.addEventListener("click", () => overlay.remove());
-              visual.appendChild(closeBtn);
-              let currentIdx = 0;
-              const hero = document.createElement("img");
-              hero.className = "whatslink-gallery-hero";
-              if (hasShots) {
-                  hero.src = screenshots[0];
-                  visual.appendChild(hero);
-                  const prevBtn = document.createElement("button");
-                  prevBtn.className = "whatslink-gallery-arrow whatslink-gallery-prev";
-                  prevBtn.innerHTML = "‹";
-                  prevBtn.addEventListener("click", (e) => {
-                      e.stopPropagation();
-                      currentIdx = (currentIdx - 1 + screenshots.length) % screenshots.length;
-                      hero.src = screenshots[currentIdx];
-                      updateThumbs();
-                      updateInfo();
-                  });
-                  visual.appendChild(prevBtn);
-                  const nextBtn = document.createElement("button");
-                  nextBtn.className = "whatslink-gallery-arrow whatslink-gallery-next";
-                  nextBtn.innerHTML = "›";
-                  nextBtn.addEventListener("click", (e) => {
-                      e.stopPropagation();
-                      currentIdx = (currentIdx + 1) % screenshots.length;
-                      hero.src = screenshots[currentIdx];
-                      updateThumbs();
-                      updateInfo();
-                  });
-                  visual.appendChild(nextBtn);
-              } else {
-                  const emptyDiv = document.createElement("div");
-                  emptyDiv.className = "whatslink-gallery-empty";
-                  emptyDiv.innerHTML = '<div class="whatslink-gallery-empty-icon">🖼</div><div class="whatslink-gallery-empty-title">暂无预览图</div><div class="whatslink-gallery-empty-text">该磁力链接暂无截图信息</div>';
-                  visual.appendChild(emptyDiv);
-              }
-              const info = document.createElement("div");
-              info.className = "whatslink-gallery-info";
-              const updateInfo = () => {
-                  info.innerHTML = `<span>${currentIdx + 1} / ${screenshots.length}</span><span>${sizeStr} · ${fileCount} 文件</span>`;
-              };
-              if (hasShots) updateInfo();
-              else info.innerHTML = `<span>${sizeStr} · ${fileCount} 文件</span>`;
-              scene.appendChild(visual);
-              scene.appendChild(info);
-              if (hasShots && screenshots.length > 1) {
-                  const thumbs = document.createElement("div");
-                  thumbs.className = "whatslink-gallery-thumbs";
-                  const updateThumbs2 = () => {
-                      thumbs.innerHTML = "";
-                      screenshots.forEach((src, i) => {
-                          const thumb = document.createElement("button");
-                          thumb.className = "whatslink-gallery-thumb" + (i === currentIdx ? " active" : "");
-                          const img = document.createElement("img");
-                          img.src = src;
-                          thumb.appendChild(img);
-                          thumb.addEventListener("click", (e) => {
-                              e.stopPropagation();
-                              currentIdx = i;
-                              hero.src = src;
-                              updateThumbs2();
-                              updateInfo();
-                          });
-                          thumbs.appendChild(thumb);
-                      });
-                  };
-                  updateThumbs2();
-                  scene.appendChild(thumbs);
-              }
-              modal.appendChild(scene);
+          showWhatslinkModal(payload, magnet) {
+              var _a;
+              (_a = document.querySelector(".whatslink-overlay")) == null ? void 0 : _a.remove();
+              const shots = Array.isArray(payload == null ? void 0 : payload.screenshots) ? payload.screenshots.map((item) => item == null ? void 0 : item.screenshot).filter(Boolean) : [];
+              let index = 0;
+              const resourceName = (payload == null ? void 0 : payload.name) || "未知资源";
+              const resourceCount = (payload == null ? void 0 : payload.count) ?? "-";
+              const overlay = document.createElement("div");
+              overlay.className = "whatslink-overlay";
+              const modal = document.createElement("section");
+              modal.className = `whatslink-modal${shots.length ? "" : " no-shots"}`;
+              modal.innerHTML = `<div class="whatslink-gallery-scene">
+            <div class="whatslink-gallery-visual">
+                <button class="whatslink-gallery-close" type="button" aria-label="关闭">×</button>
+                <button class="whatslink-gallery-arrow whatslink-gallery-prev" type="button" aria-label="上一张">‹</button>
+                <img class="whatslink-gallery-hero" alt="截图预览">
+                <button class="whatslink-gallery-arrow whatslink-gallery-next" type="button" aria-label="下一张">›</button>
+                <div class="whatslink-gallery-empty">
+                    <div class="whatslink-gallery-empty-icon">?</div>
+                    <div class="whatslink-gallery-empty-title">暂无截图</div>
+                    <p class="whatslink-gallery-empty-text">当前资源没有可展示的截图，可以结合资源名称和文件数量判断。</p>
+                </div>
+            </div>
+            <div class="whatslink-gallery-info">
+                <span class="whatslink-gallery-name"></span>
+                <span class="whatslink-gallery-count"></span>
+                <span class="whatslink-gallery-index"></span>
+            </div>
+            <div class="whatslink-gallery-thumbs"></div>
+        </div>`;
               overlay.appendChild(modal);
+              document.body.appendChild(overlay);
+              modal.querySelector(".whatslink-gallery-name").textContent = resourceName;
+              modal.querySelector(".whatslink-gallery-count").textContent = `${resourceCount} 个文件`;
+              const visual = modal.querySelector(".whatslink-gallery-visual");
+              const hero = modal.querySelector(".whatslink-gallery-hero");
+              const thumbs = modal.querySelector(".whatslink-gallery-thumbs");
+              const currentIndex = modal.querySelector(".whatslink-gallery-index");
+              const closeButton = modal.querySelector(".whatslink-gallery-close");
+              const prevButton = modal.querySelector(".whatslink-gallery-prev");
+              const nextButton = modal.querySelector(".whatslink-gallery-next");
+              const sizeGallery = () => {
+                  if (!shots.length || !hero.naturalWidth || !hero.naturalHeight) return;
+                  const infoHeight = modal.querySelector(".whatslink-gallery-info").offsetHeight || 23;
+                  const thumbsHeight = thumbs.offsetHeight || 58;
+                  const maxHeight = Math.max(180, window.innerHeight - 36 - infoHeight - thumbsHeight - 6);
+                  const maxWidth = modal.clientWidth;
+                  const ratio = hero.naturalWidth / hero.naturalHeight;
+                  const height = Math.min(maxHeight, maxWidth / ratio);
+                  const width = height * ratio;
+                  visual.style.width = `${width}px`;
+                  visual.style.height = `${height}px`;
+              };
+              const positionControls = () => {
+                  if (!shots.length || !hero.naturalWidth || !hero.naturalHeight) return;
+                  const width = visual.clientWidth;
+                  const height = visual.clientHeight;
+                  const scale = Math.min(width / hero.naturalWidth, height / hero.naturalHeight);
+                  const imageWidth = hero.naturalWidth * scale;
+                  const imageHeight = hero.naturalHeight * scale;
+                  const imageLeft = (width - imageWidth) / 2;
+                  const imageTop = (height - imageHeight) / 2;
+                  const closeSize = closeButton.offsetWidth || 32;
+                  const arrowSize = prevButton.offsetWidth || 34;
+                  const sideGap = 12;
+                  closeButton.style.left = `${imageLeft + imageWidth - closeSize - sideGap}px`;
+                  closeButton.style.right = "auto";
+                  closeButton.style.top = `${imageTop + sideGap}px`;
+                  prevButton.style.left = `${imageLeft + sideGap}px`;
+                  prevButton.style.right = "auto";
+                  prevButton.style.top = `${imageTop + (imageHeight - arrowSize) / 2}px`;
+                  nextButton.style.left = "auto";
+                  nextButton.style.right = `${width - imageLeft - imageWidth + sideGap}px`;
+                  nextButton.style.top = `${imageTop + (imageHeight - arrowSize) / 2}px`;
+              };
+              const render = () => {
+                  modal.classList.toggle("has-shots", Boolean(shots.length));
+                  if (!shots.length) {
+                      currentIndex.textContent = "NO PREVIEW";
+                      return;
+                  }
+                  hero.src = shots[index];
+                  const frame = `${index + 1} / ${shots.length}`;
+                  currentIndex.textContent = frame;
+                  [...thumbs.children].forEach((btn, i) => btn.classList.toggle("active", i === index));
+                  if (hero.complete) {
+                      sizeGallery();
+                      positionControls();
+                  }
+              };
+              shots.forEach((url, i) => {
+                  const btn = document.createElement("button");
+                  btn.type = "button";
+                  btn.className = "whatslink-gallery-thumb";
+                  btn.innerHTML = `<img src="${url}" alt="截图${i + 1}">`;
+                  btn.addEventListener("click", () => {
+                      index = i;
+                      render();
+                  });
+                  thumbs.appendChild(btn);
+              });
+              prevButton.addEventListener("click", () => {
+                  if (!shots.length) return;
+                  index = (index + shots.length - 1) % shots.length;
+                  render();
+              });
+              nextButton.addEventListener("click", () => {
+                  if (!shots.length) return;
+                  index = (index + 1) % shots.length;
+                  render();
+              });
+              const onKeydown = (event) => {
+                  if (!document.body.contains(overlay)) return;
+                  if (event.key === "ArrowLeft" && shots.length) {
+                      index = (index + shots.length - 1) % shots.length;
+                      render();
+                  }
+                  if (event.key === "ArrowRight" && shots.length) {
+                      index = (index + 1) % shots.length;
+                      render();
+                  }
+                  if (event.key === "Escape") close();
+              };
+              const onResize = () => {
+                  sizeGallery();
+                  positionControls();
+              };
+              const removeResize = () => window.removeEventListener("resize", onResize);
+              const close = () => {
+                  overlay.remove();
+                  document.removeEventListener("keydown", onKeydown);
+                  removeResize();
+              };
+              closeButton.addEventListener("click", close);
+              overlay.addEventListener("click", (e) => {
+                  if (e.target === overlay) close();
+              });
+              hero.addEventListener("load", () => {
+                  sizeGallery();
+                  positionControls();
+              });
+              window.addEventListener("resize", onResize);
+              document.addEventListener("keydown", onKeydown);
+              render();
           }
 
           parseU9A9(html, keyword) {
@@ -11883,25 +11909,42 @@ ${err.stack}` : "");
               return results;
           }
 
-          parseU3C3(html, keyword) {
-              const $dom = utils.htmlTo$dom(html), results = [];
-              const kwNorm = String(keyword).toUpperCase().replace(/[^A-Z0-9]/g, "");
-              $dom.find(".torrent-list tbody tr").each(((i, el) => {
-                  const $el = $(el);
-                  if ($el.text().includes("置顶")) return;
-                  const $titleA = $el.find("td:nth-child(2) a");
-                  const title = $titleA.attr("title") || $titleA.text().trim();
-                  if (!title) return;
-                  if (kwNorm) {
-                      const titleNorm = title.toUpperCase().replace(/[^A-Z0-9]/g, "");
-                      if (!titleNorm.includes(kwNorm)) return;
-                  }
-                  const magnet = $el.find("td:nth-child(3) a[href^='magnet:']").attr("href");
-                  const size = $el.find("td:nth-child(4)").text().trim();
-                  const date = $el.find("td:nth-child(5)").text().trim();
-                  magnet && results.push({title, magnet, size, date});
-              }));
-              return results;
+          async parseU3C3(_html, keyword) {
+              var _a;
+              const base = "https://www.u3c3.com";
+              const referer = base + "/";
+              const home = await gmFetch(base + "/", {
+                  headers: {Referer: referer}
+              });
+              if (!home.loadstuts) return [];
+              const homeDoc = parseHTML(home.responseText);
+              const searchScript = [...homeDoc.scripts].map((script) => script.textContent || "").find((text) => text.includes("function search21")) || "";
+              const token = ((_a = searchScript.match(/^\s*var\s+nmefafej\s*=\s*["']([^"']+)["'];?/m)) == null ? void 0 : _a[1]) || "";
+              if (!token) return [];
+              const searchUrl = `${base}/?search2=${encodeURIComponent(token)}&search=${encodeURIComponent(keyword)}`;
+              const r = await gmFetch(searchUrl, {
+                  headers: {Referer: referer}
+              });
+              if (!r.loadstuts) return [];
+              const doc = parseHTML(r.responseText);
+              const normalizedKeyword = String(keyword || "").toUpperCase().replace(/[-_\s]/g, "");
+              const data = [...doc.querySelectorAll("table.torrent-list tbody tr.default, table.torrent-list tbody tr.success")].map((row) => {
+                  var _a2, _b, _c, _d, _e, _f;
+                  const titleA = row.querySelector('td:nth-child(2) a[href*="/view?id="]');
+                  const magnetA = row.querySelector('td:nth-child(3) a[href^="magnet:"]');
+                  const title = ((_a2 = titleA == null ? void 0 : titleA.getAttribute("title")) == null ? void 0 : _a2.trim()) || ((_b = titleA == null ? void 0 : titleA.textContent) == null ? void 0 : _b.trim()) || "";
+                  if (!title || !(magnetA == null ? void 0 : magnetA.href)) return null;
+                  if (normalizedKeyword && !title.toUpperCase().replace(/[-_\s]/g, "").includes(normalizedKeyword)) return null;
+                  const href = titleA.getAttribute("href") || "";
+                  return {
+                      title,
+                      magnet: magnetA.href,
+                      size: ((_d = (_c = row.querySelector("td:nth-child(4)")) == null ? void 0 : _c.textContent) == null ? void 0 : _d.trim()) || "",
+                      date: ((_f = (_e = row.querySelector("td:nth-child(5)")) == null ? void 0 : _e.textContent) == null ? void 0 : _f.trim()) || "",
+                      src: href ? new URL(href, base).href : searchUrl
+                  };
+              }).filter(Boolean);
+              return data;
           }
 
           parseSukebei(html, keyword) {
@@ -12030,20 +12073,6 @@ ${err.stack}` : "");
         }
       }
 
-        function parseSetCookie(headers) {
-            if (!headers) return "";
-            const lines = headers.split("\n");
-            const cookies = [];
-            for (const line of lines) {
-                const match = line.match(/^set-cookie:\s*(.+?)(?:;|$)/i);
-                if (match) {
-                    const val = match[1].split(";")[0].trim();
-                    if (val) cookies.push(val);
-                }
-            }
-            return cookies.join("; ");
-        }
-
         function formatBytes(bytes) {
             if (!bytes || bytes <= 0) return "";
             const units = ["B", "KB", "MB", "GB", "TB"];
@@ -12097,7 +12126,7 @@ ${err.stack}` : "");
             $container.empty();
             const $table = $(`<table class="magnet-table">
         <thead><tr>
-            <th>名称</th>
+            <th class="col-name">名称</th>
             <th class="col-size">大小</th>
             <th class="col-date">日期</th>
             <th class="col-actions">操作</th>
@@ -12108,9 +12137,9 @@ ${err.stack}` : "");
             results.forEach(((result) => {
                 const quality = classifyQuality(result.title);
                 let badges = "";
-                if (quality.is4K) badges += '<span class="magnet-badge four-k">4K</span>';
-                if (quality.isChinese) badges += '<span class="magnet-badge subtitle">中字</span>';
-                if (quality.isCracked) badges += '<span class="magnet-badge cracked">破解</span>';
+                if (quality.is4K) badges += '<span class="magnet-badge mg-four-k">4K</span>';
+                if (quality.isChinese) badges += '<span class="magnet-badge mg-subtitle">中字</span>';
+                if (quality.isCracked) badges += '<span class="magnet-badge mg-cracked">破解</span>';
                 const displayDate = formatMagnetDate(result.date);
                 const dnCode = extractCode(result.title);
                 const $row = $(`<tr>
