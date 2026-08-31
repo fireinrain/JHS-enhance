@@ -8,7 +8,7 @@ export default defineConfig({
       userscript: {
           name: 'JHS-enhance',
           namespace: 'JHS-enhance',
-        version: '3.3.9',
+        version: '3.3.10',
         author: 'xiebro,fireinrain',
         description: 'Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers',
         license: 'MIT',
