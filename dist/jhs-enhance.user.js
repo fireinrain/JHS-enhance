@@ -10809,10 +10809,17 @@ ${err.stack}` : "");
                   type: mimeType
                 }), formData = new FormData();
                 formData.append("image", blob);
+                const idKey = "jhs_imgurClientId";
+                let clientId = localStorage.getItem(idKey);
+                if (!clientId) {
+                  clientId = window.prompt("请输入您自己的Imgur Client-ID（可前往 https://api.imgur.com/oauth2/addclient 免费申请）用于图片上传搜索:");
+                  if (!clientId) throw new Error("未提供Imgur Client-ID，无法上传图片");
+                  localStorage.setItem(idKey, clientId);
+                }
                 const response = await fetch("https://api.imgur.com/3/image", {
                   method: "POST",
                   headers: {
-                    Authorization: "Client-ID d70305e7c3ac5c6"
+                    Authorization: `Client-ID ${clientId}`
                   },
                   body: formData
                 }), data = await response.json();
