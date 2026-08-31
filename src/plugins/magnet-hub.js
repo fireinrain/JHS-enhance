@@ -26,6 +26,22 @@ function fallbackCopy(text, $btn) {
     document.body.removeChild(textarea);
 }
 
+function parseSize(sizeStr) {
+    if (!sizeStr || sizeStr === "未知") return 0;
+    const match = sizeStr.match(/^([\d.]+)\s*(GiB|MiB|KiB|TiB|GB|MB|KB|TB|B)/i);
+    if (!match) return 0;
+    const num = parseFloat(match[1]);
+    const unit = match[2].toUpperCase().replace("I", "");
+    const multipliers = {B: 1, KB: 1024, MB: 1048576, GB: 1073741824, TB: 1099511627776};
+    return num * (multipliers[unit] || 1);
+}
+
+function parseDate(dateStr) {
+    if (!dateStr || dateStr === "未知") return 0;
+    const ts = Date.parse(dateStr);
+    return isNaN(ts) ? 0 : ts;
+}
+
 class MagnetHubPlugin extends BasePlugin {
     constructor() {
         super(...arguments);
@@ -137,6 +153,12 @@ class MagnetHubPlugin extends BasePlugin {
     displayResults($container, results, engineName) {
         $container.empty();
         if (0 !== results.length) {
+            results.sort((a, b) => {
+                const sizeA = parseSize(a.size), sizeB = parseSize(b.size);
+                if (sizeB !== sizeA) return sizeB - sizeA;
+                const dateA = parseDate(a.date), dateB = parseDate(b.date);
+                return dateB - dateA;
+            });
             results.forEach((result => {
                 const $result = $(`\n                <div class="magnet-result">\n                    <div class="magnet-title"><a href="${result.magnet}">${result.title}</a></div>\n                    <div class="magnet-info">\n                        <span>大小: ${result.size || "未知"}</span>\n                        <span>日期: ${result.date || "未知"}</span>\n                    </div>\n                    <div class="magnet-copy">\n                        <button class="magnet-hub-btn copy-btn" data-magnet="${result.magnet}">复制链接</button>\n                        <button class="magnet-hub-btn down-115" data-magnet="${result.magnet}">115离线下载</button>\n                    </div>\n                </div>\n            `);
                 $container.append($result);
