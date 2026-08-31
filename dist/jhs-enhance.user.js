@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JHS-enhance
 // @namespace    JHS-enhance
-// @version      3.3.9
+// @version      3.3.10
 // @author       xiebro,fireinrain
 // @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
 // @license      MIT
@@ -11362,16 +11362,16 @@ ${err.stack}` : "");
                     box-shadow: 0 1px 2px rgba(0,0,0,.1);
                 }
                 .magnet-hub-btn.copied {
-                    background-color: #4CAF50;
+                    background-color: #66bb6a;
                 }
                 .magnet-hub-btn.copy-btn {
-                    background-color: #7c3aed;
+                    background-color: #8b5cf6;
                 }
                 .magnet-hub-btn.check-btn {
-                    background-color: #be185d;
+                    background-color: #e11d48;
                 }
                 .magnet-hub-btn.down-btn {
-                    background-color: #0d9488;
+                    background-color: #14b8a6;
                 }
                 .whatslink-overlay {
                     position: fixed;
