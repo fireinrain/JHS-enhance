@@ -2,6 +2,30 @@ import { BasePlugin } from '../core/base-plugin.js';
 import { __publicField } from '../core/constants.js';
 import { GM_xmlhttpRequest } from 'vite-plugin-monkey/dist/client';
 
+function showCopiedFeedback($btn) {
+    const originalText = $btn.text();
+    $btn.addClass("copied").text("已复制");
+    setTimeout((() => {
+        $btn.removeClass("copied").text(originalText);
+    }), 2e3);
+}
+
+function fallbackCopy(text, $btn) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand("copy");
+        showCopiedFeedback($btn);
+    } catch (err) {
+        console.error("复制失败:", err);
+        alert("复制失败，请手动复制链接");
+    }
+    document.body.removeChild(textarea);
+}
+
 class MagnetHubPlugin extends BasePlugin {
     constructor() {
         super(...arguments);
@@ -63,6 +87,27 @@ class MagnetHubPlugin extends BasePlugin {
             $(e.target).addClass("active");
             this.searchEngine($resultsContainer, this.currentEngine, keyword);
         }));
+        $container.on("click", ".copy-btn", function () {
+            const $btn = $(this), magnet = $btn.data("magnet");
+            navigator.clipboard ? navigator.clipboard.writeText(magnet).then((() => {
+                showCopiedFeedback($btn);
+            })).catch((() => {
+                fallbackCopy(magnet, $btn);
+            })) : fallbackCopy(magnet, $btn);
+        });
+        $container.on("click", ".down-115", (async event => {
+            event.stopPropagation();
+            const magnet = $(event.currentTarget).data("magnet");
+            let loadObj = loading();
+            try {
+                await this.getBean("WangPan115TaskPlugin").handleAddTask(magnet);
+            } catch (e) {
+                show.error("发生错误:" + e);
+                console.error(e);
+            } finally {
+                loadObj.close();
+            }
+        }));
         this.searchEngine($resultsContainer, this.currentEngine || this.searchEngines[defaultEngineIndex], keyword);
         return $container;
     }
@@ -96,49 +141,7 @@ class MagnetHubPlugin extends BasePlugin {
                 const $result = $(`\n                <div class="magnet-result">\n                    <div class="magnet-title"><a href="${result.magnet}">${result.title}</a></div>\n                    <div class="magnet-info">\n                        <span>大小: ${result.size || "未知"}</span>\n                        <span>日期: ${result.date || "未知"}</span>\n                    </div>\n                    <div class="magnet-copy">\n                        <button class="magnet-hub-btn copy-btn" data-magnet="${result.magnet}">复制链接</button>\n                        <button class="magnet-hub-btn down-115" data-magnet="${result.magnet}">115离线下载</button>\n                    </div>\n                </div>\n            `);
                 $container.append($result);
             }));
-            $container.on("click", ".copy-btn", (function() {
-                const $btn = $(this), magnet = $btn.data("magnet");
-                navigator.clipboard ? navigator.clipboard.writeText(magnet).then((() => {
-                    showCopiedFeedback($btn);
-                })).catch((err => {
-                    fallbackCopy(magnet, $btn);
-                })) : fallbackCopy(magnet, $btn);
-            }));
-            $container.on("click", ".down-115", (async event => {
-                const magnet = $(event.currentTarget).data("magnet");
-                let loadObj = loading();
-                try {
-                    await this.getBean("WangPan115TaskPlugin").handleAddTask(magnet);
-                } catch (e) {
-                    show.error("发生错误:" + e);
-                    console.error(e);
-                } finally {
-                    loadObj.close();
-                }
-            }));
         } else $container.append('<div class="magnet-error">没有找到相关结果</div>');
-        function showCopiedFeedback($btn) {
-            const originalText = $btn.text();
-            $btn.addClass("copied").text("已复制");
-            setTimeout((() => {
-                $btn.removeClass("copied").text(originalText);
-            }), 2e3);
-        }
-        function fallbackCopy(text, $btn) {
-            const textarea = document.createElement("textarea");
-            textarea.value = text;
-            textarea.style.position = "fixed";
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand("copy");
-                showCopiedFeedback($btn);
-            } catch (err) {
-                console.error("复制失败:", err);
-                alert("复制失败，请手动复制链接");
-            }
-            document.body.removeChild(textarea);
-        }
     }
     parseBTSOW($container, engine, keyword, cacheKey) {
         const _this = this;
