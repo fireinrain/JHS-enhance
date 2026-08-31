@@ -151,7 +151,7 @@ class MagnetHubPlugin extends BasePlugin {
         return `
             <style>
                 .magnet-container {
-                    margin: 20px auto;
+                    margin: 12px auto;
                     width: 100%;
                     font-family: Arial, sans-serif;
                 }
@@ -163,14 +163,14 @@ class MagnetHubPlugin extends BasePlugin {
                     align-items: center;
                 }
                 .magnet-tab {
-                    padding: 6px 12px;
+                    padding: 4px 10px;
                     cursor: pointer;
                     border: 1px solid transparent;
                     border-bottom: none;
                     margin-right: 3px;
                     background: #f5f5f5;
                     border-radius: 5px 5px 0 0;
-                    font-size: 13px;
+                    font-size: 12px;
                     transition: background .16s;
                 }
                 .magnet-tab.active {
@@ -186,17 +186,17 @@ class MagnetHubPlugin extends BasePlugin {
                 .magnet-controls {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
-                    padding: 8px 12px;
+                    gap: 6px;
+                    padding: 6px 10px;
                     background: #fafafa;
                     border-bottom: 1px solid #eee;
                 }
                 .magnet-sort-select {
-                    height: 28px;
-                    padding: 2px 20px 2px 6px;
+                    height: 24px;
+                    padding: 1px 18px 1px 5px;
                     border: 1px solid #ccc;
                     border-radius: 4px;
-                    font-size: 12px;
+                    font-size: 11px;
                     color: #333;
                     background: #fff;
                     cursor: pointer;
@@ -206,29 +206,29 @@ class MagnetHubPlugin extends BasePlugin {
                     cursor: not-allowed;
                 }
                 .magnet-results {
-                    min-height: 200px;
+                    min-height: 160px;
                 }
                 .magnet-table {
                     width: 100%;
                     border-collapse: collapse;
                     table-layout: fixed;
-                    font-size: 13px;
+                    font-size: 12px;
                 }
                 .magnet-table th {
-                    padding: 6px;
+                    padding: 4px;
                     background: #f8f8f8;
                     border-bottom: 2px solid #e0e0e0;
                     font-weight: 600;
                     color: #555;
-                    font-size: 12px;
+                    font-size: 11px;
                     text-align: left;
                 }
                 .magnet-table th.col-name { max-width: 0; }
-                .magnet-table th.col-size { width: 70px; text-align: center; }
-                .magnet-table th.col-date { width: 90px; text-align: center; }
-                .magnet-table th.col-actions { width: 180px; text-align: center; }
+                .magnet-table th.col-size { width: 60px; text-align: center; }
+                .magnet-table th.col-date { width: 75px; text-align: center; }
+                .magnet-table th.col-actions { width: 170px; text-align: center; }
                 .magnet-table td {
-                    padding: 8px 6px;
+                    padding: 5px 4px;
                     border-bottom: 1px solid #eee;
                     vertical-align: middle;
                 }
@@ -236,12 +236,12 @@ class MagnetHubPlugin extends BasePlugin {
                     background-color: #f9f9f9;
                 }
                 .magnet-table td.col-size { text-align: center; white-space: nowrap; }
-                .magnet-table td.col-date { text-align: center; white-space: nowrap; font-size: 12px; color: #888; }
+                .magnet-table td.col-date { text-align: center; white-space: nowrap; font-size: 11px; color: #888; }
                 .magnet-table td.col-actions { text-align: center; white-space: nowrap; }
                 .magnet-name-cell {
                     display: flex;
                     align-items: center;
-                    gap: 5px;
+                    gap: 4px;
                     min-width: 0;
                     overflow: hidden;
                 }
@@ -255,7 +255,7 @@ class MagnetHubPlugin extends BasePlugin {
                     color: #243b67;
                     font-weight: 650;
                     text-decoration: none;
-                    line-height: 1.5;
+                    line-height: 1.4;
                 }
                 .magnet-name-cell > a:hover {
                     color: #1d4ed8;
@@ -265,11 +265,11 @@ class MagnetHubPlugin extends BasePlugin {
                     display: inline-flex;
                     align-items: center;
                     flex-shrink: 0;
-                    padding: 1px 5px;
+                    padding: 1px 4px;
                     border-radius: 3px;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 800;
-                    line-height: 1.5;
+                    line-height: 1.4;
                     color: #fff;
                 }
                 .magnet-badge.mg-subtitle { background: #16a34a; }
@@ -277,17 +277,20 @@ class MagnetHubPlugin extends BasePlugin {
                 .magnet-badge.mg-cracked { background: #be123c; }
                 .magnet-loading {
                     text-align: center;
-                    padding: 20px;
+                    padding: 14px;
                     color: #666;
+                    font-size: 12px;
                 }
                 .magnet-error {
                     color: #f44336;
-                    padding: 10px;
+                    padding: 8px;
+                    font-size: 12px;
                 }
                 .magnet-empty {
                     text-align: center;
-                    padding: 20px;
+                    padding: 14px;
                     color: #999;
+                    font-size: 12px;
                 }
                 .magnet-empty a {
                     color: #e74c3c;
@@ -295,51 +298,42 @@ class MagnetHubPlugin extends BasePlugin {
                     cursor: pointer;
                 }
                 .magnet-hub-btn {
-                    background-color: #f0f0f0;
-                    color: #555;
-                    border: 1px solid #ddd;
-                    padding: 5px 10px;
-                    border-radius: 3px;
+                    display: inline-block;
+                    min-width: 36px;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 11px;
+                    text-align: center;
                     cursor: pointer;
-                    font-size: 12px;
-                    transition: all 0.2s;
-                    margin-left: 4px;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 2px 4px rgba(0,0,0,.12);
+                    text-shadow: 0 1px 1px rgba(0,0,0,.15);
+                    border: none;
+                    line-height: 1.3;
+                    margin-left: 3px;
                 }
                 .magnet-hub-btn:hover {
-                    background-color: #e0e0e0;
-                    border-color: #ccc;
+                    transform: translateY(-1px);
+                    box-shadow: 0 3px 6px rgba(0,0,0,.18);
+                    opacity: .92;
+                }
+                .magnet-hub-btn:active {
+                    transform: translateY(0);
+                    box-shadow: 0 1px 2px rgba(0,0,0,.1);
                 }
                 .magnet-hub-btn.copied {
-                    background-color: #4CAF50;
-                    color: white;
-                    border-color: #4CAF50;
-                }
-                .magnet-hub-btn.check-btn {
-                    color: #be185d;
-                    border-color: #fecdd3;
-                    background: #fff1f2;
-                }
-                .magnet-hub-btn.check-btn:hover {
-                    background: #ffe4e6;
-                    border-color: #fda4af;
-                }
-                .magnet-hub-btn.down-btn {
-                    color: #137553;
-                    border-color: #b7ddce;
-                    background: #effaf5;
-                }
-                .magnet-hub-btn.down-btn:hover {
-                    background: #e3f6ed;
-                    border-color: #8ac9b3;
+                    background-color: #66bb6a;
                 }
                 .magnet-hub-btn.copy-btn {
-                    color: #4b3d87;
-                    border-color: #d0c7ee;
-                    background: #f6f4ff;
+                    background-color: #8b5cf6;
                 }
-                .magnet-hub-btn.copy-btn:hover {
-                    background: #eeebff;
-                    border-color: #b9aae5;
+                .magnet-hub-btn.check-btn {
+                    background-color: #e11d48;
+                }
+                .magnet-hub-btn.down-btn {
+                    background-color: #14b8a6;
                 }
                 .whatslink-overlay {
                     position: fixed;
