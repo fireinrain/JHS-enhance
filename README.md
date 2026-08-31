@@ -36,6 +36,9 @@
 
 ### 详情页增强
 
+- **磁力搜索聚合（MagnetHub）**：多引擎聚合搜索（Sukebei / U9A9 / U3C3 / BTSearch / SoKitty / ØMagnet），Tab
+  切换引擎，结果表格展示（名称/大小/日期/操作），支持按大小/最新/最旧排序，质量标签自动识别（中字/4K/破解），一键复制磁力链接（含番号提取码），验车功能（Whatslink
+  API 截图预览、键盘/缩放导航），115 离线下载快捷按钮
 - **磁力排序与过滤（JavDB）**：按发布日期/文件大小/文件数量拖拽排序，勾选启用；高清/4K/字幕/无码多条件并集过滤，4K 磁力行高亮显示
 - 磁力链接高亮匹配已收藏/已下载状态
 - DMM 多画质预览视频
@@ -50,6 +53,7 @@
 
 - **番号智能匹配**：双阶段搜索策略 — 第一阶段精准搜索（完整番号 + `type:4`），未命中时第二阶段模糊兜底（尾号 +
   正则匹配），支持不规则文件名（如 `MIVR00345-5.mp4`、`ABP001.mp4`）
+- **磁力离线下载**：MagnetHub 磁力搜索结果支持一键添加至 115 离线下载
 - **不规则文件名自动重命名**
   ：检测到需第二阶段才能匹配的作品时，自动将文件重命名为标准番号格式（如 `mdvr00317-3.mp4` → `MDVR-317-3.mp4`
   ），设置面板可开关 + 选择范围（仅VR / 全部）
@@ -75,7 +79,8 @@
 ### 其他
 
 - FC2 站点支持（含 123AV 补全）
-- MagnetHub 磁力搜索
+- **MagnetHub 磁力搜索**：6 引擎聚合（Sukebei/U9A9/U3C3/BTSearch/SoKitty/ØMagnet），质量标签（中字/4K/破解），验车截图预览（Whatslink
+  API，键盘导航），排序切换，115 离线一键下载
 - JavTrailers 站点处理
 - 设置面板：快捷键配置、域名配置、缓存清理、标记删除列表、打赏作者（二维码/钱包地址可自定义）
 - 浏览历史、想看/已看列表
@@ -144,7 +149,7 @@ JHS-enhance/
 │       ├── screenshot.js        # 多源预览图（javfree/projectjav/javstore + 来源切换弹窗）
 │       ├── subtitles.js         # 字幕搜索（整合迅雷+SubTitleCat）+ 115 多目录直传
 │       ├── req115.js            # 115 网盘 API 封装（Req 基类 + Drive115 + Req115）
-│       ├── magnet-hub.js        # MagnetHub 磁力搜索
+│       ├── magnet-hub.js        # MagnetHub 磁力搜索（6 引擎聚合、质量标签、验车截图、115 离线）
 │       ├── other-site.js        # 第三方站点跳转链接
 │       ├── jav-trailers.js      # JavTrailers 站点处理
 │       ├── javxy-preview-video.js# Javxy 多源视频预览（独立按钮、聚合 API、HLS 支持）
