@@ -12588,19 +12588,29 @@ ${err.stack}` : "");
         }
         async handle() {
           $(".buttons button[data-clipboard-text*='magnet:']").each(((i, el) => {
-            $(el).parent().append($("<button>").text("115离线下载").addClass("button is-info is-small").click((async (event) => {
+              const $copyBtn = $(el);
+              const magnet = $copyBtn.attr("data-clipboard-text");
+              $copyBtn.css("margin-right", parseInt($copyBtn.css("margin-right")) - 5 + "px");
+              const $downloadBtn = $copyBtn.siblings("a.button, button").first();
+              $downloadBtn.length && $downloadBtn.css("margin-right", parseInt($downloadBtn.css("margin-right")) - 5 + "px");
+              $("<button>").text("验车").addClass("button is-info is-small").click(((event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  this.getBean("MagnetHubPlugin").checkWhatslink(magnet);
+              })).appendTo($copyBtn.parent());
+              $("<button>").text("115离线下载").addClass("button is-info is-small").click((async (event) => {
               event.stopPropagation();
               event.preventDefault();
               let loadObj = loading();
               try {
-                await this.handleAddTask($(el).attr("data-clipboard-text"));
+                  await this.handleAddTask(magnet);
               } catch (e) {
                 show.error("发生错误:" + e);
                 console.error(e);
               } finally {
                 loadObj.close();
               }
-            })));
+              })).appendTo($copyBtn.parent());
           }));
           isJavBus$1 && window.isDetailPage && utils.loopDetector((() => $("#magnet-table td a").length > 0), (() => {
             this.bus115Down();
@@ -12623,6 +12633,11 @@ ${err.stack}` : "");
                 } finally {
                   loadObj.close();
                 }
+              })).appendTo(actionCell);
+                $("<button>").text("验车").addClass("button is-info is-small").click(((event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    this.getBean("MagnetHubPlugin").checkWhatslink(magnetLink);
               })).appendTo(actionCell);
               $(row).append(actionCell);
             }
