@@ -13,7 +13,7 @@ import {
 } from '../core/constants.js';
 import { HotkeyManager } from './preview-video.js';
 import {GM_xmlhttpRequest} from 'vite-plugin-monkey/dist/client';
-import {fromJavxyCover} from '../api/javxy.js';
+import {getJavxyCover} from '../api/javxy.js';
 
 class DetailPageButtonPlugin extends BasePlugin {
     getName() {
@@ -102,20 +102,20 @@ class DetailPageButtonPlugin extends BasePlugin {
         }));
         $("#downloadCoverBtn").on("click", (async () => {
             if (!isEligibleDmmCoverCode(carNum2)) {
-                layer.msg("当前番号不支持下载高清封面");
+                show.error("当前番号不支持下载高清封面");
                 return;
             }
             const $btn = $("#downloadCoverBtn");
             $btn.addClass("is-loading").prop("disabled", true);
             try {
-                const coverData = await fromJavxyCover(carNum2);
+                const coverData = await getJavxyCover(carNum2);
                 if (!coverData) {
-                    layer.msg("未找到高清封面");
+                    show.error("未找到高清封面");
                     return;
                 }
                 const coverUrl = coverData.url || coverData.highCover || coverData.cover;
                 if (!coverUrl) {
-                    layer.msg("封面链接为空");
+                    show.error("封面链接为空");
                     return;
                 }
                 const fileName = `${carNum2}-cover.jpg`;
@@ -125,16 +125,26 @@ class DetailPageButtonPlugin extends BasePlugin {
                     responseType: 'blob',
                     onload: (response) => {
                         if (response.status === 200) {
-                            utils.download(response.response, fileName);
+                            const blobUrl = URL.createObjectURL(response.response);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = fileName;
+                            document.body.appendChild(a);
+                            a.click();
+                            setTimeout(() => {
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(blobUrl);
+                            }, 100);
+                            show.ok("封面下载已开始");
                         } else {
-                            layer.msg(`封面下载失败: ${response.status}`);
+                            show.error(`封面下载失败: ${response.status}`);
                         }
                     },
-                    onerror: () => layer.msg("封面下载网络错误"),
-                    ontimeout: () => layer.msg("封面下载超时"),
+                    onerror: () => show.error("封面下载网络错误"),
+                    ontimeout: () => show.error("封面下载超时"),
                 });
             } catch (e) {
-                layer.msg("获取封面信息失败");
+                show.error("获取封面信息失败");
             } finally {
                 $btn.removeClass("is-loading").prop("disabled", false);
             }

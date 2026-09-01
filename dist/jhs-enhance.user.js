@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JHS-enhance
 // @namespace    JHS-enhance
-// @version      3.3.10
+// @version      3.3.11
 // @author       xiebro,fireinrain
 // @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
 // @license      MIT
@@ -10428,7 +10428,7 @@ ${err.stack}` : "");
         }
         return null;
       };
-        const fromJavxyCover = async (code) => {
+        const getJavxyCover = async (code) => {
             const query = String(code || "").trim();
             if (!query) return null;
             for (const endpoint of JAVXY_ENDPOINTS) {
@@ -15714,20 +15714,20 @@ ${err.stack}` : "");
           }));
             $("#downloadCoverBtn").on("click", (async () => {
                 if (!isEligibleDmmCoverCode(carNum2)) {
-                    layer.msg("当前番号不支持下载高清封面");
+                    show.error("当前番号不支持下载高清封面");
                     return;
                 }
                 const $btn = $("#downloadCoverBtn");
                 $btn.addClass("is-loading").prop("disabled", true);
                 try {
-                    const coverData = await fromJavxyCover(carNum2);
+                    const coverData = await getJavxyCover(carNum2);
                     if (!coverData) {
-                        layer.msg("未找到高清封面");
+                        show.error("未找到高清封面");
                         return;
                     }
                     const coverUrl = coverData.url || coverData.highCover || coverData.cover;
                     if (!coverUrl) {
-                        layer.msg("封面链接为空");
+                        show.error("封面链接为空");
                         return;
                     }
                     const fileName = `${carNum2}-cover.jpg`;
@@ -15737,16 +15737,26 @@ ${err.stack}` : "");
                         responseType: "blob",
                         onload: (response) => {
                             if (response.status === 200) {
-                                utils.download(response.response, fileName);
+                                const blobUrl = URL.createObjectURL(response.response);
+                                const a = document.createElement("a");
+                                a.href = blobUrl;
+                                a.download = fileName;
+                                document.body.appendChild(a);
+                                a.click();
+                                setTimeout(() => {
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(blobUrl);
+                                }, 100);
+                                show.ok("封面下载已开始");
                             } else {
-                                layer.msg(`封面下载失败: ${response.status}`);
+                                show.error(`封面下载失败: ${response.status}`);
                             }
                         },
-                        onerror: () => layer.msg("封面下载网络错误"),
-                        ontimeout: () => layer.msg("封面下载超时")
+                        onerror: () => show.error("封面下载网络错误"),
+                        ontimeout: () => show.error("封面下载超时")
                     });
                 } catch (e) {
-                    layer.msg("获取封面信息失败");
+                    show.error("获取封面信息失败");
                 } finally {
                     $btn.removeClass("is-loading").prop("disabled", false);
                 }

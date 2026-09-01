@@ -211,7 +211,7 @@ const getJavxyVideoUrls = async (code, failedSources = []) => {
     return null;
 };
 
-const fromJavxyCover = async (code) => {
+const getJavxyCover = async (code) => {
     const query = String(code || '').trim();
     if (!query) return null;
 
@@ -240,7 +240,7 @@ export {
     fromJavxyCcCd,
     fallbackJavxyResult,
     getJavxyVideoUrls,
-    fromJavxyCover,
+    getJavxyCover,
     normalizeJavxySource,
     isJpSourceTemporarilyFailed,
     markJpSourceTemporarilyFailed,
