@@ -211,10 +211,36 @@ const getJavxyVideoUrls = async (code, failedSources = []) => {
     return null;
 };
 
+const fromJavxyCover = async (code) => {
+    const query = String(code || '').trim();
+    if (!query) return null;
+
+    for (const endpoint of JAVXY_ENDPOINTS) {
+        const params = new URLSearchParams({client: 'laosiji-new'});
+        const apiUrl = `https://${endpoint.host}/covers/${encodeURIComponent(query)}?${params}`;
+
+        let r;
+        try {
+            r = await gmHttp.get(apiUrl, null, {
+                'Accept': 'application/json,text/plain,*/*',
+                'X-Javxy-Token': JAVXY_TOKEN,
+            }, {timeout: 15000});
+        } catch (e) {
+            continue;
+        }
+
+        if (!r) continue;
+        if (r?.found && (r.url || r.cover || r.highCover)) return r;
+        return null;
+    }
+    return null;
+};
+
 export {
     fromJavxyCcCd,
     fallbackJavxyResult,
     getJavxyVideoUrls,
+    fromJavxyCover,
     normalizeJavxySource,
     isJpSourceTemporarilyFailed,
     markJpSourceTemporarilyFailed,

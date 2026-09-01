@@ -1,6 +1,19 @@
 import { BasePlugin } from '../core/base-plugin.js';
-import { __publicField, isJavBus, isJavDb, Status_FILTER, Status_FAVORITE, Status_HAS_DOWN, Status_HAS_WATCH, NO, YES } from '../core/constants.js';
+import {
+    __publicField,
+    isJavBus,
+    isJavDb,
+    isEligibleDmmCoverCode,
+    Status_FILTER,
+    Status_FAVORITE,
+    Status_HAS_DOWN,
+    Status_HAS_WATCH,
+    NO,
+    YES
+} from '../core/constants.js';
 import { HotkeyManager } from './preview-video.js';
+import {GM_xmlhttpRequest} from 'vite-plugin-monkey/dist/client';
+import {fromJavxyCover} from '../api/javxy.js';
 
 class DetailPageButtonPlugin extends BasePlugin {
     getName() {
@@ -23,7 +36,7 @@ class DetailPageButtonPlugin extends BasePlugin {
     }
     async createMenuBtn() {
         const pageInfo = this.getPageInfo(), carNum2 = pageInfo.carNum,
-            buttonsHtml = '\n            <div style="margin: 10px auto; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap;gap: 20px;">\n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="filterBtn" class="menu-btn" style="width: 120px; background-color:#de3333; color: white; text-align: center; padding: 8px 0;">\n                        <span>🚫 屏蔽</span>\n                    </a>\n                    <a id="favoriteBtn" class="menu-btn" style="width: 120px; background-color:#25b1dc; color: white; text-align: center; padding: 8px 0;">\n                        <span>⭐ 收藏</span>\n                    </a>\n                    <a id="hasDownBtn" class="menu-btn" style="width: 120px; background-color:#7bc73b; color: white; text-align: center; padding: 8px 0;">\n                        <span>📥️ 已下载</span>\n                    </a>\n                    <a id="hasWatchBtn" class="menu-btn" style="width: 120px; background-color:#d7a80c; color: white; text-align: center; padding: 8px 0;">\n                        <span>🔍 已观看</span>\n                    </a>\n                </div>\n        \n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="enable-magnets-filter" class="menu-btn" style="width: 140px; background-color: #c2bd4c; color: white; text-align: center; padding: 8px 0;">\n                        <span id="magnets-span">排序与过滤</span>\n                    </a>\n                    <a id="magnetSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to right, rgb(245,140,1), rgb(84,161,29)); color: white; text-align: center; padding: 8px 0;">\n                        <span>磁力搜索</span>\n                    </a>\n                    <a id="subtitleSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕搜索</span>\n                    </a>\n                    <!--\n                    <a id="xunLeiSubtitleBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (迅雷)</span>\n                    </a>\n                    <a id="search-subtitle-btn" class="menu-btn" style="width: 160px; background: linear-gradient(to bottom, #8d5656, rgb(196,159,91)); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (SubTitleCat)</span>\n                    </a>\n                    -->\n                </div>\n            </div>\n        ';
+            buttonsHtml = '\n            <div style="margin: 10px auto; display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap;gap: 20px;">\n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="filterBtn" class="menu-btn" style="width: 120px; background-color:#de3333; color: white; text-align: center; padding: 8px 0;">\n                        <span>🚫 屏蔽</span>\n                    </a>\n                    <a id="favoriteBtn" class="menu-btn" style="width: 120px; background-color:#25b1dc; color: white; text-align: center; padding: 8px 0;">\n                        <span>⭐ 收藏</span>\n                    </a>\n                    <a id="hasDownBtn" class="menu-btn" style="width: 120px; background-color:#7bc73b; color: white; text-align: center; padding: 8px 0;">\n                        <span>📥️ 已下载</span>\n                    </a>\n                    <a id="hasWatchBtn" class="menu-btn" style="width: 120px; background-color:#d7a80c; color: white; text-align: center; padding: 8px 0;">\n                        <span>🔍 已观看</span>\n                    </a>\n                </div>\n        \n                <div style="display: flex; gap: 10px; flex-wrap:wrap;">\n                    <a id="downloadCoverBtn" class="menu-btn" style="width: 140px; background-color: #9b59b6; color: white; text-align: center; padding: 8px 0;">\n                        <span>下载高清封面</span>\n                    </a>\n                    <a id="enable-magnets-filter" class="menu-btn" style="width: 140px; background-color: #c2bd4c; color: white; text-align: center; padding: 8px 0;">\n                        <span id="magnets-span">排序与过滤</span>\n                    </a>\n                    <a id="magnetSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to right, rgb(245,140,1), rgb(84,161,29)); color: white; text-align: center; padding: 8px 0;">\n                        <span>磁力搜索</span>\n                    </a>\n                    <a id="subtitleSearchBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕搜索</span>\n                    </a>\n                    <!--\n                    <a id="xunLeiSubtitleBtn" class="menu-btn" style="width: 120px; background: linear-gradient(to left, #375f7c, #2196F3); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (迅雷)</span>\n                    </a>\n                    <a id="search-subtitle-btn" class="menu-btn" style="width: 160px; background: linear-gradient(to bottom, #8d5656, rgb(196,159,91)); color: white; text-align: center; padding: 8px 0;">\n                        <span>字幕 (SubTitleCat)</span>\n                    </a>\n                    -->\n                </div>\n            </div>\n        ';
         isJavDb && $(".tabs").after(buttonsHtml);
         isJavBus && $("#mag-submit-show").before(buttonsHtml);
         $("#favoriteBtn").on("click", (() => this.favoriteOne()));
@@ -86,6 +99,45 @@ class DetailPageButtonPlugin extends BasePlugin {
         }));
         $("#subtitleSearchBtn").on("click", (() => {
             window.JavPackSubtitle.openSearchModal({details: {code: carNum2}});
+        }));
+        $("#downloadCoverBtn").on("click", (async () => {
+            if (!isEligibleDmmCoverCode(carNum2)) {
+                layer.msg("当前番号不支持下载高清封面");
+                return;
+            }
+            const $btn = $("#downloadCoverBtn");
+            $btn.addClass("is-loading").prop("disabled", true);
+            try {
+                const coverData = await fromJavxyCover(carNum2);
+                if (!coverData) {
+                    layer.msg("未找到高清封面");
+                    return;
+                }
+                const coverUrl = coverData.url || coverData.highCover || coverData.cover;
+                if (!coverUrl) {
+                    layer.msg("封面链接为空");
+                    return;
+                }
+                const fileName = `${carNum2}-cover.jpg`;
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: coverUrl,
+                    responseType: 'blob',
+                    onload: (response) => {
+                        if (response.status === 200) {
+                            utils.download(response.response, fileName);
+                        } else {
+                            layer.msg(`封面下载失败: ${response.status}`);
+                        }
+                    },
+                    onerror: () => layer.msg("封面下载网络错误"),
+                    ontimeout: () => layer.msg("封面下载超时"),
+                });
+            } catch (e) {
+                layer.msg("获取封面信息失败");
+            } finally {
+                $btn.removeClass("is-loading").prop("disabled", false);
+            }
         }));
         window.JavPackSubtitle.preload115Matches(carNum2);
         // $("#search-subtitle-btn").on("click", (event => utils.openPage(`https://subtitlecat.com/index.php?search=${carNum2}`, carNum2, !1, event)));

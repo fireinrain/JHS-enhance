@@ -1043,6 +1043,16 @@ insertStyle(
 insertStyle(mainCss);
 insertStyle(subtitleModalCss);
 
+const isEligibleDmmCoverCode = (value) => {
+  const raw = String(value || '').trim().toUpperCase();
+  if (!/^[A-Z0-9]{2,10}-\d{1,6}$/.test(raw)) return false;
+  const code = raw.replace(/\s+/g, '-').toUpperCase();
+  if (!/^[A-Z0-9]{2,10}-\d{1,6}$/.test(code) || /^FC2-/.test(code)) return false;
+  if (/^\d{6}[-_]\d{2,3}$/.test(code)) return false;
+  if (/^(DUGA|MYWIFE|HEYZO|PACO|10MU|1PONDO|CARIBBEAN|CARIB|TOKYO|GACHI|REAL|JUKU|AKA|NTR)-/.test(code)) return false;
+  return true;
+};
+
 export {
   __defProp,
   __typeError,
@@ -1052,6 +1062,7 @@ export {
   isJavDb,
   isJavBus,
   isSearchPage,
+  isEligibleDmmCoverCode,
   Status_RUNNING,
   Status_SUCCESS,
   Status_FAIL,
