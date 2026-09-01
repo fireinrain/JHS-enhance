@@ -47,6 +47,7 @@
 - **字幕搜索**：合并迅雷 + SubTitleCat 为单一入口，支持 115 网盘直传、详情页预匹配目录、多目录选择上传、长目录名截断展示、字幕预览绿色字体
 - **多源预览图**：javfree / projectjav / javstore 三源切换，来源按钮绿色高亮，sessionStorage 缓存，错误提示弹窗内显示
 - 演员信息展示、相关清单、评论查看
+- **下载高清封面**：获取 DMM 高清封面直链并下载，支持番号格式校验（排除 FC2/无码作品）
 - 以图识图、第三方站点跳转
 
 ### 115 网盘集成
@@ -109,7 +110,7 @@ JHS-enhance/
 │   │   ├── javdb.js             # JavDB API 封装（签名算法、搜索、评论、磁力列表）
 │   │   ├── dmm.js               # DMM 预览视频获取（多画质、默认画质选择）
 │   │   ├── dmm-graphql.js       # DMM GraphQL API（备选视频源回退）
-│   │   └── javxy.js             # Javxy 聚合视频 API（多源解析、签名生成）
+│   │   └── javxy.js             # Javxy 聚合 API（视频多源解析、高清封面获取、签名生成）
 │   ├── lib/                     # 第三方补丁库
 │   │   ├── gm-xhr-parallel.js   # Tampermonkey MV3 并行请求修复（redirect: manual）
 │   │   └── hls-runtime.js       # HLS 视频播放运行时（hls.js 封装、进度记忆、画质切换）
@@ -117,7 +118,7 @@ JHS-enhance/
 │       ├── list-page.js         # 列表页过滤与状态标签渲染
 │       ├── list-page-button.js  # 列表页功能按钮（待鉴定/已收藏/新作品/黑名单管理）
 │       ├── detail-page.js       # 详情页数据加载与基础增强
-│       ├── detail-page-button.js# 详情页操作按钮（115 目录预加载 + 磁力排序过滤面板）
+│       ├── detail-page-button.js# 详情页操作按钮（下载高清封面 + 115 目录预加载 + 磁力排序过滤面板）
 │       ├── setting.js           # 设置面板（Tab 页：基础/任务/域名/快捷键/屏蔽/缓存/标记删除/打赏作者；含 115 自动重命名开关 + 范围选择）
 │       ├── translate.js         # 标题翻译（Google 翻译 API，原始标题缓存）
 │       ├── preview-video.js     # DMM 预览视频播放器
