@@ -13,7 +13,7 @@ import {
 } from '../core/constants.js';
 import { HotkeyManager } from './preview-video.js';
 import {GM_xmlhttpRequest} from 'vite-plugin-monkey/dist/client';
-import {getJavxyCover} from '../api/javxy.js';
+import {getCover} from '../api/cover.js';
 
 class DetailPageButtonPlugin extends BasePlugin {
     getName() {
@@ -108,14 +108,9 @@ class DetailPageButtonPlugin extends BasePlugin {
             const $btn = $("#downloadCoverBtn");
             $btn.addClass("is-loading").prop("disabled", true);
             try {
-                const coverData = await getJavxyCover(carNum2);
-                if (!coverData) {
-                    show.error("未找到高清封面");
-                    return;
-                }
-                const coverUrl = coverData.url || coverData.highCover || coverData.cover;
+                const coverUrl = await getCover(carNum2);
                 if (!coverUrl) {
-                    show.error("封面链接为空");
+                    show.error("未找到高清封面");
                     return;
                 }
                 const fileName = `${carNum2}-cover.jpg`;
