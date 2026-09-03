@@ -13,7 +13,7 @@ import {
 } from '../core/constants.js';
 import { HotkeyManager } from './preview-video.js';
 import {GM_xmlhttpRequest} from 'vite-plugin-monkey/dist/client';
-import {getCover} from '../api/cover.js';
+import {getCover} from '../api/dmmrsc.js';
 
 class DetailPageButtonPlugin extends BasePlugin {
     getName() {

@@ -64,6 +64,16 @@ const currentHref = window.location.href,
     text: "中画质 (432p)",
     canSelect: !0
   }, {
+    id: "video-dm",
+    quality: "dm",
+    text: "低画质 (1000kbps)",
+    canSelect: !0
+  }, {
+    id: "video-dmb",
+    quality: "dmb",
+    text: "中画质 (1500kbps)",
+    canSelect: !0
+  }, {
     id: "video-mhb",
     quality: "mhb",
     text: "高画质 (576p)",

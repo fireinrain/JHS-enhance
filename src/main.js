@@ -29,7 +29,7 @@ import { TOP250Plugin } from './plugins/top250.js';
 import { NavBarPlugin } from './plugins/nav-bar.js';
 import { BusDetailPagePlugin } from './plugins/bus-detail-page.js';
 import { BusPreviewVideoPlugin } from './plugins/bus-preview-video.js';
-import {JavxyPreviewVideoPlugin} from './plugins/javxy-preview-video.js';
+import {JavopenPreviewVideoPlugin} from './plugins/javopen-preview-video.js';
 import { ImageRecognitionPlugin } from './plugins/image-recognition.js';
 import { BusNavBarPlugin } from './plugins/bus-nav-bar.js';
 import { RelatedPlugin } from './plugins/related.js';
@@ -879,7 +879,7 @@ const pluginManager = function() {
         pluginManager2.register(DetailPageButtonPlugin);
         pluginManager2.register(HighlightMagnetPlugin);
         pluginManager2.register(PreviewVideoPlugin);
-        pluginManager2.register(JavxyPreviewVideoPlugin);
+        pluginManager2.register(JavopenPreviewVideoPlugin);
         pluginManager2.register(FilterTitleKeywordPlugin);
         pluginManager2.register(ActressInfoPlugin);
         pluginManager2.register(OtherSitePlugin);
