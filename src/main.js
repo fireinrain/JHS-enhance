@@ -910,7 +910,7 @@ const pluginManager = function() {
         pluginManager2.register(FilterTitleKeywordPlugin);
         pluginManager2.register(HighlightMagnetPlugin);
         pluginManager2.register(BusPreviewVideoPlugin);
-        pluginManager2.register(JavxyPreviewVideoPlugin);
+        pluginManager2.register(JavopenPreviewVideoPlugin);
         pluginManager2.register(MagnetHubPlugin);
         pluginManager2.register(ScreenShotPlugin);
         pluginManager2.register(OtherSitePlugin);
