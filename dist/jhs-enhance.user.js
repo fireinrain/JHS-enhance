@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JHS-enhance
 // @namespace    JHS-enhance
-// @version      3.3.14
+// @version      3.3.15
 // @author       xiebro,fireinrain
 // @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
 // @license      MIT
@@ -254,7 +254,7 @@ System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueim
             isSearchPage = currentHref$1.includes("/search?q") || currentHref$1.includes("/search/") || currentHref$1.includes("/users/"),
             Status_RUNNING = "RUNNING", Status_SUCCESS = "SUCCESS", Status_FAIL = "FAIL", Status_LOADING = "LOADING",
             Status_FILTER$1 = "filter", Status_FAVORITE$1 = "favorite", Status_HAS_DOWN$1 = "hasDown",
-            Status_HAS_WATCH$1 = "hasWatch", NO = "no", YES$1 = "yes", qualityOptions = [{
+            Status_HAS_WATCH$1 = "hasWatch", NO$1 = "no", YES$1 = "yes", qualityOptions = [{
                 id: "video-mhb",
                 quality: "dmb_w",
                 text: "旧视频源-中画质宽版 (404p)",
@@ -1315,7 +1315,7 @@ System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueim
       window.Status_FAVORITE = Status_FAVORITE$1;
       window.Status_HAS_DOWN = Status_HAS_DOWN$1;
       window.Status_HAS_WATCH = Status_HAS_WATCH$1;
-      window.NO = NO;
+        window.NO = NO$1;
       window.YES = YES$1;
       const HAS_GM = typeof GM !== "undefined";
       const NEW_GM = ((scope, GM2) => {
@@ -3336,7 +3336,7 @@ ${value}\r
         }
         async loadNextPage() {
           var _a2;
-          if (await storageManager.getSetting("autoPage", YES$1) === NO) {
+            if (await storageManager.getSetting("autoPage", YES$1) === NO$1) {
             this.setState("waterfall-loading", "");
             return;
           }
@@ -4077,6 +4077,7 @@ ${value}\r
                     <div class="side-menu-item ${"base-panel" === defaultActivePanel ? "active" : ""}" data-panel="base-panel">⚙️ 基础配置</div>
                     <div class="side-menu-item ${"filter-panel" === defaultActivePanel ? "active" : ""}" data-panel="filter-panel">🚫 屏蔽配置</div>
                     <div class="side-menu-item ${"task-panel" === defaultActivePanel ? "active" : ""}" data-panel="task-panel">📋 定时任务</div>
+                    <div class="side-menu-item ${"offline-panel" === defaultActivePanel ? "active" : ""}" data-panel="offline-panel">📂 离线配置</div>
                     <div class="side-menu-item ${"domain-panel" === defaultActivePanel ? "active" : ""}" data-panel="domain-panel" title="第三方视频资源域名配置">🌐 外部网站</div>
                     <div class="side-menu-item ${"mark-delete-panel" === defaultActivePanel ? "active" : ""}" data-panel="mark-delete-panel">🗑️ 标记删除</div>
                     <div class="side-menu-item ${"hotkey-panel" === defaultActivePanel ? "active" : ""}" data-panel="hotkey-panel">⌨️ 快捷键配置</div>
@@ -4460,6 +4461,37 @@ ${value}\r
                             </div>
                         </div>               
          
+                        <!-- 离线配置面板 -->
+                        <div id="offline-panel" class="content-panel" style="display: ${"offline-panel" === defaultActivePanel ? "block" : "none"};">
+                            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 15px;">
+                                <span style="font-size: 14px; font-weight: bold; padding:3px">115离线文件夹命名</span>
+                                <div class="setting-item">
+                                    <span class="setting-label">
+                                        启用自定义格式:
+                                    </span>
+                                    <div class="form-content" style="text-align: right;">
+                                        <input type="checkbox" id="enable115OfflineFormat" class="mini-switch">
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <span class="setting-label">命名格式:</span>
+                                    <div class="form-content" style="max-width: 600px;">
+                                        <input id="offlineFolderFormat" placeholder="例: \${code}" style="width: 100%;">
+                                    </div>
+                                </div>
+                                <div style="margin-top: 10px; padding: 8px; background: #f8f8f8; border-radius: 4px; font-size: 12px; color: #666; line-height: 1.8;">
+                                    <div style="font-weight: bold; margin-bottom: 4px;">可用变量（\${} 形式）:</div>
+                                    <div><code>code</code> - 完整番号（如 ABC-123）</div>
+                                    <div><code>title</code> - 作品标题</div>
+                                    <div><code>maker</code> - 片商</div>
+                                    <div><code>actor</code> - 演员（多演员只取第一个）</div>
+                                    <div><code>date</code> - 当前日期（YYYY-MM-DD）</div>
+                                    <div style="margin-top: 6px; color: #999;">例: <code>\${actor}/\${code}</code> = 演员目录下的番号子目录</div>
+                                    <div style="color: #e67e22;">支持 / 分隔的多级目录，离线文件下载到最末级子目录</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- 域名设置面板 -->
                         <div id="domain-panel" class="content-panel" style="display: ${"domain-panel" === defaultActivePanel ? "block" : "none"};">
                             <div class="setting-item">
@@ -4969,6 +5001,8 @@ ${value}\r
             })).on("keydown", ((event) => this.handleHotkeyInput(event, $element)));
           }));
           $("#enableImageHotKey").prop("checked", !!settingObj.enableImageHotKey && settingObj.enableImageHotKey === YES$1);
+            $("#enable115OfflineFormat").prop("checked", !!settingObj.enable115OfflineFormat && settingObj.enable115OfflineFormat === YES$1);
+            $("#offlineFolderFormat").val(settingObj.offlineFolderFormat || "");
         }
         handleHotkeyInput(event, $input) {
           event.preventDefault();
@@ -5041,7 +5075,7 @@ ${value}\r
             storageManager.saveSettingItem("containerWidth", containerWidth + 70);
           }));
           $("#dialogOpenDetail").on("change", ((event) => {
-            let dialogOpenDetail = $("#dialogOpenDetail").is(":checked") ? YES$1 : NO;
+              let dialogOpenDetail = $("#dialogOpenDetail").is(":checked") ? YES$1 : NO$1;
             storageManager.saveSettingItem("dialogOpenDetail", dialogOpenDetail);
           }));
           $("#showFilterItem").prop("checked", !!settingObj.showFilterItem && settingObj.showFilterItem === YES$1);
@@ -5051,32 +5085,32 @@ ${value}\r
           $("#showHasDownItem").prop("checked", !settingObj.showHasDownItem || settingObj.showHasDownItem === YES$1);
           $("#showHasWatchItem").prop("checked", !settingObj.showHasWatchItem || settingObj.showHasWatchItem === YES$1);
           $("#showFilterItem").on("change", (async (event) => {
-            let showFilterItem = $("#showFilterItem").is(":checked") ? YES$1 : NO;
+              let showFilterItem = $("#showFilterItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showFilterItem", showFilterItem);
             window.refresh();
           }));
           $("#showFilterActorItem").on("change", (async (event) => {
-            let showFilterActorItem = $("#showFilterActorItem").is(":checked") ? YES$1 : NO;
+              let showFilterActorItem = $("#showFilterActorItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showFilterActorItem", showFilterActorItem);
             window.refresh();
           }));
           $("#showFilterKeywordItem").on("change", (async (event) => {
-            let showFilterKeywordItem = $("#showFilterKeywordItem").is(":checked") ? YES$1 : NO;
+              let showFilterKeywordItem = $("#showFilterKeywordItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showFilterKeywordItem", showFilterKeywordItem);
             window.refresh();
           }));
           $("#showFavoriteItem").on("change", (async (event) => {
-            let showFavoriteItem = $("#showFavoriteItem").is(":checked") ? YES$1 : NO;
+              let showFavoriteItem = $("#showFavoriteItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showFavoriteItem", showFavoriteItem);
             window.refresh();
           }));
           $("#showHasDownItem").on("change", (async (event) => {
-            let showHasDownItem = $("#showHasDownItem").is(":checked") ? YES$1 : NO;
+              let showHasDownItem = $("#showHasDownItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showHasDownItem", showHasDownItem);
             window.refresh();
           }));
           $("#showHasWatchItem").on("change", (async (event) => {
-            let showHasWatchItem = $("#showHasWatchItem").is(":checked") ? YES$1 : NO;
+              let showHasWatchItem = $("#showHasWatchItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showHasWatchItem", showHasWatchItem);
             window.refresh();
           }));
@@ -5088,23 +5122,23 @@ ${value}\r
                 };
           $("#showAllItem").prop("checked", !!settingObj.showAllItem && settingObj.showAllItem === YES$1);
           $("#showAllItem").on("change", (async (event) => {
-            let showAllItem = $("#showAllItem").is(":checked") ? YES$1 : NO;
+              let showAllItem = $("#showAllItem").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("showAllItem", showAllItem);
             updateOtherCheckboxesState();
             window.refresh();
           }));
           updateOtherCheckboxesState();
           $("#needClosePage").on("change", (async (event) => {
-            await storageManager.saveSettingItem("needClosePage", $("#needClosePage").is(":checked") ? YES$1 : NO);
+              await storageManager.saveSettingItem("needClosePage", $("#needClosePage").is(":checked") ? YES$1 : NO$1);
             window.refresh();
           }));
           $("#autoPage").on("change", (async (event) => {
-            const autoPage = $("#autoPage").is(":checked") ? YES$1 : NO;
+              const autoPage = $("#autoPage").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("autoPage", autoPage);
             autoPage === YES$1 ? ($("#sort-toggle-btn").hide(), $("#one-time-sort-btn").show()) : ($("#sort-toggle-btn").show(), $("#one-time-sort-btn").hide());
           }));
           $("#translateTitle").on("change", (async (event) => {
-            const translateTitle = $("#translateTitle").is(":checked") ? YES$1 : NO;
+              const translateTitle = $("#translateTitle").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("translateTitle", translateTitle);
             if (translateTitle === YES$1) {
               await this.getBean("ListPagePlugin").doFilter();
@@ -5116,38 +5150,38 @@ ${value}\r
           }));
           $("#hoverBigImg").prop("checked", !!settingObj.hoverBigImg && settingObj.hoverBigImg === YES$1);
           $("#hoverBigImg").on("change", (async (event) => {
-            const hoverBigImg = $("#hoverBigImg").is(":checked") ? YES$1 : NO;
+              const hoverBigImg = $("#hoverBigImg").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("hoverBigImg", hoverBigImg);
             hoverBigImg === YES$1 ? window.imageHoverPreviewObj = new ImageHoverPreview({
               selector: this.getSelector().coverImgSelector
             }) : window.imageHoverPreviewObj && window.imageHoverPreviewObj.destroy();
           }));
           $("#enableLoadActressInfo").on("change", (async (event) => {
-            const enableLoadActressInfo = $("#enableLoadActressInfo").is(":checked") ? YES$1 : NO;
+              const enableLoadActressInfo = $("#enableLoadActressInfo").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enableLoadActressInfo", enableLoadActressInfo);
             enableLoadActressInfo === YES$1 ? this.getBean("ActressInfoPlugin").loadActressInfo() : $(".actress-info").remove();
           }));
           $("#enableLoadOtherSite").on("change", (async (event) => {
-            const enableLoadOtherSite = $("#enableLoadOtherSite").is(":checked") ? YES$1 : NO;
+              const enableLoadOtherSite = $("#enableLoadOtherSite").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enableLoadOtherSite", enableLoadOtherSite);
             enableLoadOtherSite === YES$1 ? this.getBean("OtherSitePlugin").loadOtherSite().then() : $("#otherSiteBox").remove();
           }));
           $("#enableLoadScreenShot").prop("checked", !settingObj.enableLoadScreenShot || settingObj.enableLoadScreenShot === YES$1);
           $("#enableLoadScreenShot").on("change", (async (event) => {
-            const enableLoadScreenShot = $("#enableLoadScreenShot").is(":checked") ? YES$1 : NO;
+              const enableLoadScreenShot = $("#enableLoadScreenShot").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enableLoadScreenShot", enableLoadScreenShot);
             enableLoadScreenShot === YES$1 ? this.getBean("ScreenShotPlugin").loadScreenShot().then() : $(".screen-container").remove();
           }));
           $("#enableLoadPreviewVideo").prop("checked", !settingObj.enableLoadPreviewVideo || settingObj.enableLoadPreviewVideo === YES$1);
           $("#enableLoadPreviewVideo").on("change", (async (event) => {
-            const enableLoadPreviewVideo = $("#enableLoadPreviewVideo").is(":checked") ? YES$1 : NO;
+              const enableLoadPreviewVideo = $("#enableLoadPreviewVideo").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enableLoadPreviewVideo", enableLoadPreviewVideo);
           }));
           $("#enable115AutoRename").prop("checked", !!settingObj.enable115AutoRename && settingObj.enable115AutoRename === YES$1);
           $("#autoRenameScope").val(settingObj.autoRenameScope || "vr_only");
           $("#autoRenameScopeRow").toggle(!!settingObj.enable115AutoRename && settingObj.enable115AutoRename === YES$1);
           $("#enable115AutoRename").on("change", (async (event) => {
-            const enable115AutoRename = $("#enable115AutoRename").is(":checked") ? YES$1 : NO;
+              const enable115AutoRename = $("#enable115AutoRename").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enable115AutoRename", enable115AutoRename);
             $("#autoRenameScopeRow").toggle(enable115AutoRename === YES$1);
           }));
@@ -5156,14 +5190,14 @@ ${value}\r
           }));
           $("#enable115Match").prop("checked", !!settingObj.enable115Match && settingObj.enable115Match === YES$1);
           $("#enable115Match").on("change", (async (event) => {
-            const enable115Match = $("#enable115Match").is(":checked") ? YES$1 : NO;
+              const enable115Match = $("#enable115Match").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enable115Match", enable115Match);
             let movieList = $(this.getSelector().itemSelector).toArray();
             await this.getBean("WangPan115MatchPlugin").matchMovieList(movieList);
           }));
           $("#enableVerticalModel").prop("checked", !!settingObj.enableVerticalModel && settingObj.enableVerticalModel === YES$1);
           $("#enableVerticalModel").on("change", (async (event) => {
-            const enableVerticalModel = $("#enableVerticalModel").is(":checked") ? YES$1 : NO;
+              const enableVerticalModel = $("#enableVerticalModel").is(":checked") ? YES$1 : NO$1;
             await storageManager.saveSettingItem("enableVerticalModel", enableVerticalModel);
             this.applyImageMode();
           }));
@@ -5272,7 +5306,7 @@ ${value}\r
         }
         async applyImageMode() {
           $("#verticalImgStyle").remove();
-          if (await storageManager.getSetting("enableVerticalModel", NO) === YES$1) {
+            if (await storageManager.getSetting("enableVerticalModel", NO$1) === YES$1) {
             let imgPosition = "100% 50% !important";
             window.location.href.includes("/advanced_search?type=100") && (imgPosition = "50% 50% !important");
             const verticalStyle = `
@@ -5443,11 +5477,11 @@ ${value}\r
           settingObj.refresh_token = $("#refresh_token").val();
           settingObj.highlightedTagNumber = $("#highlightedTagNumber").val();
           settingObj.highlightedTagColor = $("#highlightedTagColor").val();
-          settingObj.showWaitCheckBtn = $("#showWaitCheckBtn").is(":checked") ? YES$1 : NO;
+            settingObj.showWaitCheckBtn = $("#showWaitCheckBtn").is(":checked") ? YES$1 : NO$1;
           settingObj.showWaitCheckBtn === YES$1 ? $("#waitCheckBtn").show() : $("#waitCheckBtn").hide();
-          settingObj.showWaitDownBtn = $("#showWaitDownBtn").is(":checked") ? YES$1 : NO;
+            settingObj.showWaitDownBtn = $("#showWaitDownBtn").is(":checked") ? YES$1 : NO$1;
           settingObj.showWaitDownBtn === YES$1 ? $("#waitDownBtn").show() : $("#waitDownBtn").hide();
-          settingObj.randomOpenWaitDown = $("#randomOpenWaitDown").is(":checked") ? YES$1 : NO;
+            settingObj.randomOpenWaitDown = $("#randomOpenWaitDown").is(":checked") ? YES$1 : NO$1;
           settingObj.checkConcurrencyCount = $("#checkConcurrencyCount").val();
           settingObj.checkRequestSleep = $("#checkRequestSleep").val();
           settingObj.enableCheckBlacklist = $("#enableCheckBlacklist").val();
@@ -5473,18 +5507,20 @@ ${value}\r
           settingObj.javDbUrl = $("#javDbUrl").val().replace(/\/$/, "");
           settingObj.javBusUrl = $("#javBusUrl").val().replace(/\/$/, "");
           settingObj.supJavUrl = $("#supJavUrl").val().replace(/\/$/, "");
-          settingObj.enableTitleSelectFilter = $("#enableTitleSelectFilter").is(":checked") ? YES$1 : NO;
-          settingObj.enableFavoriteActresses = $("#enableFavoriteActresses").is(":checked") ? YES$1 : NO;
-          settingObj.enableSaveActressCarInfo = $("#enableSaveActressCarInfo").is(":checked") ? YES$1 : NO;
-          settingObj.enableScreenSvg = $("#enableScreenSvg").is(":checked") ? YES$1 : NO;
-          settingObj.enableVideoSvg = $("#enableVideoSvg").is(":checked") ? YES$1 : NO;
-          settingObj.enableHandleSvg = $("#enableHandleSvg").is(":checked") ? YES$1 : NO;
-          settingObj.enableSiteSvg = $("#enableSiteSvg").is(":checked") ? YES$1 : NO;
-          settingObj.enableCopySvg = $("#enableCopySvg").is(":checked") ? YES$1 : NO;
+            settingObj.enableTitleSelectFilter = $("#enableTitleSelectFilter").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableFavoriteActresses = $("#enableFavoriteActresses").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableSaveActressCarInfo = $("#enableSaveActressCarInfo").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableScreenSvg = $("#enableScreenSvg").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableVideoSvg = $("#enableVideoSvg").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableHandleSvg = $("#enableHandleSvg").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableSiteSvg = $("#enableSiteSvg").is(":checked") ? YES$1 : NO$1;
+            settingObj.enableCopySvg = $("#enableCopySvg").is(":checked") ? YES$1 : NO$1;
           $("#hotkey-panel [id]").map(((i, el) => el.id)).get().forEach(((containerId) => {
             settingObj[containerId] = $(`#${containerId}`).val();
           }));
-          settingObj.enableImageHotKey = $("#enableImageHotKey").is(":checked") ? YES$1 : NO;
+            settingObj.enableImageHotKey = $("#enableImageHotKey").is(":checked") ? YES$1 : NO$1;
+            settingObj.enable115OfflineFormat = $("#enable115OfflineFormat").is(":checked") ? YES$1 : NO$1;
+            settingObj.offlineFolderFormat = $("#offlineFolderFormat").val();
           await storageManager.saveSetting(settingObj);
           let reviewKeywordList = [];
           $("#reviewKeywordContainer .keyword-label").toArray().forEach(((item) => {
@@ -7439,7 +7475,7 @@ ${value}\r
           }
         }
         async handleVideo() {
-          if (await storageManager.getSetting("enableLoadPreviewVideo", YES$1) === NO) return;
+            if (await storageManager.getSetting("enableLoadPreviewVideo", YES$1) === NO$1) return;
           const $videoEl = $("#preview-video");
           if (!$videoEl.length) return;
           const $videoContainer = $videoEl.parent();
@@ -9282,7 +9318,7 @@ ${value}\r
           $foldCategoryBtn.on("click", (async (event) => {
             event.preventDefault();
             isFolded = !isFolded;
-            localStorage.setItem("jhs_foldCategory", isFolded ? YES$1 : NO);
+              localStorage.setItem("jhs_foldCategory", isFolded ? YES$1 : NO$1);
             const [newText2, newIcon2] = isFolded ? ["展开", "icon-angle-double-down"] : ["折叠", "icon-angle-double-up"];
             $foldCategoryBtn.find("span").text(newText2).end().find("i").attr("class", newIcon2);
             $subTags[isFolded ? "hide" : "show"]();
@@ -10779,7 +10815,7 @@ ${err.stack}` : "");
           return "RelatedPlugin";
         }
         async showRelated($eleBox, movieId) {
-          const enableLoadRelated = await storageManager.getSetting("enableLoadRelated", NO), $magnets = $eleBox;
+            const enableLoadRelated = await storageManager.getSetting("enableLoadRelated", NO$1), $magnets = $eleBox;
           if (movieId) {
             $magnets.append(`
             <div style="display: flex; align-items: center; margin: 16px 0; color: #666; font-size: 14px;">
@@ -10810,7 +10846,7 @@ ${err.stack}` : "");
               } else {
                 $("#relatedContainer").hide();
                 $("#relatedFooter").hide();
-                storageManager.saveSettingItem("enableLoadRelated", NO);
+                  storageManager.saveSettingItem("enableLoadRelated", NO$1);
               }
             }));
             $magnets.append('<div id="relatedContainer"></div>');
@@ -12578,7 +12614,103 @@ ${err.stack}` : "");
                 $headerRow.append($("<td>").text("操作"));
             }
         }
+
+          static sanitizeDirName(str) {
+              if (!str) return "";
+              return str.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+          }
+
+          static parseOfflineDirTemplate(str, params) {
+              if (!str || !params) return str;
+              return str.replace(/\$\{(\w+)\}/g, (match, key) => {
+                  if (!params.hasOwnProperty(key)) return match;
+                  const value = params[key] || "";
+                  return WangPan115TaskPlugin.sanitizeDirName(String(value));
+              });
+          }
+
+          static async ensureDir(dirName, pid = 0) {
+              const result = await gmHttp.postFileFormData("https://webapi.115.com/files/add", {
+                  pid,
+                  cname: dirName
+              });
+              if (result && result.file_id) return result.file_id;
+              const searchRes = await searchFiles(dirName, 0, 1, {fc: 1});
+              if (searchRes && searchRes.data && searchRes.data.length > 0) {
+                  const match = searchRes.data.find((d) => d.pid === pid || d.pid === String(pid));
+                  if (match) return match.fid || match.file_id;
+              }
+              return null;
+          }
+
+          static async registerDirAsDownPath(fileId, dirName) {
+              await gmHttp.postFileFormData("https://webapi.115.com/offine/downpath", {
+                  file_id: fileId
+              });
+              const list = await getDownPathList();
+              const created = list ? list.find((d) => d.file_id === fileId || String(d.file_id) === String(fileId)) : null;
+              return created ? created.id : null;
+          }
+
+          static async createMultiLevelDownPath(templatePath) {
+              const segments = templatePath.split("/").filter((s) => s.trim());
+              if (segments.length === 0) return null;
+              let pid = 0;
+              let fileId = null;
+              for (const seg of segments) {
+                  fileId = await WangPan115TaskPlugin.ensureDir(seg.trim(), pid);
+                  if (!fileId) {
+                      console.error("[115离线] 创建目录失败:", seg);
+                      return null;
+                  }
+                  pid = fileId;
+              }
+              const lastDirName = segments[segments.length - 1].trim();
+              const downPathId = await WangPan115TaskPlugin.registerDirAsDownPath(fileId, lastDirName);
+              console.log("[115离线] 多级目录创建完成:", templatePath, "→ downPathId=" + downPathId);
+              return downPathId;
+          }
+
+          getPageInfoForOffline() {
+              const baseInfo = this.getPageInfo();
+              const carNum2 = baseInfo.carNum || "";
+              let title = "", maker = "", actor = "";
+              if (isJavBus$1) {
+                  title = $("h3").first().text().trim();
+                  maker = $('span.header:contains("製作商:")').parent("p").text().replace("製作商:", "").trim() || $('span.header:contains("制作商:")').parent("p").text().replace("制作商:", "").trim();
+                  const actorEl = $('span.genre a[href*="/star/"]').first();
+                  actor = actorEl.length ? actorEl.text().trim() : "";
+              } else {
+                  title = $(".current-title").first().text().trim() || $("h2.title.is-4 .current-title").first().text().trim() || $(".movie-title").first().text().trim();
+                  maker = $('strong:contains("片商:")').parent().find(".value").text().trim() || $('strong:contains("片商：")').parent().find(".value").text().trim();
+                  actor = $(".actor-female").first().text().trim() || $('strong:contains("演員:"), strong:contains("演员:")').parent().find(".value a").first().text().trim() || "";
+              }
+              const now = /* @__PURE__ */ new Date();
+              if (carNum2 && title) {
+                  const upperTitle = title.toUpperCase();
+                  const upperCode = carNum2.toUpperCase();
+                  if (upperTitle.startsWith(upperCode)) {
+                      title = title.substring(carNum2.length).replace(/^[\s\-_]+/, "").trim();
+                  }
+              }
+              console.log("[115离线] 页面信息提取:", {code: carNum2, title, maker, actor});
+              return {
+                  code: carNum2,
+                  title,
+                  maker,
+                  actor,
+                  date: utils.formatDate(now).split(" ")[0]
+              };
+          }
         async getSavePathId(nyName) {
+            const enableCustom = await storageManager.getSetting("enable115OfflineFormat", NO);
+            if (enableCustom === YES) {
+                const template = await storageManager.getSetting("offlineFolderFormat", "");
+                if (template && template.includes("${")) {
+                    const pageInfo = this.getPageInfoForOffline();
+                    return WangPan115TaskPlugin.parseOfflineDirTemplate(template, pageInfo);
+                }
+            }
           let savePath115 = await storageManager.getSetting("savePath115", "云下载");
           nyName && (savePath115 = savePath115.replaceAll("{ny}", nyName));
           savePath115 = savePath115.replaceAll("{date}", utils.formatDate(/* @__PURE__ */ new Date()));
@@ -12599,17 +12731,42 @@ ${err.stack}` : "");
             });
             return;
           }
-            const sign = singInfo.sign, time = singInfo.time, userId = this.getUserId(),
-                result = await (async (magnet, wp_path_id = "", uid, sign2, time2) => {
-                    const data = {
-                        url: encodeURIComponent(magnet),
-                        wp_path_id,
-                        uid,
-                        sign: sign2,
-                        time: time2
-                    };
-                    return await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=add_task_url", data);
-                })(magnetLink, savePath || "", userId, sign, time);
+            const sign = singInfo.sign, time = singInfo.time, userId = this.getUserId();
+            let wp_path_id = savePath || "";
+            if (!wp_path_id) {
+                const fullPath = await this.getSavePathId();
+                console.log("[115离线] 目录模板解析结果:", fullPath);
+                if (fullPath) {
+                    if (fullPath.includes("/")) {
+                        console.log("[115离线] 检测到多级目录，逐级创建:", fullPath);
+                        const newId = await WangPan115TaskPlugin.createMultiLevelDownPath(fullPath);
+                        if (newId) wp_path_id = newId;
+                    } else {
+                        const downPathList = await getDownPathList();
+                        if (downPathList && downPathList.length > 0) {
+                            const matched = downPathList.find(((d) => d.name === fullPath));
+                            if (matched) {
+                                wp_path_id = matched.id;
+                                console.log('[115离线] 目录匹配结果: 匹配到 "' + matched.name + '" -> id=' + matched.id);
+                            } else {
+                                console.log('[115离线] 目录匹配结果: 未匹配到 "' + fullPath + '"，自动创建并注册');
+                                const newId = await WangPan115TaskPlugin.createMultiLevelDownPath(fullPath);
+                                if (newId) wp_path_id = newId;
+                            }
+                        }
+                    }
+                }
+            }
+            const result = await (async (magnet, wp_path_id2 = "", uid, sign2, time2) => {
+                const data = {
+                    url: encodeURIComponent(magnet),
+                    wp_path_id: wp_path_id2,
+                    uid,
+                    sign: sign2,
+                    time: time2
+                };
+                return await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=add_task_url", data);
+            })(magnetLink, wp_path_id, userId, sign, time);
           console.log("离线下载返回值:", result);
             let infoHash = result.info_hash, fileId = await this.getFileId(userId, sign, time, infoHash),
                 openUrl = "https://115.com/?tab=offline&mode=wangpan";
@@ -13026,7 +13183,7 @@ ${err.stack}` : "");
         }
         async matchDetailPage(matchList) {
           if (!window.isDetailPage) return;
-          if (await storageManager.getSetting("enable115Match", NO) === NO) return;
+            if (await storageManager.getSetting("enable115Match", NO$1) === NO$1) return;
             const $detail = $('\n            <div class="jhs-match-detail jhs-115-match-detail" id="115-match-table">\n                <table>\n                    <thead>\n                        <tr style="text-align: center">\n                            <th colspan="4">115匹配</th>\n                        </tr>\n                        <tr>\n                            <th>名称</th>\n                            <th>大小</th>\n                            <th>时间</th>\n                            <th>播放</th>\n                        </tr>\n                    </thead>\n                    <tbody>\n                    </tbody>\n                </table>\n            </div>\n        '),
                 $tbody = $detail.find("tbody");
           try {
@@ -13083,7 +13240,7 @@ ${err.stack}` : "");
           else $("#mag-submit-show").before($detail);
         }
         async matchMovieList(movieListElement) {
-          if (await storageManager.getSetting("enable115Match", NO) !== NO) {
+            if (await storageManager.getSetting("enable115Match", NO$1) !== NO$1) {
             await this.checkLoginStatus();
             await this.processMovieElements(movieListElement);
           } else $(".video-title [class^='jhs-match-']").remove();
@@ -13468,7 +13625,7 @@ ${err.stack}` : "");
         }
         async autoRenameFiles(carNum2, matchList) {
           try {
-            const enableAutoRename = await storageManager.getSetting("enable115AutoRename", NO);
+              const enableAutoRename = await storageManager.getSetting("enable115AutoRename", NO$1);
             if (enableAutoRename !== YES) return;
             const scope = await storageManager.getSetting("autoRenameScope", "vr_only");
             if (scope === "vr_only" && !carNum2.toUpperCase().includes("VR")) return;
@@ -13710,7 +13867,7 @@ ${err.stack}` : "");
           return itemList;
         }
         async logImageHeightsByRow() {
-          if (await storageManager.getSetting("enableVerticalModel", NO) === YES$1) return;
+            if (await storageManager.getSetting("enableVerticalModel", NO$1) === YES$1) return;
             const itemSelector = this.getSelector().itemSelector,
                 containerColumns = await storageManager.getSetting("containerColumns", 5),
                 itemList = await this.getVisibleImageItems(itemSelector, "img");
@@ -13781,8 +13938,8 @@ ${err.stack}` : "");
                   sortText = "当前排序方式: " + ("rateCount" === jhs_sortMethod ? "评价人数" : "date" === jhs_sortMethod ? "时间" : "默认");
             $el.append(`
                 <div style="display: flex;align-items: center; ${otherCss} ">
-                    <a id="waitCheckBtn" class="menu-btn main-tab-btn" data-tip="打开未鉴定的列表项, 并自动播放视频" style="background-color:#56c938 !important; ${showWaitCheckBtn === NO ? "display: none" : ""}"><span>打开待鉴定</span></a>
-                    <a id="waitDownBtn" class="menu-btn main-tab-btn" style="background-color:#2caac0 !important; ${showWaitDownBtn === NO ? "display: none" : ""}"><span>打开已收藏</span></a>
+                    <a id="waitCheckBtn" class="menu-btn main-tab-btn" data-tip="打开未鉴定的列表项, 并自动播放视频" style="background-color:#56c938 !important; ${showWaitCheckBtn === NO$1 ? "display: none" : ""}"><span>打开待鉴定</span></a>
+                    <a id="waitDownBtn" class="menu-btn main-tab-btn" style="background-color:#2caac0 !important; ${showWaitDownBtn === NO$1 ? "display: none" : ""}"><span>打开已收藏</span></a>
                     ${isStarPage ? `
                      <a id="addBlacklistBtn" class="menu-btn main-tab-btn" style="background-color:${addBlacklistBtnColor} !important;" data-tip="将演员加入黑名单, 后续有作品更新也会纳入屏蔽中"><span>${addBlacklistBtnText}</span></a>
                      <a id="filterAllVideo" class="menu-btn main-tab-btn" style="background-color:#e8ab39 !important;margin-right: 30px!important;" data-tip="一键屏蔽已选分类的视频列表至鉴定记录中"><span>一键屏蔽所有作品</span></a>
@@ -13811,8 +13968,8 @@ ${err.stack}` : "");
             }
             $(".masonry").parent().prepend(`
                 <div style="margin: 10px; display: flex;">
-                    <a id="waitCheckBtn" class="menu-btn main-tab-btn" style="background-color:#56c938 !important; ${showWaitCheckBtn === NO ? "display: none" : ""}"><span>打开待鉴定</span></a>
-                    <a id="waitDownBtn" class="menu-btn main-tab-btn" style="background-color:#2caac0 !important; ${showWaitDownBtn === NO ? "display: none" : ""}"><span>打开已收藏</span></a>
+                    <a id="waitCheckBtn" class="menu-btn main-tab-btn" style="background-color:#56c938 !important; ${showWaitCheckBtn === NO$1 ? "display: none" : ""}"><span>打开待鉴定</span></a>
+                    <a id="waitDownBtn" class="menu-btn main-tab-btn" style="background-color:#2caac0 !important; ${showWaitDownBtn === NO$1 ? "display: none" : ""}"><span>打开已收藏</span></a>
                     
                     ${isStarPage ? `    
                         <a id="addBlacklistBtn" class="menu-btn main-tab-btn" style="background-color:${addBlacklistBtnColor} !important;" data-tip="将演员加入黑名单, 后续有作品更新也会纳入屏蔽中"><span>${addBlacklistBtnText}</span></a>
@@ -14019,7 +14176,7 @@ ${err.stack}` : "");
         }
         async openFavorite() {
             let favoriteList, openCount = await storageManager.getSetting("waitCheckCount", 5),
-                randomOpenWaitDown = await storageManager.getSetting("randomOpenWaitDown", NO),
+                randomOpenWaitDown = await storageManager.getSetting("randomOpenWaitDown", NO$1),
                 dataList = await storageManager.getCarList();
           favoriteList = randomOpenWaitDown === YES$1 ? dataList.filter(((item) => item.status === Status_FAVORITE$1)).sort((() => Math.random() - 0.5)) : dataList.filter(((item) => item.status === Status_FAVORITE$1)).sort(((a, b) => b.createDate - a.createDate));
           for (let i = 0; i < openCount; i++) {
@@ -14483,7 +14640,7 @@ ${err.stack}` : "");
             } else {
               $("#reviewsContainer").hide();
               $("#reviewsFooter").hide();
-              storageManager.saveSettingItem("enableLoadReview", NO);
+                storageManager.saveSettingItem("enableLoadReview", NO$1);
             }
           }));
           $magnets.append('<div id="reviewsContainer"></div>');
@@ -15573,7 +15730,7 @@ ${err.stack}` : "");
             });
           }));
             const highlightMagnetPlugin = this.getBean("HighlightMagnetPlugin"),
-                enableMagnetsFilter = await storageManager.getSetting("enableMagnetsFilter", NO);
+                enableMagnetsFilter = await storageManager.getSetting("enableMagnetsFilter", NO$1);
           if (enableMagnetsFilter === YES$1) {
             const savedSettings = await storageManager.getSetting("magnetSortAndFilter", "{}");
             let settings;
@@ -15606,7 +15763,7 @@ ${err.stack}` : "");
             if ("取消磁力过滤" === $span.text()) {
               highlightMagnetPlugin.showAll();
               $span.text("排序与过滤");
-              storageManager.saveSettingItem("enableMagnetsFilter", NO);
+                storageManager.saveSettingItem("enableMagnetsFilter", NO$1);
             } else {
               this.openMagnetSortFilterPanel(highlightMagnetPlugin);
             }
@@ -15845,7 +16002,7 @@ ${err.stack}` : "");
               } else {
                 highlightMagnetPlugin.showAll();
                 $("#magnets-span").text("排序与过滤");
-                await storageManager.saveSettingItem("enableMagnetsFilter", NO);
+                  await storageManager.saveSettingItem("enableMagnetsFilter", NO$1);
               }
             } catch (e) {
               console.error("[磁力排序] 应用失败:", e);
@@ -16895,13 +17052,13 @@ ${err.stack}` : "");
             actorCarNumToNameMap: /* @__PURE__ */ new Map(),
             actressCarNumToNameMap: /* @__PURE__ */ new Map()
           }), t2 = utils.time("组装数据耗时"), settings = {
-            showFilterItem: (null == settingObj ? void 0 : settingObj.showFilterItem) ?? NO,
-            showFilterActorItem: (null == settingObj ? void 0 : settingObj.showFilterActorItem) ?? NO,
-            showFilterKeywordItem: (null == settingObj ? void 0 : settingObj.showFilterKeywordItem) ?? NO,
+                showFilterItem: (null == settingObj ? void 0 : settingObj.showFilterItem) ?? NO$1,
+                showFilterActorItem: (null == settingObj ? void 0 : settingObj.showFilterActorItem) ?? NO$1,
+                showFilterKeywordItem: (null == settingObj ? void 0 : settingObj.showFilterKeywordItem) ?? NO$1,
             showFavoriteItem: (null == settingObj ? void 0 : settingObj.showFavoriteItem) ?? YES$1,
             showHasDownItem: (null == settingObj ? void 0 : settingObj.showHasDownItem) ?? YES$1,
             showHasWatchItem: (null == settingObj ? void 0 : settingObj.showHasWatchItem) ?? YES$1,
-            showAllItem: (null == settingObj ? void 0 : settingObj.showAllItem) ?? NO,
+                showAllItem: (null == settingObj ? void 0 : settingObj.showAllItem) ?? NO$1,
             tagPosition: (null == settingObj ? void 0 : settingObj.tagPosition) || "rightTop",
             movieShowType: (null == settingObj ? void 0 : settingObj.movieShowType) || "hide"
           };
@@ -16930,7 +17087,7 @@ ${err.stack}` : "");
                   foundKeyword = filterKeywordList.find(((kw) => title.includes(kw) || carNum2.startsWith(kw))),
                   isFilterKeyword = !!foundKeyword;
             if (!isSearchPage) {
-              let shouldHide = settings.showFavoriteItem === NO && isFavorite || settings.showHasDownItem === NO && isHasDown || settings.showHasWatchItem === NO && isHasWatch || settings.showFilterItem === NO && isFiltered && !(isFavorite || isHasDown || isHasWatch) || settings.showFilterActorItem === NO && isFilterActor || settings.showFilterKeywordItem === NO && isFilterKeyword;
+                let shouldHide = settings.showFavoriteItem === NO$1 && isFavorite || settings.showHasDownItem === NO$1 && isHasDown || settings.showHasWatchItem === NO$1 && isHasWatch || settings.showFilterItem === NO$1 && isFiltered && !(isFavorite || isHasDown || isHasWatch) || settings.showFilterActorItem === NO$1 && isFilterActor || settings.showFilterKeywordItem === NO$1 && isFilterKeyword;
               if ($box2.attr("data-movieShowType") !== settings.movieShowType) {
                 $box2.css("border", "");
                 $box2.children().css("visibility", "");
@@ -17109,7 +17266,7 @@ ${err.stack}` : "");
         }
         async parseActressName(url) {
           let actorName = null;
-          if (await storageManager.getSetting("enableSaveActressCarInfo", NO) === YES$1) {
+            if (await storageManager.getSetting("enableSaveActressCarInfo", NO$1) === YES$1) {
             clog.debug("鉴定补录演员信息-已启用, 开始解析详情页");
             clog.debug("开始解析演员详情页", url);
             const html = await gmHttp.get(url), $dom = utils.htmlTo$dom(html);
@@ -17130,7 +17287,7 @@ ${err.stack}` : "");
           this.favoriteHotKey = settingObj.favoriteHotKey;
           this.hasDownHotKey = settingObj.hasDownHotKey;
           this.hasWatchHotKey = settingObj.hasWatchHotKey;
-          this.enableImageHotKey = settingObj.enableImageHotKey || NO;
+            this.enableImageHotKey = settingObj.enableImageHotKey || NO$1;
           this.clogHotKey = settingObj.clogHotKey;
           this.foldCategoryHotKey = settingObj.foldCategoryHotKey;
           this.showFilterItemHotKey = settingObj.showFilterItemHotKey;
@@ -17151,7 +17308,7 @@ ${err.stack}` : "");
           }, registerToggleHotkey = (hotkeyName, settingKey) => {
             const hotkeyString = this[hotkeyName];
             hotkeyString && HotkeyManager.registerHotkey(hotkeyString, (async (event) => {
-              const newVal = await storageManager.getSetting(settingKey) === YES$1 ? NO : YES$1;
+                const newVal = await storageManager.getSetting(settingKey) === YES$1 ? NO$1 : YES$1;
               await storageManager.saveSettingItem(settingKey, newVal);
               window.refresh();
             }));
@@ -17159,7 +17316,7 @@ ${err.stack}` : "");
           for (const hotkeyName in HOTKEY_REGISTRY) if (HOTKEY_REGISTRY.hasOwnProperty(hotkeyName)) {
             registerToggleHotkey(hotkeyName, HOTKEY_REGISTRY[hotkeyName]);
           }
-          if (this.enableImageHotKey === NO) return;
+            if (this.enableImageHotKey === NO$1) return;
           const handleAction = async (boxInfo, status) => {
             setTimeout((async () => {
               let actorName = await this.parseActressName(boxInfo.url);
@@ -17235,7 +17392,7 @@ ${err.stack}` : "");
               replaceWithHdForDMM(img);
             }));
           }
-          storageManager.getSetting("hoverBigImg", NO).then(((hoverBigImg) => {
+            storageManager.getSetting("hoverBigImg", NO$1).then(((hoverBigImg) => {
             hoverBigImg === YES$1 && (window.imageHoverPreviewObj ? window.imageHoverPreviewObj.bindEvents() : window.imageHoverPreviewObj = new ImageHoverPreview({
               selector: this.getSelector().coverImgSelector
             }));

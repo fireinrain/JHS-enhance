@@ -80,7 +80,105 @@ class WangPan115TaskPlugin extends BasePlugin {
             $headerRow.append($("<td>").text("操作"));
         }
     }
+
+    static sanitizeDirName(str) {
+        if (!str) return "";
+        return str.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+    }
+
+    static parseOfflineDirTemplate(str, params) {
+        if (!str || !params) return str;
+        return str.replace(/\$\{(\w+)\}/g, (match, key) => {
+            if (!params.hasOwnProperty(key)) return match;
+            const value = params[key] || "";
+            return WangPan115TaskPlugin.sanitizeDirName(String(value));
+        });
+    }
+
+    static async ensureDir(dirName, pid = 0) {
+        const result = await gmHttp.postFileFormData("https://webapi.115.com/files/add", {
+            pid: pid,
+            cname: dirName
+        });
+        if (result && result.file_id) return result.file_id;
+        const searchRes = await searchFiles(dirName, 0, 1, {fc: 1});
+        if (searchRes && searchRes.data && searchRes.data.length > 0) {
+            const match = searchRes.data.find(d => d.pid === pid || d.pid === String(pid));
+            if (match) return match.fid || match.file_id;
+        }
+        return null;
+    }
+
+    static async registerDirAsDownPath(fileId, dirName) {
+        await gmHttp.postFileFormData("https://webapi.115.com/offine/downpath", {
+            file_id: fileId
+        });
+        const list = await getDownPathList();
+        const created = list ? list.find(d => d.file_id === fileId || String(d.file_id) === String(fileId)) : null;
+        return created ? created.id : null;
+    }
+
+    static async createMultiLevelDownPath(templatePath) {
+        const segments = templatePath.split("/").filter(s => s.trim());
+        if (segments.length === 0) return null;
+        let pid = 0;
+        let fileId = null;
+        for (const seg of segments) {
+            fileId = await WangPan115TaskPlugin.ensureDir(seg.trim(), pid);
+            if (!fileId) {
+                console.error("[115离线] 创建目录失败:", seg);
+                return null;
+            }
+            pid = fileId;
+        }
+        const lastDirName = segments[segments.length - 1].trim();
+        const downPathId = await WangPan115TaskPlugin.registerDirAsDownPath(fileId, lastDirName);
+        console.log("[115离线] 多级目录创建完成:", templatePath, "→ downPathId=" + downPathId);
+        return downPathId;
+    }
+
+    getPageInfoForOffline() {
+        const baseInfo = this.getPageInfo();
+        const carNum = baseInfo.carNum || "";
+        let title = "", maker = "", actor = "";
+        if (isJavBus) {
+            title = $("h3").first().text().trim();
+            maker = $('span.header:contains("製作商:")').parent("p").text().replace("製作商:", "").trim() ||
+                $('span.header:contains("制作商:")').parent("p").text().replace("制作商:", "").trim();
+            const actorEl = $('span.genre a[href*="/star/"]').first();
+            actor = actorEl.length ? actorEl.text().trim() : "";
+        } else {
+            title = $(".current-title").first().text().trim() || $("h2.title.is-4 .current-title").first().text().trim() || $(".movie-title").first().text().trim();
+            maker = $('strong:contains("片商:")').parent().find(".value").text().trim() ||
+                $('strong:contains("片商：")').parent().find(".value").text().trim();
+            actor = $('.actor-female').first().text().trim() || $('strong:contains("演員:"), strong:contains("演员:")').parent().find('.value a').first().text().trim() || "";
+        }
+        const now = new Date();
+        if (carNum && title) {
+            const upperTitle = title.toUpperCase();
+            const upperCode = carNum.toUpperCase();
+            if (upperTitle.startsWith(upperCode)) {
+                title = title.substring(carNum.length).replace(/^[\s\-_]+/, "").trim();
+            }
+        }
+        console.log("[115离线] 页面信息提取:", {code: carNum, title, maker, actor});
+        return {
+            code: carNum,
+            title: title,
+            maker: maker,
+            actor: actor,
+            date: utils.formatDate(now).split(" ")[0]
+        };
+    }
     async getSavePathId(nyName) {
+        const enableCustom = await storageManager.getSetting("enable115OfflineFormat", NO);
+        if (enableCustom === YES) {
+            const template = await storageManager.getSetting("offlineFolderFormat", "");
+            if (template && template.includes("${")) {
+                const pageInfo = this.getPageInfoForOffline();
+                return WangPan115TaskPlugin.parseOfflineDirTemplate(template, pageInfo);
+            }
+        }
         let savePath115 = await storageManager.getSetting("savePath115", "云下载");
         nyName && (savePath115 = savePath115.replaceAll("{ny}", nyName));
         savePath115 = savePath115.replaceAll("{date}", utils.formatDate(new Date));
@@ -101,7 +199,35 @@ class WangPan115TaskPlugin extends BasePlugin {
             });
             return;
         }
-        const sign = singInfo.sign, time = singInfo.time, userId = this.getUserId(), result = await (async (magnet, wp_path_id = "", uid, sign, time) => {
+        const sign = singInfo.sign, time = singInfo.time, userId = this.getUserId();
+
+        let wp_path_id = savePath || "";
+        if (!wp_path_id) {
+            const fullPath = await this.getSavePathId();
+            console.log("[115离线] 目录模板解析结果:", fullPath);
+            if (fullPath) {
+                if (fullPath.includes("/")) {
+                    console.log("[115离线] 检测到多级目录，逐级创建:", fullPath);
+                    const newId = await WangPan115TaskPlugin.createMultiLevelDownPath(fullPath);
+                    if (newId) wp_path_id = newId;
+                } else {
+                    const downPathList = await getDownPathList();
+                    if (downPathList && downPathList.length > 0) {
+                        const matched = downPathList.find((d => d.name === fullPath));
+                        if (matched) {
+                            wp_path_id = matched.id;
+                            console.log("[115离线] 目录匹配结果: 匹配到 \"" + matched.name + "\" -> id=" + matched.id);
+                        } else {
+                            console.log("[115离线] 目录匹配结果: 未匹配到 \"" + fullPath + "\"，自动创建并注册");
+                            const newId = await WangPan115TaskPlugin.createMultiLevelDownPath(fullPath);
+                            if (newId) wp_path_id = newId;
+                        }
+                    }
+                }
+            }
+        }
+
+        const result = await (async (magnet, wp_path_id = "", uid, sign, time) => {
             const data = {
                 url: encodeURIComponent(magnet),
                 wp_path_id: wp_path_id,
@@ -110,7 +236,7 @@ class WangPan115TaskPlugin extends BasePlugin {
                 time: time
             };
             return await gmHttp.postForm("https://115.com/web/lixian/?ct=lixian&ac=add_task_url", data);
-        })(magnetLink, savePath || "", userId, sign, time);
+        })(magnetLink, wp_path_id, userId, sign, time);
         console.log("离线下载返回值:", result);
         let infoHash = result.info_hash, fileId = await this.getFileId(userId, sign, time, infoHash), openUrl = "https://115.com/?tab=offline&mode=wangpan";
         fileId && (openUrl = `https://115.com/?cid=${fileId}&offset=0&mode=wangpan`);
