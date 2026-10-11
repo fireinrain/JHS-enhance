@@ -917,6 +917,8 @@ const pluginManager = function() {
         pluginManager2.register(WangPan115TaskPlugin);
         pluginManager2.register(TranslatePlugin);
         pluginManager2.register(BlacklistPlugin);
+        pluginManager2.register(FavoriteActressesPlugin);
+        pluginManager2.register(FoldCategoryPlugin);
         pluginManager2.register(TaskPlugin);
     }
     hostname.includes("javtrailers") && pluginManager2.register(JavTrailersPlugin);

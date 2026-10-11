@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JHS-enhance
 // @namespace    JHS-enhance
-// @version      3.3.15
+// @version      3.3.16
 // @author       xiebro,fireinrain
 // @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
 // @license      MIT
@@ -4285,7 +4285,7 @@ ${value}\r
                                 </div>
                             </div>
                             
-                            <div class="setting-item ${isJavDb$1 ? "" : "do-hide"}">
+                            <div class="setting-item">
                                 <span class="setting-label">
                                     高亮已收藏演员 <span data-tip="详情页, 对已收藏的演员进行边框高亮提醒">❓</span>
                                 </span>
@@ -4294,7 +4294,7 @@ ${value}\r
                                 </div>
                             </div>
                             
-                            <div class="setting-item ${isJavDb$1 ? "" : "do-hide"}">
+                            <div class="setting-item">
                                 <span id="highlightedTagLabel" class="setting-label">
                                     分类标签|高亮演员-边框样式:
                                 </span>
@@ -9238,7 +9238,7 @@ ${value}\r
                 /* 高亮状态下的标签样式 */
                 .highlighted {
                     /* 浅黄色 */
-                    border: ${settingObj.highlightedTagNumber || 1}px solid ${settingObj.highlightedTagColor || "#ce2222"};
+                    border: ${settingObj.highlightedTagNumber || 1}px solid ${settingObj.highlightedTagColor || "#ce2222"} !important;
                 }
             </style>
         `;
@@ -13745,6 +13745,19 @@ ${err.stack}` : "");
         getName() {
           return "FavoriteActressesPlugin";
         }
+
+          async initCss() {
+              const settingObj = await storageManager.getSetting();
+              const tagNumber = settingObj.highlightedTagNumber || 1;
+              const tagColor = settingObj.highlightedTagColor || "#ce2222";
+              return `
+            <style>
+                .highlighted {
+                    border: ${tagNumber}px solid ${tagColor} !important;
+                }
+            </style>
+        `;
+          }
         async handle() {
           this.bindEvent();
           await this.highlightActress();
@@ -18606,6 +18619,8 @@ ${err.stack}` : "");
           pluginManager2.register(WangPan115TaskPlugin);
           pluginManager2.register(TranslatePlugin);
           pluginManager2.register(BlacklistPlugin);
+            pluginManager2.register(FavoriteActressesPlugin);
+            pluginManager2.register(FoldCategoryPlugin);
           pluginManager2.register(TaskPlugin);
         }
         hostname.includes("javtrailers") && pluginManager2.register(JavTrailersPlugin);

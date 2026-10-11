@@ -5,6 +5,13 @@ class FavoriteActressesPlugin extends BasePlugin {
     getName() {
         return "FavoriteActressesPlugin";
     }
+
+    async initCss() {
+        const settingObj = await storageManager.getSetting();
+        const tagNumber = settingObj.highlightedTagNumber || 1;
+        const tagColor = settingObj.highlightedTagColor || "#ce2222";
+        return `\n            <style>\n                .highlighted {\n                    border: ${tagNumber}px solid ${tagColor} !important;\n                }\n            </style>\n        `;
+    }
     async handle() {
         this.bindEvent();
         await this.highlightActress();
