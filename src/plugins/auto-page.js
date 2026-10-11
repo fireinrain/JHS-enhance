@@ -55,9 +55,6 @@ class AutoPagePlugin extends BasePlugin {
         const nextLink = document.querySelector(selector.nextPageSelector);
         this.nextUrl = null == nextLink ? void 0 : nextLink.href;
         this.hasMore = !!this.nextUrl;
-        setTimeout((() => {
-            this.checkLoad();
-        }), 1e3);
         this.hasMore || this.setState("waterfall-no-more", "已经到底了");
     }
     async loadNextPage() {
@@ -128,7 +125,9 @@ class AutoPagePlugin extends BasePlugin {
             clog.error("加载失败:", e);
             this.setState("waterfall-error", "加载失败，点击重试");
         } finally {
-            this.isLoading = !1;
+            setTimeout((() => {
+                this.isLoading = !1;
+            }), 600);
         }
     }
     checkScrollPosition() {
@@ -145,8 +144,10 @@ class AutoPagePlugin extends BasePlugin {
         }
     }
     checkLoad() {
-        if (!this.loader) return;
-        this.loader.getBoundingClientRect().top < window.innerHeight + this.preloadDistance && this.loadNextPage().then();
+        if (!this.loader || this.isLoading || !this.hasMore) return;
+        if (window.scrollY < 100) return;
+        const triggerDistance = 200;
+        this.loader.getBoundingClientRect().top < window.innerHeight + triggerDistance && this.loadNextPage().then();
     }
     async shouldDisablePaging() {
         if (!window.isListPage) return !0;
