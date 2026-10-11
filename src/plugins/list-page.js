@@ -151,7 +151,20 @@ class ListPagePlugin extends BasePlugin {
         await Promise.all(movieList.map((async ele => {
             let $box2 = $(ele);
             if (isJavBus && $box2.find(".avatar-box").length > 0) return;
-            const {carNum: carNum2, title: title} = this.getBoxCarInfo($box2), {filter: filter, favorite: favorite, hasDown: hasDown, hasWatch: hasWatch} = carNumSets, isFavorite = favorite.has(carNum2), isHasDown = hasDown.has(carNum2), isHasWatch = hasWatch.has(carNum2), isFiltered = filter.has(carNum2), isFilterActorMale = actorCarNumToNameMap.has(carNum2), isFilterActorFemale = actressCarNumToNameMap.has(carNum2), isFilterActor = isFilterActorMale || isFilterActorFemale, foundKeyword = filterKeywordList.find((kw => title.includes(kw) || carNum2.startsWith(kw))), isFilterKeyword = !!foundKeyword;
+            const boxInfo = this.getBoxCarInfo($box2);
+            if (!boxInfo) return;
+            const {carNum: carNum2, title: title} = boxInfo, {
+                    filter: filter,
+                    favorite: favorite,
+                    hasDown: hasDown,
+                    hasWatch: hasWatch
+                } = carNumSets, isFavorite = favorite.has(carNum2), isHasDown = hasDown.has(carNum2),
+                isHasWatch = hasWatch.has(carNum2), isFiltered = filter.has(carNum2),
+                isFilterActorMale = actorCarNumToNameMap.has(carNum2),
+                isFilterActorFemale = actressCarNumToNameMap.has(carNum2),
+                isFilterActor = isFilterActorMale || isFilterActorFemale,
+                foundKeyword = filterKeywordList.find((kw => title.includes(kw) || carNum2.startsWith(kw))),
+                isFilterKeyword = !!foundKeyword;
             if (!isSearchPage) {
                 let shouldHide = settings.showFavoriteItem === NO && isFavorite || settings.showHasDownItem === NO && isHasDown || settings.showHasWatchItem === NO && isHasWatch || settings.showFilterItem === NO && isFiltered && !(isFavorite || isHasDown || isHasWatch) || settings.showFilterActorItem === NO && isFilterActor || settings.showFilterKeywordItem === NO && isFilterKeyword;
                 if ($box2.attr("data-movieShowType") !== settings.movieShowType) {

@@ -152,7 +152,7 @@ class AutoPagePlugin extends BasePlugin {
     async shouldDisablePaging() {
         if (!window.isListPage) return !0;
         await storageManager.getSetting("autoPage", YES);
-        return [ "search?q", "handlePlayback=1", "handleTop=1", "/want_watch_videos", "/watched_videos", "/advanced_search?type=100" ].some((path => currentHref.includes(path)));
+        return ["search?q", "/rankings/playback", "/rankings/top", "/want_watch_videos", "/watched_videos", "/advanced_search?type=100"].some((path => currentHref.includes(path)));
     }
     updatePageUrl_old(href) {
         window.history.pushState({}, "", href);

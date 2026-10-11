@@ -14,7 +14,7 @@ class HitShowPlugin extends BasePlugin {
         $('a[href*="rankings/playback"]').on("click", (event => {
             event.preventDefault();
             event.stopPropagation();
-            window.location.href = "/advanced_search?handlePlayback=1&period=daily";
+            window.location.href = "/rankings/playback";
         }));
         this.handlePlayback().then();
     }
@@ -29,7 +29,7 @@ class HitShowPlugin extends BasePlugin {
         this.$contentBox.append('<div class="movie-list h cols-4 vcols-8" style="margin-top: 10px"></div>');
     }
     async handlePlayback() {
-        if (!window.location.href.includes("handlePlayback=1")) return;
+        if (!window.location.href.includes("rankings/playback")) return;
         let period = new URLSearchParams(window.location.search).get("period");
         this.toolBar(period);
         this.hookPage();
@@ -40,6 +40,7 @@ class HitShowPlugin extends BasePlugin {
             const movies = await javDbApi.playback(period);
             let moviesHtml = javDbApi.markDataListHtml(movies);
             $movieBox.html(moviesHtml);
+            this.pluginManager.getBean("ListPagePlugin").doFilter();
         } catch (e) {
             clog.error("发生错误:", e);
         } finally {
@@ -47,7 +48,7 @@ class HitShowPlugin extends BasePlugin {
         }
     }
     toolBar(period) {
-        let conditionHtml = `\n            <div class="button-group" style="margin-top:18px">\n                <div class="buttons has-addons" id="conditionBox">\n                    <a style="padding:18px 18px !important;" class="button is-small ${"daily" === period ? "is-info" : ""}" href="/advanced_search?handlePlayback=1&period=daily">日榜</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"weekly" === period ? "is-info" : ""}" href="/advanced_search?handlePlayback=1&period=weekly">周榜</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"monthly" === period ? "is-info" : ""}" href="/advanced_search?handlePlayback=1&period=monthly">月榜</a>\n                </div>\n            </div>\n        `;
+        let conditionHtml = `\n            <div class="button-group" style="margin-top:18px">\n                <div class="buttons has-addons" id="conditionBox">\n                    <a style="padding:18px 18px !important;" class="button is-small ${"daily" === period ? "is-info" : ""}" href="/rankings/playback?period=daily">日榜</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"weekly" === period ? "is-info" : ""}" href="/rankings/playback?period=weekly">周榜</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"monthly" === period ? "is-info" : ""}" href="/rankings/playback?period=monthly">月榜</a>\n                </div>\n            </div>\n        `;
         this.$contentBox.append(conditionHtml);
     }
     getStarRating(score) {

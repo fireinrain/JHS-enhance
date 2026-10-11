@@ -56,9 +56,16 @@ class TOP250Plugin extends BasePlugin {
         }));
     }
     async handleTop() {
-        if (!window.location.href.includes("handleTop=1")) return;
+        if (!window.location.href.includes("/rankings/top")) return;
         const urlParams = new URLSearchParams(window.location.search);
-        let type = urlParams.get("handleType") || "all", type_value = urlParams.get("type_value") || "";
+        let t = urlParams.get("t") || "", type = "all", type_value = "";
+        if (/^y\d+$/.test(t)) {
+            type = "year";
+            type_value = t.substring(1);
+        } else if ("" !== t) {
+            type = "video_type";
+            type_value = t;
+        }
         this.has_cnsub = urlParams.get("has_cnsub") || "";
         let page = urlParams.get("page") || 1;
         this.toolBar(type, type_value, page);
@@ -80,6 +87,7 @@ class TOP250Plugin extends BasePlugin {
                 const filter_movies = dataList.filter((item => "1" === this.has_cnsub ? item.has_cnsub : "0" !== this.has_cnsub || !item.has_cnsub));
                 let moviesHtml = javDbApi.markDataListHtml(filter_movies);
                 $movieBox.html(moviesHtml);
+                this.pluginManager.getBean("ListPagePlugin").doFilter();
             } else {
                 clog.error(res);
                 $movieBox.html(`<h3>${message}</h3>`);
@@ -101,9 +109,10 @@ class TOP250Plugin extends BasePlugin {
         $(".pagination-list li a").each((function() {
             parseInt($(this).text()) > 5 && $(this).closest("li").remove();
         }));
+        const currentTParam = "all" === type ? "" : "year" === type ? `y${type_value}` : type_value;
         let yearHtml = "";
-        for (let year = (new Date).getFullYear(); year >= 2008; year--) yearHtml += `\n                <a style="padding:18px 18px !important;" \n                   class="button is-small ${type_value === year.toString() ? "is-info" : ""}" \n                   href="/advanced_search?handleTop=1&handleType=year&type_value=${year}&has_cnsub=${this.has_cnsub}">\n                  ${year}\n                </a>\n            `;
-        let conditionHtml = `\n            <div class="button-group">\n                <div class="buttons has-addons" id="conditionBox" style="margin-bottom: 0!important;">\n                    <a style="padding:18px 18px !important;" class="button is-small ${"all" === type ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=all&type_value=&has_cnsub=${this.has_cnsub}">全部</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"0" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=0&has_cnsub=${this.has_cnsub}">有码</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"1" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=1&has_cnsub=${this.has_cnsub}">无码</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"2" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=2&has_cnsub=${this.has_cnsub}">欧美</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"3" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=3&has_cnsub=${this.has_cnsub}">Fc2</a>\n                    \n                    <a style="padding:18px 18px !important;margin-left: 50px" class="button is-small ${"1" === this.has_cnsub ? "is-info" : ""}" data-cnsub-value="1">含中字磁鏈</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"0" === this.has_cnsub ? "is-info" : ""}" data-cnsub-value="0">无字幕</a>\n                    <a style="padding:18px 18px !important;" class="button is-small" data-cnsub-value="">重置</a>\n                </div>\n                \n                <div class="buttons has-addons" id="conditionBox">\n                    ${yearHtml}\n                </div>\n            </div>\n        `;
+        for (let year = (new Date).getFullYear(); year >= 2008; year--) yearHtml += `\n                <a style="padding:18px 18px !important;" \n                   class="button is-small ${type_value === year.toString() ? "is-info" : ""}" \n                   href="/rankings/top?t=y${year}&has_cnsub=${this.has_cnsub}">\n                  ${year}\n                </a>\n            `;
+        let conditionHtml = `\n            <div class="button-group">\n                <div class="buttons has-addons" id="conditionBox" style="margin-bottom: 0!important;">\n                    <a style="padding:18px 18px !important;" class="button is-small ${"all" === type ? "is-info" : ""}" href="/rankings/top?has_cnsub=${this.has_cnsub}">全部</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"0" === type_value ? "is-info" : ""}" href="/rankings/top?t=0&has_cnsub=${this.has_cnsub}">有码</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"1" === type_value ? "is-info" : ""}" href="/rankings/top?t=1&has_cnsub=${this.has_cnsub}">无码</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"2" === type_value ? "is-info" : ""}" href="/rankings/top?t=2&has_cnsub=${this.has_cnsub}">欧美</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"3" === type_value ? "is-info" : ""}" href="/rankings/top?t=3&has_cnsub=${this.has_cnsub}">Fc2</a>\n                    \n                    <a style="padding:18px 18px !important;margin-left: 50px" class="button is-small ${"1" === this.has_cnsub ? "is-info" : ""}" data-cnsub-value="1">含中字磁鏈</a>\n                    <a style="padding:18px 18px !important;" class="button is-small ${"0" === this.has_cnsub ? "is-info" : ""}" data-cnsub-value="0">无字幕</a>\n                    <a style="padding:18px 18px !important;" class="button is-small" data-cnsub-value="">重置</a>\n                </div>\n                \n                <div class="buttons has-addons" id="conditionBox">\n                    ${yearHtml}\n                </div>\n            </div>\n        `;
         this.$contentBox.append(conditionHtml);
         $("a[data-cnsub-value]").on("click", (event => {
             const cnsubValue = $(event.currentTarget).data("cnsub-value");
@@ -134,7 +143,8 @@ class TOP250Plugin extends BasePlugin {
             type = "video_type";
             type_value = t;
         }
-        let url = `/advanced_search?handleTop=1&handleType=${type}&type_value=${type_value}`;
+        let tParam = "year" === type ? `y${type_value}` : "all" === type ? "" : type_value;
+        let url = `/rankings/top${tParam ? `?t=${tParam}` : ""}`;
         event && (event.ctrlKey || event.metaKey) ? GM_openInTab(window.location.origin + url, {
             insert: 0
         }) : window.location.href = url;
@@ -167,7 +177,7 @@ class TOP250Plugin extends BasePlugin {
                                 await localStorage.setItem("jhs_appAuthorization", token);
                                 show.ok("登录成功");
                                 layer.close(index);
-                                window.location.href = "/advanced_search?handleTop=1&period=daily";
+                                window.location.href = "/rankings/top";
                             }
                         }
                     })).catch((err => {

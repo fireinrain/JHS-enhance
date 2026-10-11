@@ -2879,10 +2879,7 @@ ${value}\r
             carNum2 = dateElements.find(((i) => !isDate(i))) || null;
           }
           if (!carNum2) {
-            const msg = "提取番号信息失败: carNum 为空";
-            console.error("Error in getBoxCarInfo:", msg, "Box Element:", $box2.get(0));
-            show.error(msg);
-            throw new Error(msg);
+              return null;
           }
           return {
             carNum: carNum2,
@@ -3435,7 +3432,7 @@ ${value}\r
         async shouldDisablePaging() {
           if (!window.isListPage) return true;
           await storageManager.getSetting("autoPage", YES$1);
-          return ["search?q", "handlePlayback=1", "handleTop=1", "/want_watch_videos", "/watched_videos", "/advanced_search?type=100"].some(((path) => currentHref$1.includes(path)));
+            return ["search?q", "/rankings/playback", "/rankings/top", "/want_watch_videos", "/watched_videos", "/advanced_search?type=100"].some(((path) => currentHref$1.includes(path)));
         }
         updatePageUrl_old(href) {
           window.history.pushState({}, "", href);
@@ -9488,7 +9485,7 @@ ${value}\r
           $('a[href*="rankings/playback"]').on("click", ((event) => {
             event.preventDefault();
             event.stopPropagation();
-            window.location.href = "/advanced_search?handlePlayback=1&period=daily";
+              window.location.href = "/rankings/playback";
           }));
           this.handlePlayback().then();
         }
@@ -9503,7 +9500,7 @@ ${value}\r
           this.$contentBox.append('<div class="movie-list h cols-4 vcols-8" style="margin-top: 10px"></div>');
         }
         async handlePlayback() {
-          if (!window.location.href.includes("handlePlayback=1")) return;
+            if (!window.location.href.includes("rankings/playback")) return;
           let period = new URLSearchParams(window.location.search).get("period");
           this.toolBar(period);
           this.hookPage();
@@ -9514,6 +9511,7 @@ ${value}\r
             const movies = await javDbApi.playback(period);
             let moviesHtml = javDbApi.markDataListHtml(movies);
             $movieBox.html(moviesHtml);
+              this.pluginManager.getBean("ListPagePlugin").doFilter();
           } catch (e) {
             clog.error("发生错误:", e);
           } finally {
@@ -9524,9 +9522,9 @@ ${value}\r
           let conditionHtml = `
             <div class="button-group" style="margin-top:18px">
                 <div class="buttons has-addons" id="conditionBox">
-                    <a style="padding:18px 18px !important;" class="button is-small ${"daily" === period ? "is-info" : ""}" href="/advanced_search?handlePlayback=1&period=daily">日榜</a>
-                    <a style="padding:18px 18px !important;" class="button is-small ${"weekly" === period ? "is-info" : ""}" href="/advanced_search?handlePlayback=1&period=weekly">周榜</a>
-                    <a style="padding:18px 18px !important;" class="button is-small ${"monthly" === period ? "is-info" : ""}" href="/advanced_search?handlePlayback=1&period=monthly">月榜</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"daily" === period ? "is-info" : ""}" href="/rankings/playback?period=daily">日榜</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"weekly" === period ? "is-info" : ""}" href="/rankings/playback?period=weekly">周榜</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"monthly" === period ? "is-info" : ""}" href="/rankings/playback?period=monthly">月榜</a>
                 </div>
             </div>
         `;
@@ -9641,9 +9639,16 @@ ${err.stack}` : "");
           }));
         }
         async handleTop() {
-          if (!window.location.href.includes("handleTop=1")) return;
+            if (!window.location.href.includes("/rankings/top")) return;
           const urlParams = new URLSearchParams(window.location.search);
-          let type = urlParams.get("handleType") || "all", type_value = urlParams.get("type_value") || "";
+            let t = urlParams.get("t") || "", type = "all", type_value = "";
+            if (/^y\d+$/.test(t)) {
+                type = "year";
+                type_value = t.substring(1);
+            } else if ("" !== t) {
+                type = "video_type";
+                type_value = t;
+            }
           this.has_cnsub = urlParams.get("has_cnsub") || "";
           let page = urlParams.get("page") || 1;
           this.toolBar(type, type_value, page);
@@ -9665,6 +9670,7 @@ ${err.stack}` : "");
               const filter_movies = dataList.filter(((item) => "1" === this.has_cnsub ? item.has_cnsub : "0" !== this.has_cnsub || !item.has_cnsub));
               let moviesHtml = javDbApi.markDataListHtml(filter_movies);
               $movieBox.html(moviesHtml);
+                this.pluginManager.getBean("ListPagePlugin").doFilter();
             } else {
               clog.error(res);
               $movieBox.html(`<h3>${message}</h3>`);
@@ -9690,18 +9696,18 @@ ${err.stack}` : "");
           for (let year = (/* @__PURE__ */ new Date()).getFullYear(); year >= 2008; year--) yearHtml += `
                 <a style="padding:18px 18px !important;" 
                    class="button is-small ${type_value === year.toString() ? "is-info" : ""}" 
-                   href="/advanced_search?handleTop=1&handleType=year&type_value=${year}&has_cnsub=${this.has_cnsub}">
+                   href="/rankings/top?t=y${year}&has_cnsub=${this.has_cnsub}">
                   ${year}
                 </a>
             `;
           let conditionHtml = `
             <div class="button-group">
                 <div class="buttons has-addons" id="conditionBox" style="margin-bottom: 0!important;">
-                    <a style="padding:18px 18px !important;" class="button is-small ${"all" === type ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=all&type_value=&has_cnsub=${this.has_cnsub}">全部</a>
-                    <a style="padding:18px 18px !important;" class="button is-small ${"0" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=0&has_cnsub=${this.has_cnsub}">有码</a>
-                    <a style="padding:18px 18px !important;" class="button is-small ${"1" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=1&has_cnsub=${this.has_cnsub}">无码</a>
-                    <a style="padding:18px 18px !important;" class="button is-small ${"2" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=2&has_cnsub=${this.has_cnsub}">欧美</a>
-                    <a style="padding:18px 18px !important;" class="button is-small ${"3" === type_value ? "is-info" : ""}" href="/advanced_search?handleTop=1&handleType=video_type&type_value=3&has_cnsub=${this.has_cnsub}">Fc2</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"all" === type ? "is-info" : ""}" href="/rankings/top?has_cnsub=${this.has_cnsub}">全部</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"0" === type_value ? "is-info" : ""}" href="/rankings/top?t=0&has_cnsub=${this.has_cnsub}">有码</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"1" === type_value ? "is-info" : ""}" href="/rankings/top?t=1&has_cnsub=${this.has_cnsub}">无码</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"2" === type_value ? "is-info" : ""}" href="/rankings/top?t=2&has_cnsub=${this.has_cnsub}">欧美</a>
+                    <a style="padding:18px 18px !important;" class="button is-small ${"3" === type_value ? "is-info" : ""}" href="/rankings/top?t=3&has_cnsub=${this.has_cnsub}">Fc2</a>
                     
                     <a style="padding:18px 18px !important;margin-left: 50px" class="button is-small ${"1" === this.has_cnsub ? "is-info" : ""}" data-cnsub-value="1">含中字磁鏈</a>
                     <a style="padding:18px 18px !important;" class="button is-small ${"0" === this.has_cnsub ? "is-info" : ""}" data-cnsub-value="0">无字幕</a>
@@ -9743,7 +9749,8 @@ ${err.stack}` : "");
             type = "video_type";
             type_value = t;
           }
-          let url = `/advanced_search?handleTop=1&handleType=${type}&type_value=${type_value}`;
+            let tParam = "year" === type ? `y${type_value}` : "all" === type ? "" : type_value;
+            let url = `/rankings/top${tParam ? `?t=${tParam}` : ""}`;
           event && (event.ctrlKey || event.metaKey) ? _GM_openInTab(window.location.origin + url, {
             insert: 0
           }) : window.location.href = url;
@@ -9808,7 +9815,7 @@ ${err.stack}` : "");
                       await localStorage.setItem("jhs_appAuthorization", token);
                       show.ok("登录成功");
                       layer.close(index);
-                      window.location.href = "/advanced_search?handleTop=1&period=daily";
+                        window.location.href = "/rankings/top";
                     }
                   }
                 })).catch(((err) => {
@@ -17098,12 +17105,10 @@ ${err.stack}` : "");
           await Promise.all(movieList.map((async (ele) => {
             let $box2 = $(ele);
             if (isJavBus$1 && $box2.find(".avatar-box").length > 0) return;
-              const {carNum: carNum2, title} = this.getBoxCarInfo($box2), {
-                      filter,
-                      favorite,
-                      hasDown,
-                      hasWatch
-                  } = carNumSets, isFavorite = favorite.has(carNum2), isHasDown = hasDown.has(carNum2),
+              const boxInfo = this.getBoxCarInfo($box2);
+              if (!boxInfo) return;
+              const {carNum: carNum2, title} = boxInfo, {filter, favorite, hasDown, hasWatch} = carNumSets,
+                  isFavorite = favorite.has(carNum2), isHasDown = hasDown.has(carNum2),
                   isHasWatch = hasWatch.has(carNum2), isFiltered = filter.has(carNum2),
                   isFilterActorMale = actorCarNumToNameMap.has(carNum2),
                   isFilterActorFemale = actressCarNumToNameMap.has(carNum2),

@@ -145,10 +145,7 @@ class BasePlugin {
             carNum2 = dateElements.find((i => !isDate(i))) || null;
         }
         if (!carNum2) {
-            const msg = "提取番号信息失败: carNum 为空";
-            console.error("Error in getBoxCarInfo:", msg, "Box Element:", $box2.get(0));
-            show.error(msg);
-            throw new Error(msg);
+            return null;
         }
         return {
             carNum: carNum2,
