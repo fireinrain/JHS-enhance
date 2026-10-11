@@ -88,6 +88,7 @@
 
 System.addImportMap({
     imports: {
+        "tabulator-tables": "user:tabulator-tables",
         "jquery": "user:jquery",
         "localforage": "user:localforage",
         "toastify-js": "user:toastify-js",
@@ -96,6 +97,11 @@ System.addImportMap({
         "qrcodejs": "user:qrcodejs"
     }
 });
+System.set("user:tabulator-tables", (() => {
+    const _ = Tabulator;
+    ('default' in _) || (_.default = _);
+    return _
+})());
 System.set("user:jquery", (() => {
     const _ = jQuery;
     ('default' in _) || (_.default = _);
@@ -127,9 +133,9 @@ System.set("user:qrcodejs", (() => {
     return _
 })());
 
-System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueimp-md5', 'viewerjs', 'qrcodejs'], (function (exports, module) {
+System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueimp-md5', 'viewerjs', 'qrcodejs', 'tabulator-tables'], (function (exports, module) {
   'use strict';
-  var $$1, localforage$1, Toastify$1, md5$1, Viewer$1, QRCode$1;
+    var $$1, localforage$1, Toastify$1, md5$1, Viewer$1, QRCode$1, TabulatorFull;
   return {
     setters: [module => {
       $$1 = module.default;
@@ -143,6 +149,8 @@ System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueim
       Viewer$1 = module.default;
     }, module => {
       QRCode$1 = module.default;
+    }, module => {
+        TabulatorFull = module.TabulatorFull;
     }],
     execute: (async function () {
 
@@ -7077,7 +7085,9 @@ ${value}\r
             ajaxURL: "queryRealm",
             dataLoader: false,
             ajaxRequestFunc: async (url, ajaxConfig, params) => {
-              const page = params.page, size = params.size, sort = params.sort;
+                const page = (null == params ? void 0 : params.page) || 1,
+                    size = (null == params ? void 0 : params.size) || 50,
+                    sort = (null == params ? void 0 : params.sort) || [];
               return await this.getDataList(page, size, sort);
             },
             dataReceiveParams: {
@@ -17494,6 +17504,8 @@ ${err.stack}` : "");
           }));
         }
       }
+
+        window.Tabulator = TabulatorFull;
       window.javDbApi = javDbApi;
       const _unsafeWindow = /* @__PURE__ */ (() => typeof unsafeWindow !== "undefined" ? unsafeWindow : window)();
       _unsafeWindow.utils = window.utils = new Utils();

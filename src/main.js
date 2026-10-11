@@ -6,6 +6,9 @@ import { Utils } from './core/utils.js';
 import { GmHttp } from './core/gmHttp.js';
 import { PluginManager } from './core/plugin-manager.js';
 import { BasePlugin } from './core/base-plugin.js';
+import {TabulatorFull as Tabulator} from 'tabulator-tables';
+
+window.Tabulator = Tabulator;
 
 import { javDbApi, buildSignature, apiUrl } from './api/javdb.js';
 window.javDbApi = javDbApi;

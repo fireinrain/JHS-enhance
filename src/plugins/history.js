@@ -222,7 +222,9 @@ class HistoryPlugin extends BasePlugin {
             ajaxURL: "queryRealm",
             dataLoader: !1,
             ajaxRequestFunc: async (url, ajaxConfig, params) => {
-                const page = params.page, size = params.size, sort = params.sort;
+                const page = (null == params ? void 0 : params.page) || 1,
+                    size = (null == params ? void 0 : params.size) || 50,
+                    sort = (null == params ? void 0 : params.sort) || [];
                 return await this.getDataList(page, size, sort);
             },
             dataReceiveParams: {
