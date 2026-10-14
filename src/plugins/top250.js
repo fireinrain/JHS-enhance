@@ -29,6 +29,9 @@ class TOP250Plugin extends BasePlugin {
         $("h2.section-title").contents().first().replaceWith("Top250");
         $(".empty-message").remove();
         $(".section .container .box").remove();
+        $(".section .container .movie-list").remove();
+        $(".section .container .pagination").remove();
+        $(".section .container select").remove();
         $("#sort-toggle-btn").remove();
         this.$contentBox.append('<div class="tool-box" style="margin-top: 10px"></div>');
         this.$contentBox.append('<div class="movie-list h cols-4 vcols-8" style="margin-top: 10px"></div>');
