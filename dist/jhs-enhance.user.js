@@ -41661,6 +41661,158 @@ ${err.stack}` : "");
         }
       }
 
+        class ArticlePagePlugin extends BasePlugin {
+            getName() {
+                return "ArticlePagePlugin";
+            }
+
+            handle() {
+                const href = window.location.href;
+                if (!href.includes("/articles")) {
+                    return;
+                }
+                this.optimizeArticleLayout();
+                this.bindClick();
+            }
+
+            bindClick() {
+                const observer = new MutationObserver((mutations) => {
+                    for (const mutation of mutations) {
+                        if (mutation.addedNodes.length > 0) {
+                            this.attachClickHandler();
+                            break;
+                        }
+                    }
+                });
+                this.attachClickHandler();
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+
+            attachClickHandler() {
+                const $articleList = $(".article-list");
+                if ($articleList.length === 0) return;
+                if ($articleList.data("click-bound")) return;
+                $articleList.data("click-bound", true);
+                $articleList.find("a").each(function () {
+                    const $a = $(this);
+                    const href = $a.attr("href");
+                    if (href) {
+                        $a.attr("data-href", href).removeAttr("href");
+                        $a.css("cursor", "pointer");
+                    }
+                });
+                document.querySelector(".article-list").addEventListener("click", (e) => {
+                    let target = e.target.closest(".article-item, a, [data-href]");
+                    if (!target) {
+                        let el = e.target;
+                        const articleList = document.querySelector(".article-list");
+                        while (el && el !== articleList) {
+                            if (el.parentElement === articleList) {
+                                target = el;
+                                break;
+                            }
+                            el = el.parentElement;
+                        }
+                    }
+                    if (!target) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    const $target = $(target);
+                    const $link = $target.find("a[data-href]").first().length > 0 ? $target.find("a[data-href]").first() : $target.closest("a[data-href]");
+                    const articleUrl = $link.attr("data-href") || $target.attr("data-href");
+                    if (!articleUrl) return;
+                    layer.open({
+                        type: 2,
+                        title: $target.text().trim().substring(0, 50) || "文章详情",
+                        content: articleUrl,
+                        area: ["80%", "85%"],
+                        shadeClose: true,
+                        maxmin: true,
+                        scrollbar: false
+                    });
+                    return false;
+                }, true);
+            }
+
+            optimizeArticleLayout() {
+                const css = `
+            /* 文章列表容器改为 grid 布局，每行3个 */
+            .article-list {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 20px !important;
+            }
+            /* 每个文章卡片改为纵向布局 */
+            .article-list > div {
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                border-radius: 8px !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+                transition: transform 0.2s, box-shadow 0.2s !important;
+                background: #fff !important;
+            }
+            .article-list > div:hover {
+                transform: translateY(-4px) !important;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+            }
+            /* 封面图片 */
+            .article-list > div img {
+                width: 100% !important;
+                height: auto !important;
+                aspect-ratio: 3/4 !important;
+                object-fit: cover !important;
+                border-radius: 8px 8px 0 0 !important;
+                display: block !important;
+            }
+            /* 内容区域 */
+            .article-list > div > div:not(:first-child) {
+                padding: 12px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            /* 标题完全显示，不截断 */
+            .article-list > div > a,
+            .article-list > div > h3,
+            .article-list > div > p {
+                font-size: 14px !important;
+                line-height: 1.5 !important;
+                display: block !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                -webkit-line-clamp: unset !important;
+                -webkit-box-orient: unset !important;
+                min-height: unset !important;
+                color: #333 !important;
+                word-break: break-word !important;
+            }
+            /* 底部信息 */
+            .article-list > div > div:last-child {
+                margin-top: auto !important;
+                font-size: 12px !important;
+                color: #999 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+            }
+            /* 标签 */
+            .article-list > div span[class*="tag"],
+            .article-list > div span[class*="label"] {
+                background: #f0f0f0 !important;
+                padding: 2px 8px !important;
+                border-radius: 4px !important;
+                font-size: 11px !important;
+            }
+        `;
+                insertStyle(css);
+            }
+        }
+
         window.Tabulator = TabulatorFull;
       window.javDbApi = javDbApi;
       const _unsafeWindow = /* @__PURE__ */ (() => typeof unsafeWindow !== "undefined" ? unsafeWindow : window)();
@@ -42732,6 +42884,7 @@ ${err.stack}` : "");
         if (isJavDb$1) {
           pluginManager2.register(ListPagePlugin);
           pluginManager2.register(AutoPagePlugin);
+            pluginManager2.register(ArticlePagePlugin);
           pluginManager2.register(Fc2Plugin);
           pluginManager2.register(FoldCategoryPlugin);
           pluginManager2.register(ListPageButtonPlugin);

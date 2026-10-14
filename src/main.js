@@ -55,6 +55,7 @@ import { DetailPageButtonPlugin } from './plugins/detail-page-button.js';
 import { BlacklistPlugin } from './plugins/blacklist.js';
 import { ListPagePlugin } from './plugins/list-page.js';
 import { AutoPagePlugin } from './plugins/auto-page.js';
+import {ArticlePagePlugin} from './plugins/article-page.js';
 
 const _unsafeWindow = (() => typeof unsafeWindow !== 'undefined' ? unsafeWindow : window)();
 
@@ -864,6 +865,7 @@ const pluginManager = function() {
     if (isJavDb) {
         pluginManager2.register(ListPagePlugin);
         pluginManager2.register(AutoPagePlugin);
+        pluginManager2.register(ArticlePagePlugin);
         pluginManager2.register(Fc2Plugin);
         pluginManager2.register(FoldCategoryPlugin);
         pluginManager2.register(ListPageButtonPlugin);
