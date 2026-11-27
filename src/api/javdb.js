@@ -93,9 +93,13 @@ const javDbApi = {
     },
     playback: async (period = "daily", filter_by = "high_score") => {
         let url = `${apiUrl}/v1/rankings/playback?period=${period}&filter_by=${filter_by}`, headers = {
-            jdSignature: await buildSignature()
+            "user-agent": "Dart/3.5 (dart:io)",
+            "accept-language": "zh-TW",
+            host: "jdforrepam.com",
+            authorization: "Bearer " + localStorage.getItem("jhs_appAuthorization"),
+            jdsignature: await buildSignature()
         };
-        return (await gmHttp.get(url, null, headers)).data.movies;
+        return await gmHttp.get(url, null, headers);
     },
     login: async (username, password) => {
         let url = `${apiUrl}/v1/sessions?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&device_uuid=04b9534d-5118-53de-9f87-2ddded77111e&device_name=iPhone&device_model=iPhone&platform=ios&system_version=17.4&app_version=official&app_version_number=1.9.29&app_channel=official`, headers = {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         JHS-enhance
 // @namespace    JHS-enhance
-// @version      3.3.17
+// @version      3.3.18
 // @author       xiebro,fireinrain
 // @description  Jav-鉴黄师 增强脚本。列表页：作品状态标签、一键筛选、新作品检测、演员黑名单过滤；详情页：磁力链接高亮、DMM 多画质预览视频、标题翻译、整合字幕搜索（迅雷+SubTitleCat）并支持 115 直传、多源预览图（javfree/projectjav/javstore）含来源切换；数据：115 网盘目录匹配与多目录选择、云盘备份/恢复、跨 Tab 同步；其他：自动翻页、分类折叠、Top250、以图识图、热门榜单、评论查看、相关清单。支持 JavDB / JavBus / JavSee / SeeJav / FC2 / JavTrailers
 // @license      MIT
@@ -2013,9 +2013,13 @@ System.register("./__entry.js", ['jquery', 'localforage', 'toastify-js', 'blueim
         },
         playback: async (period = "daily", filter_by = "high_score") => {
           let url = `${apiUrl}/v1/rankings/playback?period=${period}&filter_by=${filter_by}`, headers = {
-            jdSignature: await buildSignature()
+              "user-agent": "Dart/3.5 (dart:io)",
+              "accept-language": "zh-TW",
+              host: "jdforrepam.com",
+              authorization: "Bearer " + localStorage.getItem("jhs_appAuthorization"),
+              jdsignature: await buildSignature()
           };
-          return (await gmHttp.get(url, null, headers)).data.movies;
+            return await gmHttp.get(url, null, headers);
         },
         login: async (username, password) => {
             let url = `${apiUrl}/v1/sessions?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&device_uuid=04b9534d-5118-53de-9f87-2ddded77111e&device_name=iPhone&device_model=iPhone&platform=ios&system_version=17.4&app_version=official&app_version_number=1.9.29&app_channel=official`,
@@ -33650,10 +33654,21 @@ ${value}\r
           $movieBox.html("");
           let loadObj = loading();
           try {
-            const movies = await javDbApi.playback(period);
-            let moviesHtml = javDbApi.markDataListHtml(movies);
-            $movieBox.html(moviesHtml);
+              const res = await javDbApi.playback(period);
+              if (1 === res.success) {
+                  let movies = res.data.movies;
+                  let moviesHtml = javDbApi.markDataListHtml(movies);
+                  $movieBox.html(moviesHtml);
               this.pluginManager.getBean("ListPagePlugin").doFilter();
+              } else {
+                  clog.error(res);
+                  $movieBox.html(`<h3>${res.message}</h3>`);
+                  show.error(res.message);
+                  if ("JWTVerificationError" === res.action) {
+                      await localStorage.removeItem("jhs_appAuthorization");
+                      this.openLoginDialog();
+                  }
+              }
           } catch (e) {
             clog.error("发生错误:", e);
           } finally {
@@ -33672,6 +33687,80 @@ ${value}\r
         `;
           this.$contentBox.append(conditionHtml);
         }
+
+          openLoginDialog() {
+              layer.open({
+                  type: 1,
+                  title: "JavDB",
+                  closeBtn: 1,
+                  area: ["360px", "auto"],
+                  shadeClose: false,
+                  content: `
+                <div style="padding: 30px; font-family: 'Helvetica Neue', Arial, sans-serif;">
+                    <div style="margin-bottom: 25px;">
+                        <input type="text" id="username" name="username" 
+                            style="width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 4px; 
+                                   box-sizing: border-box; transition: all 0.3s; font-size: 14px;
+                                   background: #f9f9f9; color: #333;"
+                            placeholder="用户名 | 邮箱"
+                            onfocus="this.style.borderColor='#4a8bfc'; this.style.background='#fff'"
+                            onblur="this.style.borderColor='#e0e0e0'; this.style.background='#f9f9f9'">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <input type="password" id="password" name="password" 
+                            style="width: 100%; padding: 12px 15px; border: 1px solid #e0e0e0; border-radius: 4px; 
+                                   box-sizing: border-box; transition: all 0.3s; font-size: 14px;
+                                   background: #f9f9f9; color: #333;"
+                            placeholder="密码"
+                            onfocus="this.style.borderColor='#4a8bfc'; this.style.background='#fff'"
+                            onblur="this.style.borderColor='#e0e0e0'; this.style.background='#f9f9f9'">
+                    </div>
+                    
+                    <button id="loginBtn" 
+                            style="width: 100%; padding: 12px; background: #4a8bfc; color: white; 
+                                   border: none; border-radius: 4px; font-size: 15px; cursor: pointer;
+                                   transition: background 0.3s;"
+                            onmouseover="this.style.background='#3a7be0'"
+                            onmouseout="this.style.background='#4a8bfc'">
+                        登录
+                    </button>
+                </div>
+            `,
+                  success: (layero, index) => {
+                      $("#loginBtn").click((function () {
+                          const username = $("#username").val(), password = $("#password").val();
+                          if (!username || !password) {
+                              show.error("请输入用户名和密码");
+                              return;
+                          }
+                          let loadObj = loading();
+                          javDbApi.login(username, password).then((async (res) => {
+                              let success = res.success;
+                              if (0 === success) show.error(res.message);
+                              else {
+                                  if (1 !== success) {
+                                      clog.error("登录失败", res);
+                                      throw new Error(res.message);
+                                  }
+                                  {
+                                      let token = res.data.token;
+                                      await localStorage.setItem("jhs_appAuthorization", token);
+                                      show.ok("登录成功");
+                                      layer.close(index);
+                                      window.location.href = "/rankings/playback" + window.location.search;
+                                  }
+                              }
+                          })).catch(((err) => {
+                              clog.error("登录异常:", err);
+                              show.error(err.message);
+                          })).finally((() => {
+                              loadObj.close();
+                          }));
+                      }));
+                  }
+              });
+          }
         getStarRating(score) {
           let stars = "";
           const fullStars = Math.floor(score);
